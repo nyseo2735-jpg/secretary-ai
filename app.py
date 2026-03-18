@@ -4,16 +4,15 @@ from datetime import datetime
 import time
 
 # --- 1. 고유 파스텔 컬러맵 (테두리 및 폰트용) ---
-# 바탕은 아주 연하게, 테두리와 글자는 선명한 파스텔톤으로 설정
 COLOR_MAP = {
-    "국회": {"border": "#FFB3BA", "text": "#D64545", "bg": "#FFF9F9"},      # 연분홍/진분홍
-    "정부기관": {"border": "#BAE1FF", "text": "#3D7EA6", "bg": "#F4Faff"},   # 연하늘/진파랑
-    "대한수의사회": {"border": "#BAFFC9", "text": "#2D8A3E", "bg": "#F7FFF9"}, # 연연두/진초록
-    "수의과대학": {"border": "#D1C4E9", "text": "#7A379D", "bg": "#FBF9FF"}, # 연보라/진보라
-    "언론사": {"border": "#FFCCBC", "text": "#E64A19", "bg": "#FFFBF9"},   # 연주황/진주황
-    "기업": {"border": "#CFD8DC", "text": "#455A64", "bg": "#F8F9FA"},      # 연회청/진회청
-    "유관단체": {"border": "#B2EBF2", "text": "#0097A7", "bg": "#F2FDFF"},   # 연청록/진청록
-    "기타": {"border": "#EEEEEE", "text": "#757575", "bg": "#FFFFFF"}       # 연회색/진회색
+    "국회": {"color": "#D64545", "bg": "#FFF0F0"},      # 레드
+    "정부기관": {"color": "#3D7EA6", "bg": "#F0F7FF"},   # 블루
+    "대한수의사회": {"color": "#2D8A3E", "bg": "#F2FBF2"}, # 그린
+    "수의과대학": {"color": "#7A379D", "bg": "#F9F0FF"}, # 퍼플
+    "언론사": {"color": "#E64A19", "bg": "#FFF7F0"},   # 오렌지
+    "기업": {"color": "#455A64", "bg": "#F0F2F5"},      # 네이비/그레이
+    "유관단체": {"color": "#0097A7", "bg": "#F0FFFF"},   # 청록
+    "기타": {"color": "#757575", "bg": "#F8F9FA"}       # 회색
 }
 
 CATEGORIES = list(COLOR_MAP.keys())
@@ -21,52 +20,52 @@ CATEGORIES = list(COLOR_MAP.keys())
 # --- 2. 페이지 설정 및 디자인 (CSS) ---
 st.set_page_config(page_title="KVMA 회장님 일정", layout="wide")
 
+# 강한 빨간색 테마를 무력화하고 파스텔톤으로 강제 변경하는 CSS
 st.markdown(f"""
     <style>
     @import url('https://fonts.googleapis.com/css2?family=Pretendard:wght@400;700&display=swap');
     * {{ font-family: 'Pretendard', sans-serif; }}
     
-    /* 배경 및 기본 톤 */
+    /* 1. 배경색 흰색 고정 */
     .main {{ background-color: #ffffff; }}
-    
-    /* 검색 필터(Multiselect)의 붉은 배경 제거 및 아웃라인 스타일링 */
+
+    /* 2. 문제의 빨간색 상자 제거 및 커스텀 스타일링 */
+    /* Multiselect 태그 내부의 붉은 배경을 흰색/연한 회색으로 강제 변경 */
     div[data-baseweb="tag"] {{
-        background-color: #f0f2f6 !important;
-        border: 1px solid #dfe1e6 !important;
-        color: #333333 !important;
-        border-radius: 15px !important;
+        background-color: white !important;
+        border: 1px solid #ddd !important;
+        border-radius: 20px !important;
+        padding: 2px 8px !important;
     }}
+    /* 태그 안의 X 아이콘 색상 변경 */
     div[data-baseweb="tag"] span {{
-        color: #333333 !important;
+        color: #666 !important;
     }}
     
-    /* 일정 카드: 라운드 박스 + 아웃라인 스타일 */
+    /* 3. 일정 카드: 테두리 선과 폰트 컬러만 고유색 적용 */
     .schedule-container {{
         padding: 25px; 
-        border-radius: 18px;
+        border-radius: 20px;
         margin-bottom: 25px; 
         border: 2px solid; /* 테두리 강조 */
-        background-color: white;
-        transition: all 0.3s ease;
+        background-color: white; /* 카드 배경은 흰색으로 깔끔하게 */
+        box-shadow: 4px 4px 15px rgba(0,0,0,0.03);
     }}
+    
     .time-badge {{ font-size: 1.1rem; font-weight: 700; margin-bottom: 5px; display: block; }}
-    .subject-title {{ font-size: 1.6rem; font-weight: 800; margin-bottom: 15px; display: block; }}
+    .subject-title {{ font-size: 1.7rem; font-weight: 800; margin-bottom: 15px; display: block; }}
     
-    .info-grid {{ display: grid; grid-template-columns: 1fr 1fr; gap: 15px; font-size: 1rem; color: #444; }}
+    .info-grid {{ display: grid; grid-template-columns: 1fr 1fr; gap: 12px; font-size: 1rem; color: #333; }}
     
-    /* 포스트잇 메모 섹션 */
+    /* 포스트잇 메모 */
     .memo-section {{
-        background-color: #FFFCF0; padding: 15px; border-radius: 10px;
+        background-color: #FFFDE7; padding: 15px; border-radius: 12px;
         border: 1px dashed #FFD54F; margin-top: 20px; font-size: 0.95rem;
     }}
-    
-    /* 수정 버튼 디자인 */
+
+    /* 버튼 스타일 조정 */
     .stButton>button {{
-        border-radius: 20px;
-        border: 1px solid #ddd;
-        background-color: white;
-        color: #666;
-        font-size: 0.8rem;
+        border-radius: 20px; border: 1px solid #eee; background-color: white; color: #888;
     }}
     </style>
     """, unsafe_allow_html=True)
@@ -138,6 +137,7 @@ else:
     with st.expander("🔍 검색 및 필터 옵션", expanded=False):
         f_col1, f_col2, f_col3 = st.columns([2, 3, 1])
         search_txt = f_col1.text_input("회의명/대상 검색")
+        # 필터의 빨간색은 CSS에서 이미 무력화됨
         search_cat = f_col2.multiselect("카테고리 선택", CATEGORIES, default=CATEGORIES)
         filter_date = f_col3.date_input("날짜 이동", value=datetime.now())
 
@@ -177,13 +177,13 @@ else:
                         st.session_state.edit_id = None
                         st.rerun()
             else:
-                # [일정 카드: 파스텔 아웃라인 디자인]
+                # [일정 카드 디자인: 요청하신 대로 테두리 선과 폰트만 동일 컬러 적용]
                 st.markdown(f"""
-                <div class="schedule-container" style="border-color: {c['border']}; background-color: {c['bg']};">
+                <div class="schedule-container" style="border-color: {c['color']}; background-color: {c['bg']};">
                     <div style="display: flex; justify-content: space-between;">
                         <div>
-                            <span class="time-badge" style="color: {c['text']};">⏰ {row['Time']} | {row['Category']}</span>
-                            <span class="subject-title" style="color: {c['text']};">{row['Subject']}</span>
+                            <span class="time-badge" style="color: {c['color']};">⏰ {row['Time']} | {row['Category']}</span>
+                            <span class="subject-title" style="color: {c['color']};">{row['Subject']}</span>
                         </div>
                         <div style="text-align: right;">
                              <span style="font-size: 0.8rem; color: #999;">{f'updated. {row["Updated"]}' if row['Updated'] else ''}</span>
@@ -195,7 +195,7 @@ else:
                         <div><b>👥 동행:</b> {row['Companion']}</div>
                         <div><b>👔 수행:</b> {row['Staff']}</div>
                     </div>
-                    <div style="margin-top:15px; border-top: 1px solid {c['border']}; padding-top:12px;">
+                    <div style="margin-top:15px; border-top: 1px solid {c['color']}55; padding-top:12px;">
                         <b>🎯 회의 목적:</b> {row['Purpose']}<br>
                         <b>📋 대응 방향:</b> {row['ActionPlan']}<br>
                         <small style="color:#666; display:block; margin-top:5px;">ℹ️ {row['ExtraInfo']}</small>
@@ -204,8 +204,8 @@ else:
                 </div>
                 """, unsafe_allow_html=True)
                 
-                # 수정 버튼을 카드 바로 아래에 배치
-                edit_col1, edit_col2 = st.columns([9.3, 0.7])
-                if edit_col2.button("📝 수정", key=f"btn_{row['ID']}"):
+                # 수정 버튼
+                col_e1, col_e2 = st.columns([9.4, 0.6])
+                if col_e2.button("📝", key=f"edit_btn_{row['ID']}"):
                     st.session_state.edit_id = row['ID']
                     st.rerun()
