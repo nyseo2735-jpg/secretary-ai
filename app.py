@@ -66,7 +66,7 @@ html, body, [class*="css"] {
 }
 
 .block-container {
-    padding-top: 1.2rem;
+    padding-top: 2.2rem;
     padding-bottom: 2rem;
     max-width: 1600px;
 }
@@ -79,9 +79,13 @@ h1, h2, h3 {
     font-size: 2.9rem;
     font-weight: 800;
     color: #2F3142;
-    margin-bottom: 0.35rem;
-    line-height: 1.15;
+    margin-top: 0.4rem;
+    margin-bottom: 0.55rem;
+    line-height: 1.2;
     word-break: keep-all;
+    white-space: normal;
+    overflow: visible;
+    padding-top: 0.2rem;
 }
 
 .sub-text {
@@ -122,23 +126,24 @@ h1, h2, h3 {
 .metric-card {
     background: #ffffff;
     border: 1px solid #ECEEF3;
-    border-radius: 18px;
-    padding: 12px 16px 10px 16px;
-    min-height: 88px;
+    border-radius: 14px;
+    padding: 8px 12px 7px 12px;
+    min-height: 62px;
 }
 
 .metric-label {
-    font-size: 0.84rem;
+    font-size: 0.76rem;
     color: #6B7280;
     font-weight: 700;
-    margin-bottom: 4px;
+    margin-bottom: 2px;
+    line-height: 1.15;
 }
 
 .metric-value {
-    font-size: 1.2rem;
+    font-size: 0.95rem;
     font-weight: 800;
     color: #2F3142;
-    line-height: 1.1;
+    line-height: 1.05;
 }
 
 .summary-card {
@@ -392,14 +397,14 @@ def init_sample_data():
     ])
     return ensure_columns(sample)
 
-def get_filtered_df(df, selected_cat="전체", search_text="", status_filter="전체"):
+def get_filtered_df(df, selected_cat="카테고리", search_text="", status_filter="현황"):
     temp = df.copy()
     temp["Date"] = pd.to_datetime(temp["Date"], errors="coerce").dt.date
 
-    if selected_cat != "전체":
+    if selected_cat not in ["전체", "카테고리"]:
         temp = temp[temp["Category"] == selected_cat]
 
-    if status_filter != "전체":
+    if status_filter not in ["전체", "현황"]:
         temp = temp[temp["Status"] == status_filter]
 
     if search_text:
@@ -481,10 +486,10 @@ if "selected_date" not in st.session_state:
     st.session_state.selected_date = datetime.now().date()
 
 if "selected_cat" not in st.session_state:
-    st.session_state.selected_cat = "전체"
+    st.session_state.selected_cat = "카테고리"
 
 if "selected_status" not in st.session_state:
-    st.session_state.selected_status = "전체"
+    st.session_state.selected_status = "현황"
 
 if "edit_id" not in st.session_state:
     st.session_state.edit_id = None
@@ -847,39 +852,43 @@ else:
     st.markdown('<div class="panel">', unsafe_allow_html=True)
     st.markdown("**검색어 · 카테고리 · 현황 · 날짜를 기준으로 일정을 찾을 수 있습니다.**")
 
-    fc1, fc2, fc3, fc4, fc5 = st.columns([2.5, 1.15, 1.15, 1.2, 0.8])
+fc1, fc2, fc3, fc4, fc5 = st.columns([2.7, 1.2, 1.2, 1.25, 0.8])
 
-    search_text = fc1.text_input(
-        "검색",
-        placeholder="회의명 / 방문기관명 / 담당자명 / 연락처 / 후속업무 검색",
-        label_visibility="collapsed"
-    )
+search_text = fc1.text_input(
+    "검색",
+    placeholder="회의명 / 방문기관명 / 담당자명 / 연락처 / 후속업무 검색",
+    label_visibility="collapsed"
+)
 
-    selected_cat = fc2.selectbox(
-        "카테고리",
-        ["전체"] + CATEGORIES,
-        index=(["전체"] + CATEGORIES).index(st.session_state.selected_cat)
-        if st.session_state.selected_cat in (["전체"] + CATEGORIES) else 0
-    )
-    st.session_state.selected_cat = selected_cat
+selected_cat = fc2.selectbox(
+    "",
+    ["카테고리"] + CATEGORIES,
+    index=(["카테고리"] + CATEGORIES).index(st.session_state.selected_cat)
+    if st.session_state.selected_cat in (["카테고리"] + CATEGORIES) else 0,
+    label_visibility="collapsed"
+)
+st.session_state.selected_cat = selected_cat
 
-    selected_status = fc3.selectbox(
-        "현황",
-        ["전체"] + STATUS_OPTIONS,
-        index=(["전체"] + STATUS_OPTIONS).index(st.session_state.selected_status)
-        if st.session_state.selected_status in (["전체"] + STATUS_OPTIONS) else 0
-    )
-    st.session_state.selected_status = selected_status
+selected_status = fc3.selectbox(
+    "",
+    ["현황"] + STATUS_OPTIONS,
+    index=(["현황"] + STATUS_OPTIONS).index(st.session_state.selected_status)
+    if st.session_state.selected_status in (["현황"] + STATUS_OPTIONS) else 0,
+    label_visibility="collapsed"
+)
+st.session_state.selected_status = selected_status
+st.session_state.selected_status = selected_status
 
-    selected_date = fc4.date_input(
-        "날짜",
-        value=st.session_state.selected_date
-    )
-    st.session_state.selected_date = selected_date
+selected_date = fc4.date_input(
+    "",
+    value=st.session_state.selected_date,
+    label_visibility="collapsed"
+)
+st.session_state.selected_date = selected_date
 
-    if fc5.button("오늘", use_container_width=True):
-        st.session_state.selected_date = datetime.now().date()
-        st.rerun()
+if fc5.button("오늘", use_container_width=True):
+    st.session_state.selected_date = datetime.now().date()
+    st.rerun()
 
     render_legend()
     st.markdown('</div>', unsafe_allow_html=True)
@@ -895,7 +904,7 @@ else:
     day_df["Date"] = pd.to_datetime(day_df["Date"], errors="coerce").dt.date
     day_df = day_df[day_df["Date"] == st.session_state.selected_date].sort_values(by="Time")
 
-    m1, m2, m3, m4 = st.columns(4)
+    m1, m2, m3, m4, m5 = st.columns([1, 1, 1, 1, 1.8])
     with m1:
         st.markdown(f'<div class="metric-card"><div class="metric-label">선택일 일정 수</div><div class="metric-value">{len(day_df)}</div></div>', unsafe_allow_html=True)
     with m2:
@@ -904,7 +913,9 @@ else:
         st.markdown(f'<div class="metric-card"><div class="metric-label">보류 일정</div><div class="metric-value">{len(filtered_df[filtered_df["Status"]=="보류"])}</div></div>', unsafe_allow_html=True)
     with m4:
         st.markdown(f'<div class="metric-card"><div class="metric-label">취소 일정</div><div class="metric-value">{len(filtered_df[filtered_df["Status"]=="취소"])}</div></div>', unsafe_allow_html=True)
-
+    with m5:
+    st.empty()
+    
     tabs = st.tabs(["일별 보기", "주간 보기", "월별 보기"])
 
     # -----------------------------------------------------
