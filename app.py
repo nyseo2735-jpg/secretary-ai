@@ -2,6 +2,7 @@ import streamlit as st
 import pandas as pd
 from datetime import datetime, date, timedelta
 import calendar
+import html
 
 # =========================================================
 # 1. 페이지 설정
@@ -66,7 +67,7 @@ html, body, [class*="css"] {
 }
 
 .block-container {
-    padding-top: 2.2rem;
+    padding-top: 2.4rem;
     padding-bottom: 2rem;
     max-width: 1600px;
 }
@@ -79,13 +80,13 @@ h1, h2, h3 {
     font-size: 2.9rem;
     font-weight: 800;
     color: #2F3142;
-    margin-top: 0.4rem;
+    margin-top: 0.5rem;
     margin-bottom: 0.55rem;
     line-height: 1.2;
     word-break: keep-all;
     white-space: normal;
     overflow: visible;
-    padding-top: 0.2rem;
+    padding-top: 0.25rem;
 }
 
 .sub-text {
@@ -242,33 +243,6 @@ h1, h2, h3 {
     white-space: pre-wrap;
 }
 
-.month-event-line {
-    border-radius: 12px;
-    padding: 7px 9px;
-    margin-bottom: 6px;
-    font-size: 0.78rem;
-    line-height: 1.35;
-    border: 1px solid;
-    font-weight: 700;
-    word-break: break-word;
-}
-
-.day-box {
-    border: 1px solid #E7EAF0;
-    border-radius: 16px;
-    background: #ffffff;
-    padding: 10px;
-    min-height: 160px;
-    margin-bottom: 10px;
-}
-
-.day-head {
-    font-size: 1rem;
-    font-weight: 800;
-    color: #2F3142;
-    margin-bottom: 8px;
-}
-
 .small-action button {
     min-height: 34px !important;
     height: 34px !important;
@@ -307,6 +281,76 @@ div[data-testid="stForm"] {
     font-size: 1rem !important;
 }
 
+/* 주간/월간 HTML details */
+.wm-detail {
+    margin-bottom: 8px;
+    border-radius: 12px;
+}
+
+.wm-summary {
+    list-style: none;
+    cursor: pointer;
+    border-radius: 12px;
+    padding: 7px 9px;
+    font-size: 0.78rem;
+    line-height: 1.35;
+    border: 1px solid;
+    font-weight: 700;
+    word-break: break-word;
+}
+
+.wm-summary::-webkit-details-marker {
+    display: none;
+}
+
+.wm-content {
+    margin-top: 8px;
+    padding: 10px;
+    border: 1px solid #ECEEF3;
+    border-radius: 14px;
+    background: #ffffff;
+}
+
+.wm-grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 8px;
+}
+
+.wm-box {
+    border: 1px solid #ECEEF3;
+    border-radius: 12px;
+    padding: 8px 10px;
+    background: #ffffff;
+}
+
+.wm-label {
+    font-size: 0.74rem;
+    font-weight: 800;
+    color: #6B7280;
+    margin-bottom: 4px;
+}
+
+.wm-value {
+    font-size: 0.88rem;
+    font-weight: 600;
+    color: #232634;
+    line-height: 1.45;
+    word-break: break-word;
+    white-space: pre-wrap;
+}
+
+.day-head {
+    font-size: 1rem;
+    font-weight: 800;
+    color: #2F3142;
+    margin-bottom: 8px;
+}
+
+.week-anchor-row {
+    margin-bottom: 10px;
+}
+
 @media (max-width: 1000px) {
     .main-title {
         font-size: 2.1rem;
@@ -339,6 +383,9 @@ def safe_str(v):
     if pd.isna(v):
         return ""
     return str(v).strip()
+
+def esc(v):
+    return html.escape(safe_str(v) if safe_str(v) else "-")
 
 def csv_download_bytes(df: pd.DataFrame) -> bytes:
     return df.to_csv(index=False, encoding="utf-8-sig").encode("utf-8-sig")
@@ -392,6 +439,30 @@ def init_sample_data():
             "FollowTask": "회의록",
             "FollowDue": str(today),
             "SharedNote": "후속 팔롬",
+            "Updated": datetime.now().strftime("%Y-%m-%d %H:%M"),
+        },
+        {
+            "ID": "3",
+            "Date": str(today),
+            "Time": "08:30",
+            "Category": "수의과대학",
+            "Subject": "회관도착",
+            "OrgName": "수의과대학 본관",
+            "DetailPlace": "정문",
+            "TargetDept": "행정실",
+            "TargetName": "담당자",
+            "TargetContact": "010-2222-3333",
+            "Companion": "비서",
+            "Staff": "수행직원",
+            "Purpose": "행사 전 도착",
+            "ActionPlan": "행사장 확인",
+            "Memo": "도착 후 안내 연락",
+            "Status": "확정",
+            "Priority": "보통",
+            "FollowOwner": "비서",
+            "FollowTask": "도착 확인",
+            "FollowDue": str(today),
+            "SharedNote": "행사 준비팀과 공유",
             "Updated": datetime.now().strftime("%Y-%m-%d %H:%M"),
         }
     ])
@@ -508,12 +579,12 @@ def render_summary_header(row):
             <div class="summary-accent" style="background:{c['line']};"></div>
             <div class="summary-body">
                 <div class="summary-meta" style="color:{c['text']};">
-                    ⏰ {safe_str(row["Time"])}
-                    <span class="tag-pill" style="background:{c["soft"]}; color:{c["text"]}; border-color:{c["line"]};">{safe_str(row["Category"])}</span>
-                    <span class="tag-pill">{safe_str(row["Status"])}</span>
-                    <span class="tag-pill">우선순위 {safe_str(row["Priority"])}</span>
+                    ⏰ {esc(row["Time"])}
+                    <span class="tag-pill" style="background:{c["soft"]}; color:{c["text"]}; border-color:{c["line"]};">{esc(row["Category"])}</span>
+                    <span class="tag-pill">{esc(row["Status"])}</span>
+                    <span class="tag-pill">우선순위 {esc(row["Priority"])}</span>
                 </div>
-                <div class="summary-title">{safe_str(row["Subject"])}</div>
+                <div class="summary-title">{esc(row["Subject"])}</div>
             </div>
         </div>
     </div>
@@ -525,13 +596,13 @@ def render_detail_blocks(row):
         st.markdown(f"""
         <div class="info-box">
             <div class="info-label">방문기관명</div>
-            <div class="info-value">🏢 {safe_str(row["OrgName"]) or "-"}</div>
+            <div class="info-value">🏢 {esc(row["OrgName"])}</div>
         </div>
         """, unsafe_allow_html=True)
         st.markdown(f"""
         <div class="info-box">
             <div class="info-label">회의장소(세부)</div>
-            <div class="info-value">📍 {safe_str(row["DetailPlace"]) or "-"}</div>
+            <div class="info-value">📍 {esc(row["DetailPlace"])}</div>
         </div>
         """, unsafe_allow_html=True)
 
@@ -539,13 +610,13 @@ def render_detail_blocks(row):
         st.markdown(f"""
         <div class="info-box">
             <div class="info-label">보좌관/비서/담당자 정보</div>
-            <div class="info-value">👤 {contact_text(row)}</div>
+            <div class="info-value">👤 {html.escape(contact_text(row))}</div>
         </div>
         """, unsafe_allow_html=True)
         st.markdown(f"""
         <div class="info-box">
             <div class="info-label">회장님 외 동행인</div>
-            <div class="info-value">👥 {safe_str(row["Companion"]) or "-"}</div>
+            <div class="info-value">👥 {esc(row["Companion"])}</div>
         </div>
         """, unsafe_allow_html=True)
 
@@ -553,13 +624,13 @@ def render_detail_blocks(row):
         st.markdown(f"""
         <div class="info-box">
             <div class="info-label">사무처 수행직원</div>
-            <div class="info-value">🧾 {safe_str(row["Staff"]) or "-"}</div>
+            <div class="info-value">🧾 {esc(row["Staff"])}</div>
         </div>
         """, unsafe_allow_html=True)
         st.markdown(f"""
         <div class="info-box">
             <div class="info-label">최종 수정</div>
-            <div class="info-value">🕒 {safe_str(row["Updated"]) or "-"}</div>
+            <div class="info-value">🕒 {esc(row["Updated"])}</div>
         </div>
         """, unsafe_allow_html=True)
 
@@ -568,13 +639,13 @@ def render_detail_blocks(row):
         st.markdown(f"""
         <div class="info-box">
             <div class="info-label">회의 목적</div>
-            <div class="info-value">{safe_str(row["Purpose"]) or "-"}</div>
+            <div class="info-value">{esc(row["Purpose"])}</div>
         </div>
         """, unsafe_allow_html=True)
         st.markdown(f"""
         <div class="info-box">
             <div class="info-label">주 담당자</div>
-            <div class="info-value">{safe_str(row["FollowOwner"]) or "-"}</div>
+            <div class="info-value">{esc(row["FollowOwner"])}</div>
         </div>
         """, unsafe_allow_html=True)
 
@@ -582,34 +653,34 @@ def render_detail_blocks(row):
         st.markdown(f"""
         <div class="info-box">
             <div class="info-label">대응 방향</div>
-            <div class="info-value">{safe_str(row["ActionPlan"]) or "-"}</div>
+            <div class="info-value">{esc(row["ActionPlan"])}</div>
         </div>
         """, unsafe_allow_html=True)
         st.markdown(f"""
         <div class="info-box">
             <div class="info-label">준비 완료기한</div>
-            <div class="info-value">{safe_str(row["FollowDue"]) or "-"}</div>
+            <div class="info-value">{esc(row["FollowDue"])}</div>
         </div>
         """, unsafe_allow_html=True)
 
     st.markdown(f"""
     <div class="info-box">
         <div class="info-label">후속/준비사항</div>
-        <div class="info-value">{safe_str(row["FollowTask"]) or "-"}</div>
+        <div class="info-value">{esc(row["FollowTask"])}</div>
     </div>
     """, unsafe_allow_html=True)
 
     st.markdown(f"""
     <div class="info-box">
         <div class="info-label">공유 메모</div>
-        <div class="info-value">{safe_str(row["SharedNote"]) or "-"}</div>
+        <div class="info-value">{esc(row["SharedNote"])}</div>
     </div>
     """, unsafe_allow_html=True)
 
     st.markdown(f"""
     <div class="memo-box">
         <div class="memo-title">📌 Memo</div>
-        <div class="memo-text">{safe_str(row["Memo"]) or "-"}</div>
+        <div class="memo-text">{esc(row["Memo"])}</div>
     </div>
     """, unsafe_allow_html=True)
 
@@ -648,12 +719,71 @@ def render_day_expander(row, prefix="", expanded=True):
         render_detail_blocks(row)
         render_action_buttons(row, prefix=prefix)
 
-def render_week_month_expander(row, prefix=""):
-    label = event_label(row)
-    with st.expander(label, expanded=False):
-        render_summary_header(row)
-        render_detail_blocks(row)
-        render_action_buttons(row, prefix=prefix)
+def render_week_month_details_html(row):
+    c = get_color(row["Category"])
+    return f"""
+    <details class="wm-detail">
+        <summary class="wm-summary" style="color:{c["text"]}; border-color:{c["line"]}; background:{c["soft"]};">
+            {html.escape(event_label(row))}
+        </summary>
+        <div class="wm-content">
+            <div class="wm-grid">
+                <div class="wm-box">
+                    <div class="wm-label">방문기관명</div>
+                    <div class="wm-value">{esc(row["OrgName"])}</div>
+                </div>
+                <div class="wm-box">
+                    <div class="wm-label">회의장소(세부)</div>
+                    <div class="wm-value">{esc(row["DetailPlace"])}</div>
+                </div>
+                <div class="wm-box">
+                    <div class="wm-label">보좌관/비서/담당자 정보</div>
+                    <div class="wm-value">{html.escape(contact_text(row))}</div>
+                </div>
+                <div class="wm-box">
+                    <div class="wm-label">회장님 외 동행인</div>
+                    <div class="wm-value">{esc(row["Companion"])}</div>
+                </div>
+                <div class="wm-box">
+                    <div class="wm-label">사무처 수행직원</div>
+                    <div class="wm-value">{esc(row["Staff"])}</div>
+                </div>
+                <div class="wm-box">
+                    <div class="wm-label">회의 목적</div>
+                    <div class="wm-value">{esc(row["Purpose"])}</div>
+                </div>
+                <div class="wm-box">
+                    <div class="wm-label">대응 방향</div>
+                    <div class="wm-value">{esc(row["ActionPlan"])}</div>
+                </div>
+                <div class="wm-box">
+                    <div class="wm-label">주 담당자</div>
+                    <div class="wm-value">{esc(row["FollowOwner"])}</div>
+                </div>
+                <div class="wm-box">
+                    <div class="wm-label">준비 완료기한</div>
+                    <div class="wm-value">{esc(row["FollowDue"])}</div>
+                </div>
+                <div class="wm-box">
+                    <div class="wm-label">후속/준비사항</div>
+                    <div class="wm-value">{esc(row["FollowTask"])}</div>
+                </div>
+                <div class="wm-box">
+                    <div class="wm-label">공유 메모</div>
+                    <div class="wm-value">{esc(row["SharedNote"])}</div>
+                </div>
+                <div class="wm-box">
+                    <div class="wm-label">Memo</div>
+                    <div class="wm-value">{esc(row["Memo"])}</div>
+                </div>
+                <div class="wm-box">
+                    <div class="wm-label">최종 수정</div>
+                    <div class="wm-value">{esc(row["Updated"])}</div>
+                </div>
+            </div>
+        </div>
+    </details>
+    """
 
 def render_form(mode="new", row_data=None):
     if row_data is None:
@@ -959,9 +1089,10 @@ else:
 
         wc1, wc2 = st.columns([1.3, 4.7])
         week_anchor = wc1.date_input(
-            "기준 날짜",
+            "",
             value=st.session_state.selected_date,
-            key="week_anchor_date"
+            key="week_anchor_date",
+            label_visibility="collapsed"
         )
         if wc2.button("이 날짜가 포함된 주 보기", key="apply_week_anchor"):
             st.session_state.selected_date = week_anchor
@@ -977,7 +1108,6 @@ else:
 
         for idx, day_obj in enumerate(week_days):
             with cols[idx]:
-                st.markdown('<div class="day-box">', unsafe_allow_html=True)
                 st.markdown(
                     f'<div class="day-head">{day_obj.month}/{day_obj.day} ({day_names[idx]})</div>',
                     unsafe_allow_html=True
@@ -987,15 +1117,8 @@ else:
                 if daily.empty:
                     st.caption("일정 없음")
                 else:
-                    for ridx, (_, row) in enumerate(daily.iterrows()):
-                        c = get_color(row["Category"])
-                        st.markdown(
-                            f'<div class="month-event-line" style="color:{c["text"]}; border-color:{c["line"]}; background:{c["soft"]};">{event_label(row)}</div>',
-                            unsafe_allow_html=True
-                        )
-                        render_week_month_expander(row, prefix=f"week_{idx}_{ridx}")
-
-                st.markdown('</div>', unsafe_allow_html=True)
+                    for _, row in daily.iterrows():
+                        st.markdown(render_week_month_details_html(row), unsafe_allow_html=True)
 
     # -----------------------------------------------------
     # 월별 보기
@@ -1034,17 +1157,16 @@ else:
         for i, name in enumerate(weekday_names):
             head_cols[i].markdown(f"**{name}**")
 
-        for widx, week in enumerate(weeks):
+        for week in weeks:
             week_cols = st.columns(7)
             for didx, day_obj in enumerate(week):
                 with week_cols[didx]:
-                    st.markdown('<div class="day-box">', unsafe_allow_html=True)
-
                     if day_obj.month != month_month:
                         st.markdown(
                             f"<div class='day-head' style='color:#B5BBC8;'>{day_obj.day}일</div>",
                             unsafe_allow_html=True
                         )
+                        st.caption(" ")
                     else:
                         st.markdown(
                             f"<div class='day-head'>{day_obj.day}일</div>",
@@ -1055,12 +1177,5 @@ else:
                         if daily.empty:
                             st.caption("일정 없음")
                         else:
-                            for ridx, (_, row) in enumerate(daily.iterrows()):
-                                c = get_color(row["Category"])
-                                st.markdown(
-                                    f'<div class="month-event-line" style="color:{c["text"]}; border-color:{c["line"]}; background:{c["soft"]};">{event_label(row)}</div>',
-                                    unsafe_allow_html=True
-                                )
-                                render_week_month_expander(row, prefix=f"month_{widx}_{didx}_{ridx}")
-
-                    st.markdown('</div>', unsafe_allow_html=True)
+                            for _, row in daily.iterrows():
+                                st.markdown(render_week_month_details_html(row), unsafe_allow_html=True)
