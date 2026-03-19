@@ -424,7 +424,7 @@ def get_filtered_df(df, selected_cat="카테고리", search_text="", status_filt
     return temp.sort_values(by=["Date", "Time"])
 
 def week_dates_from_any_day(any_day: date):
-    start = any_day - timedelta(days=(any_day.weekday() + 1) % 7)  # 일요일 시작
+    start = any_day - timedelta(days=(any_day.weekday() + 1) % 7)
     return [start + timedelta(days=i) for i in range(7)]
 
 def month_calendar_weeks(year: int, month: int):
@@ -500,7 +500,7 @@ if "flash_message" not in st.session_state:
 # =========================================================
 # 6. 렌더 함수
 # =========================================================
-def render_summary_header(row, prefix=""):
+def render_summary_header(row):
     c = get_color(row["Category"])
     st.markdown(f"""
     <div class="summary-card" style="background:{c['bg']};">
@@ -631,7 +631,9 @@ def render_action_buttons(row, prefix=""):
         st.rerun()
 
     if c3.button("삭제", key=f"{prefix}_delete_{row['ID']}", use_container_width=True):
-        st.session_state.data = st.session_state.data[st.session_state.data["ID"] != row["ID"]].reset_index(drop=True)
+        st.session_state.data = st.session_state.data[
+            st.session_state.data["ID"] != row["ID"]
+        ].reset_index(drop=True)
         if st.session_state.edit_id == row["ID"]:
             st.session_state.edit_id = None
         st.session_state.flash_message = "일정이 삭제되었습니다."
@@ -640,18 +642,16 @@ def render_action_buttons(row, prefix=""):
     st.markdown('</div>', unsafe_allow_html=True)
 
 def render_day_expander(row, prefix="", expanded=True):
-    c = get_color(row["Category"])
     label = f"{safe_str(row['Time'])} · {safe_str(row['Subject'])}"
     with st.expander(label, expanded=expanded):
-        render_summary_header(row, prefix=prefix)
+        render_summary_header(row)
         render_detail_blocks(row)
         render_action_buttons(row, prefix=prefix)
 
 def render_week_month_expander(row, prefix=""):
-    c = get_color(row["Category"])
     label = event_label(row)
     with st.expander(label, expanded=False):
-        render_summary_header(row, prefix=prefix)
+        render_summary_header(row)
         render_detail_blocks(row)
         render_action_buttons(row, prefix=prefix)
 
@@ -852,43 +852,42 @@ else:
     st.markdown('<div class="panel">', unsafe_allow_html=True)
     st.markdown("**검색어 · 카테고리 · 현황 · 날짜를 기준으로 일정을 찾을 수 있습니다.**")
 
-fc1, fc2, fc3, fc4, fc5 = st.columns([2.7, 1.2, 1.2, 1.25, 0.8])
+    fc1, fc2, fc3, fc4, fc5 = st.columns([2.7, 1.2, 1.2, 1.25, 0.8])
 
-search_text = fc1.text_input(
-    "검색",
-    placeholder="회의명 / 방문기관명 / 담당자명 / 연락처 / 후속업무 검색",
-    label_visibility="collapsed"
-)
+    search_text = fc1.text_input(
+        "검색",
+        placeholder="회의명 / 방문기관명 / 담당자명 / 연락처 / 후속업무 검색",
+        label_visibility="collapsed"
+    )
 
-selected_cat = fc2.selectbox(
-    "",
-    ["카테고리"] + CATEGORIES,
-    index=(["카테고리"] + CATEGORIES).index(st.session_state.selected_cat)
-    if st.session_state.selected_cat in (["카테고리"] + CATEGORIES) else 0,
-    label_visibility="collapsed"
-)
-st.session_state.selected_cat = selected_cat
+    selected_cat = fc2.selectbox(
+        "",
+        ["카테고리"] + CATEGORIES,
+        index=(["카테고리"] + CATEGORIES).index(st.session_state.selected_cat)
+        if st.session_state.selected_cat in (["카테고리"] + CATEGORIES) else 0,
+        label_visibility="collapsed"
+    )
+    st.session_state.selected_cat = selected_cat
 
-selected_status = fc3.selectbox(
-    "",
-    ["현황"] + STATUS_OPTIONS,
-    index=(["현황"] + STATUS_OPTIONS).index(st.session_state.selected_status)
-    if st.session_state.selected_status in (["현황"] + STATUS_OPTIONS) else 0,
-    label_visibility="collapsed"
-)
-st.session_state.selected_status = selected_status
-st.session_state.selected_status = selected_status
+    selected_status = fc3.selectbox(
+        "",
+        ["현황"] + STATUS_OPTIONS,
+        index=(["현황"] + STATUS_OPTIONS).index(st.session_state.selected_status)
+        if st.session_state.selected_status in (["현황"] + STATUS_OPTIONS) else 0,
+        label_visibility="collapsed"
+    )
+    st.session_state.selected_status = selected_status
 
-selected_date = fc4.date_input(
-    "",
-    value=st.session_state.selected_date,
-    label_visibility="collapsed"
-)
-st.session_state.selected_date = selected_date
+    selected_date = fc4.date_input(
+        "",
+        value=st.session_state.selected_date,
+        label_visibility="collapsed"
+    )
+    st.session_state.selected_date = selected_date
 
-if fc5.button("오늘", use_container_width=True):
-    st.session_state.selected_date = datetime.now().date()
-    st.rerun()
+    if fc5.button("오늘", use_container_width=True):
+        st.session_state.selected_date = datetime.now().date()
+        st.rerun()
 
     render_legend()
     st.markdown('</div>', unsafe_allow_html=True)
@@ -906,16 +905,28 @@ if fc5.button("오늘", use_container_width=True):
 
     m1, m2, m3, m4, m5 = st.columns([1, 1, 1, 1, 1.8])
     with m1:
-        st.markdown(f'<div class="metric-card"><div class="metric-label">선택일 일정 수</div><div class="metric-value">{len(day_df)}</div></div>', unsafe_allow_html=True)
+        st.markdown(
+            f'<div class="metric-card"><div class="metric-label">선택일 일정 수</div><div class="metric-value">{len(day_df)}</div></div>',
+            unsafe_allow_html=True
+        )
     with m2:
-        st.markdown(f'<div class="metric-card"><div class="metric-label">확정 일정</div><div class="metric-value">{len(filtered_df[filtered_df["Status"]=="확정"])}</div></div>', unsafe_allow_html=True)
+        st.markdown(
+            f'<div class="metric-card"><div class="metric-label">확정 일정</div><div class="metric-value">{len(filtered_df[filtered_df["Status"]=="확정"])}</div></div>',
+            unsafe_allow_html=True
+        )
     with m3:
-        st.markdown(f'<div class="metric-card"><div class="metric-label">보류 일정</div><div class="metric-value">{len(filtered_df[filtered_df["Status"]=="보류"])}</div></div>', unsafe_allow_html=True)
+        st.markdown(
+            f'<div class="metric-card"><div class="metric-label">보류 일정</div><div class="metric-value">{len(filtered_df[filtered_df["Status"]=="보류"])}</div></div>',
+            unsafe_allow_html=True
+        )
     with m4:
-        st.markdown(f'<div class="metric-card"><div class="metric-label">취소 일정</div><div class="metric-value">{len(filtered_df[filtered_df["Status"]=="취소"])}</div></div>', unsafe_allow_html=True)
+        st.markdown(
+            f'<div class="metric-card"><div class="metric-label">취소 일정</div><div class="metric-value">{len(filtered_df[filtered_df["Status"]=="취소"])}</div></div>',
+            unsafe_allow_html=True
+        )
     with m5:
-    st.empty()
-    
+        st.empty()
+
     tabs = st.tabs(["일별 보기", "주간 보기", "월별 보기"])
 
     # -----------------------------------------------------
@@ -927,9 +938,10 @@ if fc5.button("오늘", use_container_width=True):
             unsafe_allow_html=True
         )
 
-        # 수정 중이면 해당 일정만 수정 화면
         if st.session_state.edit_id:
-            edit_target = st.session_state.data[st.session_state.data["ID"] == st.session_state.edit_id]
+            edit_target = st.session_state.data[
+                st.session_state.data["ID"] == st.session_state.edit_id
+            ]
             if not edit_target.empty:
                 render_form(mode="edit", row_data=edit_target.iloc[0].to_dict())
         else:
@@ -946,7 +958,11 @@ if fc5.button("오늘", use_container_width=True):
         st.markdown('<div class="section-title">📅 주간 일정</div>', unsafe_allow_html=True)
 
         wc1, wc2 = st.columns([1.3, 4.7])
-        week_anchor = wc1.date_input("기준 날짜", value=st.session_state.selected_date, key="week_anchor_date")
+        week_anchor = wc1.date_input(
+            "기준 날짜",
+            value=st.session_state.selected_date,
+            key="week_anchor_date"
+        )
         if wc2.button("이 날짜가 포함된 주 보기", key="apply_week_anchor"):
             st.session_state.selected_date = week_anchor
             st.rerun()
@@ -962,7 +978,10 @@ if fc5.button("오늘", use_container_width=True):
         for idx, day_obj in enumerate(week_days):
             with cols[idx]:
                 st.markdown('<div class="day-box">', unsafe_allow_html=True)
-                st.markdown(f'<div class="day-head">{day_obj.month}/{day_obj.day} ({day_names[idx]})</div>', unsafe_allow_html=True)
+                st.markdown(
+                    f'<div class="day-head">{day_obj.month}/{day_obj.day} ({day_names[idx]})</div>',
+                    unsafe_allow_html=True
+                )
 
                 daily = week_df[week_df["Date"] == day_obj].sort_values(by="Time")
                 if daily.empty:
@@ -986,6 +1005,7 @@ if fc5.button("오늘", use_container_width=True):
 
         mc1, mc2 = st.columns([1, 1])
         year_options = list(range(datetime.now().year - 2, datetime.now().year + 4))
+
         month_year = mc1.selectbox(
             "년도",
             year_options,
@@ -1009,6 +1029,7 @@ if fc5.button("오늘", use_container_width=True):
 
         weeks = month_calendar_weeks(month_year, month_month)
         weekday_names = ["일", "월", "화", "수", "목", "금", "토"]
+
         head_cols = st.columns(7)
         for i, name in enumerate(weekday_names):
             head_cols[i].markdown(f"**{name}**")
@@ -1018,11 +1039,19 @@ if fc5.button("오늘", use_container_width=True):
             for didx, day_obj in enumerate(week):
                 with week_cols[didx]:
                     st.markdown('<div class="day-box">', unsafe_allow_html=True)
+
                     if day_obj.month != month_month:
-                        st.markdown(f"<div class='day-head' style='color:#B5BBC8;'>{day_obj.day}일</div>", unsafe_allow_html=True)
+                        st.markdown(
+                            f"<div class='day-head' style='color:#B5BBC8;'>{day_obj.day}일</div>",
+                            unsafe_allow_html=True
+                        )
                     else:
-                        st.markdown(f"<div class='day-head'>{day_obj.day}일</div>", unsafe_allow_html=True)
+                        st.markdown(
+                            f"<div class='day-head'>{day_obj.day}일</div>",
+                            unsafe_allow_html=True
+                        )
                         daily = month_df[month_df["Date"] == day_obj].sort_values(by="Time")
+
                         if daily.empty:
                             st.caption("일정 없음")
                         else:
@@ -1033,4 +1062,5 @@ if fc5.button("오늘", use_container_width=True):
                                     unsafe_allow_html=True
                                 )
                                 render_week_month_expander(row, prefix=f"month_{widx}_{didx}_{ridx}")
+
                     st.markdown('</div>', unsafe_allow_html=True)
