@@ -13,7 +13,7 @@ st.set_page_config(
 )
 
 # =========================================================
-# 2. 기본 상수
+# 2. 상수
 # =========================================================
 COLOR_MAP = {
     "국회": {"bg": "#FFF5F6", "soft": "#FDECEF", "line": "#D84C57", "text": "#B4232C"},
@@ -26,7 +26,6 @@ COLOR_MAP = {
     "기타": {"bg": "#FAFAFA", "soft": "#F2F2F2", "line": "#9CA3AF", "text": "#4B5563"},
 }
 CATEGORIES = list(COLOR_MAP.keys())
-
 STATUS_OPTIONS = ["확정", "보류", "완료", "취소"]
 PRIORITY_OPTIONS = ["높음", "보통", "낮음"]
 
@@ -56,7 +55,7 @@ DATA_COLUMNS = [
 ]
 
 # =========================================================
-# 3. CSS
+# 3. 스타일
 # =========================================================
 st.markdown("""
 <style>
@@ -67,127 +66,135 @@ html, body, [class*="css"] {
 }
 
 .block-container {
-    padding-top: 1.4rem;
-    padding-bottom: 2.8rem;
+    padding-top: 1.2rem;
+    padding-bottom: 2rem;
+    max-width: 1600px;
+}
+
+h1, h2, h3 {
+    line-height: 1.2 !important;
 }
 
 .main-title {
-    font-size: 2.5rem;
+    font-size: 2.9rem;
     font-weight: 800;
     color: #2F3142;
-    margin-bottom: 0.25rem;
+    margin-bottom: 0.35rem;
+    line-height: 1.15;
+    word-break: keep-all;
 }
 
 .sub-text {
-    font-size: 0.98rem;
+    font-size: 1rem;
     color: #6B7280;
     margin-bottom: 1.1rem;
+    line-height: 1.5;
+    word-break: keep-all;
 }
 
 .panel {
     background: #ffffff;
     border: 1px solid #ECEEF3;
-    border-radius: 20px;
-    padding: 16px;
-    box-shadow: 0 4px 18px rgba(20, 24, 40, 0.04);
-    margin-bottom: 18px;
+    border-radius: 18px;
+    padding: 14px 16px;
+    box-shadow: 0 4px 16px rgba(20, 24, 40, 0.04);
+    margin-bottom: 16px;
 }
 
 .section-title {
     font-size: 1.85rem;
     font-weight: 800;
     color: #2F3142;
-    margin: 10px 0 14px 0;
-}
-
-.small-title {
-    font-size: 1.15rem;
-    font-weight: 800;
-    color: #2F3142;
-    margin: 6px 0 10px 0;
-}
-
-.helper-box {
-    background: #F8FAFC;
-    border: 1px solid #E5E7EB;
-    border-radius: 16px;
-    padding: 12px 14px;
-    color: #475467;
-    font-size: 0.92rem;
-    margin-top: 10px;
-}
-
-.metric-card {
-    background: #ffffff;
-    border: 1px solid #ECEEF3;
-    border-radius: 18px;
-    padding: 12px 14px;
-}
-
-.metric-label {
-    font-size: 0.82rem;
-    color: #6B7280;
-    font-weight: 700;
-}
-
-.metric-value {
-    font-size: 1.35rem;
-    font-weight: 800;
-    color: #2F3142;
+    margin: 10px 0 12px 0;
+    line-height: 1.2;
 }
 
 .legend-pill {
     display: inline-block;
     padding: 6px 12px;
     border-radius: 999px;
-    font-size: 0.8rem;
+    font-size: 0.82rem;
     font-weight: 700;
     margin: 0 8px 8px 0;
     border: 1px solid;
 }
 
-.day-card {
-    border-radius: 24px;
-    overflow: hidden;
+.metric-card {
+    background: #ffffff;
     border: 1px solid #ECEEF3;
-    box-shadow: 0 8px 24px rgba(16, 24, 40, 0.05);
-    margin-bottom: 14px;
+    border-radius: 18px;
+    padding: 12px 16px 10px 16px;
+    min-height: 88px;
 }
 
-.day-card-inner {
+.metric-label {
+    font-size: 0.84rem;
+    color: #6B7280;
+    font-weight: 700;
+    margin-bottom: 4px;
+}
+
+.metric-value {
+    font-size: 1.2rem;
+    font-weight: 800;
+    color: #2F3142;
+    line-height: 1.1;
+}
+
+.summary-card {
+    border-radius: 22px;
+    overflow: hidden;
+    border: 1px solid #E8EBF2;
+    margin-bottom: 10px;
+}
+
+.summary-inner {
     display: flex;
 }
 
-.day-card-accent {
-    width: 12px;
+.summary-accent {
+    width: 10px;
     flex-shrink: 0;
 }
 
-.day-card-body {
+.summary-body {
     width: 100%;
-    padding: 18px 20px 18px 20px;
+    padding: 14px 16px 12px 16px;
 }
 
-.meta-row {
+.summary-meta {
     font-size: 0.95rem;
     font-weight: 800;
     margin-bottom: 6px;
 }
 
-.subject-row {
-    font-size: 1.55rem;
+.summary-title {
+    font-size: 1.35rem;
     font-weight: 800;
     color: #232634;
-    margin-bottom: 14px;
-    line-height: 1.3;
+    line-height: 1.28;
+    margin: 0;
+}
+
+.tag-pill {
+    display: inline-block;
+    padding: 5px 10px;
+    border-radius: 999px;
+    font-size: 0.76rem;
+    font-weight: 800;
+    border: 1px solid #D1D5DB;
+    background: #ffffff;
+    color: #475467;
+    margin-left: 6px;
+    vertical-align: middle;
 }
 
 .info-box {
-    background: rgba(255,255,255,0.82);
-    border: 1px solid rgba(0,0,0,0.05);
+    background: #ffffff;
+    border: 1px solid #ECEEF3;
     border-radius: 16px;
-    padding: 13px 14px 11px 14px;
-    min-height: 88px;
+    padding: 12px 14px 10px 14px;
+    min-height: 74px;
     margin-bottom: 10px;
 }
 
@@ -202,8 +209,9 @@ html, body, [class*="css"] {
     font-size: 0.98rem;
     font-weight: 600;
     color: #232634;
-    line-height: 1.48;
+    line-height: 1.45;
     white-space: pre-wrap;
+    word-break: break-word;
 }
 
 .memo-box {
@@ -211,8 +219,8 @@ html, body, [class*="css"] {
     border: 1px solid #F8E3A3;
     border-left: 8px solid #F5C84B;
     border-radius: 16px;
-    padding: 14px 16px;
-    margin-top: 4px;
+    padding: 12px 16px;
+    margin-top: 2px;
 }
 
 .memo-title {
@@ -229,66 +237,48 @@ html, body, [class*="css"] {
     white-space: pre-wrap;
 }
 
-.tag-pill {
-    display: inline-block;
-    padding: 5px 10px;
-    border-radius: 999px;
-    font-size: 0.76rem;
-    font-weight: 800;
-    border: 1px solid #D1D5DB;
-    background: #ffffff;
-    color: #475467;
-    margin-left: 6px;
-}
-
-.month-day-box {
-    border: 1px solid #E7EAF0;
-    border-radius: 18px;
-    background: #ffffff;
-    padding: 10px;
-    min-height: 180px;
-    margin-bottom: 10px;
-}
-
-.month-day-head {
-    font-size: 1.05rem;
-    font-weight: 800;
-    color: #2F3142;
-    margin-bottom: 8px;
-}
-
-.month-event {
+.month-event-line {
     border-radius: 12px;
-    padding: 7px 8px;
+    padding: 7px 9px;
     margin-bottom: 6px;
     font-size: 0.78rem;
     line-height: 1.35;
     border: 1px solid;
-    background: #ffffff;
+    font-weight: 700;
+    word-break: break-word;
 }
 
-.week-day-box {
+.day-box {
     border: 1px solid #E7EAF0;
-    border-radius: 18px;
+    border-radius: 16px;
     background: #ffffff;
     padding: 10px;
-    min-height: 320px;
+    min-height: 160px;
+    margin-bottom: 10px;
 }
 
-.week-day-head {
+.day-head {
     font-size: 1rem;
     font-weight: 800;
     color: #2F3142;
     margin-bottom: 8px;
 }
 
+.small-action button {
+    min-height: 34px !important;
+    height: 34px !important;
+    padding-top: 0.15rem !important;
+    padding-bottom: 0.15rem !important;
+    font-size: 0.84rem !important;
+}
+
 div[data-testid="stButton"] > button {
-    border-radius: 12px !important;
+    border-radius: 10px !important;
     font-weight: 700 !important;
 }
 
 div[data-testid="stDownloadButton"] > button {
-    border-radius: 12px !important;
+    border-radius: 10px !important;
     font-weight: 700 !important;
 }
 
@@ -297,19 +287,27 @@ div[data-testid="stDownloadButton"] > button {
 .stTimeInput input,
 .stSelectbox div[data-baseweb="select"] > div,
 .stTextArea textarea {
-    border-radius: 14px !important;
+    border-radius: 12px !important;
 }
 
 div[data-testid="stForm"] {
     border: 1px solid #ECEEF3;
-    border-radius: 20px;
-    padding: 18px 18px 10px 18px;
+    border-radius: 18px;
+    padding: 16px 16px 10px 16px;
     background: #ffffff;
 }
 
-@media (max-width: 1100px) {
-    .subject-row {
-        font-size: 1.3rem;
+.streamlit-expanderHeader {
+    font-weight: 800 !important;
+    font-size: 1rem !important;
+}
+
+@media (max-width: 1000px) {
+    .main-title {
+        font-size: 2.1rem;
+    }
+    .summary-title {
+        font-size: 1.15rem;
     }
 }
 </style>
@@ -338,14 +336,14 @@ def safe_str(v):
     return str(v).strip()
 
 def csv_download_bytes(df: pd.DataFrame) -> bytes:
-    export_df = df.copy()
-    return export_df.to_csv(index=False, encoding="utf-8-sig").encode("utf-8-sig")
+    return df.to_csv(index=False, encoding="utf-8-sig").encode("utf-8-sig")
 
 def init_sample_data():
+    today = datetime.now().date()
     sample = pd.DataFrame([
         {
             "ID": "1",
-            "Date": datetime.now().strftime("%Y-%m-%d"),
+            "Date": str(today),
             "Time": "14:00",
             "Category": "국회",
             "Subject": "수의사법 개정안 관련 면담",
@@ -363,8 +361,32 @@ def init_sample_data():
             "Priority": "높음",
             "FollowOwner": "정책국장",
             "FollowTask": "면담자료 최종본 준비, 참석자별 역할 정리",
-            "FollowDue": datetime.now().strftime("%Y-%m-%d"),
+            "FollowDue": str(today),
             "SharedNote": "면담 후 결과 요약을 사무처 단톡방에 공유",
+            "Updated": datetime.now().strftime("%Y-%m-%d %H:%M"),
+        },
+        {
+            "ID": "2",
+            "Date": str(today),
+            "Time": "09:00",
+            "Category": "정부기관",
+            "Subject": "동물의료법 대수 의견 건의",
+            "OrgName": "세종청사 농림부",
+            "DetailPlace": "404호",
+            "TargetDept": "동물의료과",
+            "TargetName": "주무관",
+            "TargetContact": "01033333333",
+            "Companion": "수석",
+            "Staff": "정책국장",
+            "Purpose": "회의",
+            "ActionPlan": "회의",
+            "Memo": "신분증 지참해",
+            "Status": "보류",
+            "Priority": "보통",
+            "FollowOwner": "정책국장",
+            "FollowTask": "회의록",
+            "FollowDue": str(today),
+            "SharedNote": "후속 팔롬",
             "Updated": datetime.now().strftime("%Y-%m-%d %H:%M"),
         }
     ])
@@ -394,15 +416,14 @@ def get_filtered_df(df, selected_cat="전체", search_text="", status_filter="�
         )
         temp = temp[mask]
 
-    temp = temp.sort_values(by=["Date", "Time"])
-    return temp
+    return temp.sort_values(by=["Date", "Time"])
 
 def week_dates_from_any_day(any_day: date):
     start = any_day - timedelta(days=(any_day.weekday() + 1) % 7)  # 일요일 시작
     return [start + timedelta(days=i) for i in range(7)]
 
 def month_calendar_weeks(year: int, month: int):
-    cal = calendar.Calendar(firstweekday=6)  # 일요일 시작
+    cal = calendar.Calendar(firstweekday=6)
     return cal.monthdatescalendar(year, month)
 
 def save_record(record: dict, is_edit=False):
@@ -433,22 +454,17 @@ def show_flash():
         st.success(st.session_state.flash_message)
         st.session_state.flash_message = None
 
-def category_color_text_html(text: str, cat: str):
-    c = get_color(cat)
-    return f"""
-    <div class="month-event" style="color:{c['text']}; border-color:{c['line']}; background:{c['soft']};">
-        {text}
-    </div>
-    """
-
 def render_legend():
-    html_parts = []
+    parts = []
     for cat in CATEGORIES:
         c = get_color(cat)
-        html_parts.append(
+        parts.append(
             f'<span class="legend-pill" style="background:{c["soft"]}; color:{c["text"]}; border-color:{c["line"]};">{cat}</span>'
         )
-    st.markdown("".join(html_parts), unsafe_allow_html=True)
+    st.markdown("".join(parts), unsafe_allow_html=True)
+
+def event_label(row):
+    return f"{safe_str(row['Time'])} [{safe_str(row['Category'])}] {safe_str(row['Subject'])}"
 
 # =========================================================
 # 5. 상태 초기화
@@ -473,40 +489,34 @@ if "selected_status" not in st.session_state:
 if "edit_id" not in st.session_state:
     st.session_state.edit_id = None
 
-if "selected_event_id" not in st.session_state:
-    st.session_state.selected_event_id = None
-
 if "flash_message" not in st.session_state:
     st.session_state.flash_message = None
 
 # =========================================================
-# 6. 공통 렌더 함수
+# 6. 렌더 함수
 # =========================================================
-def render_event_card(row):
+def render_summary_header(row, prefix=""):
     c = get_color(row["Category"])
-    status_text = safe_str(row["Status"]) or "-"
-    priority_text = safe_str(row["Priority"]) or "-"
-
-    card_html = f"""
-    <div class="day-card" style="background:{c["bg"]};">
-        <div class="day-card-inner">
-            <div class="day-card-accent" style="background:{c["line"]};"></div>
-            <div class="day-card-body">
-                <div class="meta-row" style="color:{c["text"]};">
+    st.markdown(f"""
+    <div class="summary-card" style="background:{c['bg']};">
+        <div class="summary-inner">
+            <div class="summary-accent" style="background:{c['line']};"></div>
+            <div class="summary-body">
+                <div class="summary-meta" style="color:{c['text']};">
                     ⏰ {safe_str(row["Time"])}
                     <span class="tag-pill" style="background:{c["soft"]}; color:{c["text"]}; border-color:{c["line"]};">{safe_str(row["Category"])}</span>
-                    <span class="tag-pill">{status_text}</span>
-                    <span class="tag-pill">우선순위 {priority_text}</span>
+                    <span class="tag-pill">{safe_str(row["Status"])}</span>
+                    <span class="tag-pill">우선순위 {safe_str(row["Priority"])}</span>
                 </div>
-                <div class="subject-row">{safe_str(row["Subject"])}</div>
+                <div class="summary-title">{safe_str(row["Subject"])}</div>
             </div>
         </div>
     </div>
-    """
-    st.markdown(card_html, unsafe_allow_html=True)
+    """, unsafe_allow_html=True)
 
-    info1, info2, info3 = st.columns(3)
-    with info1:
+def render_detail_blocks(row):
+    c1, c2, c3 = st.columns(3)
+    with c1:
         st.markdown(f"""
         <div class="info-box">
             <div class="info-label">방문기관명</div>
@@ -520,7 +530,7 @@ def render_event_card(row):
         </div>
         """, unsafe_allow_html=True)
 
-    with info2:
+    with c2:
         st.markdown(f"""
         <div class="info-box">
             <div class="info-label">보좌관/비서/담당자 정보</div>
@@ -534,7 +544,7 @@ def render_event_card(row):
         </div>
         """, unsafe_allow_html=True)
 
-    with info3:
+    with c3:
         st.markdown(f"""
         <div class="info-box">
             <div class="info-label">사무처 수행직원</div>
@@ -548,8 +558,8 @@ def render_event_card(row):
         </div>
         """, unsafe_allow_html=True)
 
-    plan1, plan2 = st.columns(2)
-    with plan1:
+    p1, p2 = st.columns(2)
+    with p1:
         st.markdown(f"""
         <div class="info-box">
             <div class="info-label">회의 목적</div>
@@ -563,7 +573,7 @@ def render_event_card(row):
         </div>
         """, unsafe_allow_html=True)
 
-    with plan2:
+    with p2:
         st.markdown(f"""
         <div class="info-box">
             <div class="info-label">대응 방향</div>
@@ -598,30 +608,47 @@ def render_event_card(row):
     </div>
     """, unsafe_allow_html=True)
 
-def render_action_buttons(row):
-    c1, c2, c3, c4 = st.columns([1, 1, 1, 6])
+def render_action_buttons(row, prefix=""):
+    st.markdown('<div class="small-action">', unsafe_allow_html=True)
+    c1, c2, c3, c4 = st.columns([0.8, 0.9, 0.8, 6.5])
 
-    if c1.button("수정", key=f"edit_{row['ID']}", use_container_width=True):
+    if c1.button("수정", key=f"{prefix}_edit_{row['ID']}", use_container_width=True):
         st.session_state.edit_id = row["ID"]
         st.rerun()
 
     toggle_label = "일정 취소" if row["Status"] != "취소" else "취소 해제"
     toggle_next = "취소" if row["Status"] != "취소" else "확정"
-    if c2.button(toggle_label, key=f"cancel_{row['ID']}", use_container_width=True):
+    if c2.button(toggle_label, key=f"{prefix}_cancel_{row['ID']}", use_container_width=True):
         st.session_state.data.loc[
             st.session_state.data["ID"] == row["ID"], ["Status", "Updated"]
         ] = [toggle_next, datetime.now().strftime("%Y-%m-%d %H:%M")]
         st.session_state.flash_message = "상태가 변경되었습니다."
         st.rerun()
 
-    if c3.button("삭제", key=f"delete_{row['ID']}", use_container_width=True):
+    if c3.button("삭제", key=f"{prefix}_delete_{row['ID']}", use_container_width=True):
         st.session_state.data = st.session_state.data[st.session_state.data["ID"] != row["ID"]].reset_index(drop=True)
-        if st.session_state.selected_event_id == row["ID"]:
-            st.session_state.selected_event_id = None
         if st.session_state.edit_id == row["ID"]:
             st.session_state.edit_id = None
         st.session_state.flash_message = "일정이 삭제되었습니다."
         st.rerun()
+
+    st.markdown('</div>', unsafe_allow_html=True)
+
+def render_day_expander(row, prefix="", expanded=True):
+    c = get_color(row["Category"])
+    label = f"{safe_str(row['Time'])} · {safe_str(row['Subject'])}"
+    with st.expander(label, expanded=expanded):
+        render_summary_header(row, prefix=prefix)
+        render_detail_blocks(row)
+        render_action_buttons(row, prefix=prefix)
+
+def render_week_month_expander(row, prefix=""):
+    c = get_color(row["Category"])
+    label = event_label(row)
+    with st.expander(label, expanded=False):
+        render_summary_header(row, prefix=prefix)
+        render_detail_blocks(row)
+        render_action_buttons(row, prefix=prefix)
 
 def render_form(mode="new", row_data=None):
     if row_data is None:
@@ -667,7 +694,7 @@ def render_form(mode="new", row_data=None):
         r2c1, r2c2, r2c3 = st.columns([2, 1, 1])
         input_subject = r2c1.text_input("회의명", value=safe_str(row_data["Subject"]))
         input_status = r2c2.selectbox(
-            "상태",
+            "현황",
             STATUS_OPTIONS,
             index=STATUS_OPTIONS.index(row_data["Status"]) if row_data["Status"] in STATUS_OPTIONS else 0
         )
@@ -738,7 +765,7 @@ def render_form(mode="new", row_data=None):
                 st.session_state.flash_message = "신규 일정이 저장되었습니다."
                 st.rerun()
         else:
-            b1, b2 = st.columns(2)
+            b1, b2 = st.columns([1, 1])
             save_btn = b1.form_submit_button("수정 저장", use_container_width=True)
             cancel_btn = b2.form_submit_button("수정 취소", use_container_width=True)
 
@@ -797,14 +824,6 @@ st.sidebar.download_button(
     use_container_width=True
 )
 
-st.sidebar.markdown("---")
-st.sidebar.markdown("### 운영 팁")
-st.sidebar.markdown("""
-- **주 담당자 / 후속사항 / 준비기한**을 같이 적으면 직원 간 협업이 쉬워집니다.
-- 월간/주간은 **전체 흐름 확인용**,
-- 일별 보기는 **실행/브리핑용**으로 쓰기 좋습니다.
-""")
-
 # =========================================================
 # 8. 상단
 # =========================================================
@@ -816,46 +835,45 @@ st.markdown(
 show_flash()
 
 # =========================================================
-# 9. 신규 등록 화면
+# 9. 신규 등록
 # =========================================================
 if st.session_state.main_menu == "✍️ 신규 일정 등록":
     render_form(mode="new")
 
 # =========================================================
-# 10. 일정 보기 화면
+# 10. 일정 보기
 # =========================================================
 else:
     st.markdown('<div class="panel">', unsafe_allow_html=True)
-    st.markdown("**검색어 · 카테고리 · 상태 · 날짜를 기준으로 일정을 찾을 수 있습니다.**")
+    st.markdown("**검색어 · 카테고리 · 현황 · 날짜를 기준으로 일정을 찾을 수 있습니다.**")
 
-    fc1, fc2, fc3, fc4, fc5 = st.columns([2.4, 1.1, 1.1, 1.1, 0.8])
+    fc1, fc2, fc3, fc4, fc5 = st.columns([2.5, 1.15, 1.15, 1.2, 0.8])
+
     search_text = fc1.text_input(
         "검색",
         placeholder="회의명 / 방문기관명 / 담당자명 / 연락처 / 후속업무 검색",
         label_visibility="collapsed"
     )
+
     selected_cat = fc2.selectbox(
         "카테고리",
         ["전체"] + CATEGORIES,
         index=(["전체"] + CATEGORIES).index(st.session_state.selected_cat)
-        if st.session_state.selected_cat in (["전체"] + CATEGORIES) else 0,
-        label_visibility="collapsed"
+        if st.session_state.selected_cat in (["전체"] + CATEGORIES) else 0
     )
     st.session_state.selected_cat = selected_cat
 
     selected_status = fc3.selectbox(
-        "상태",
+        "현황",
         ["전체"] + STATUS_OPTIONS,
         index=(["전체"] + STATUS_OPTIONS).index(st.session_state.selected_status)
-        if st.session_state.selected_status in (["전체"] + STATUS_OPTIONS) else 0,
-        label_visibility="collapsed"
+        if st.session_state.selected_status in (["전체"] + STATUS_OPTIONS) else 0
     )
     st.session_state.selected_status = selected_status
 
     selected_date = fc4.date_input(
         "날짜",
-        value=st.session_state.selected_date,
-        label_visibility="collapsed"
+        value=st.session_state.selected_date
     )
     st.session_state.selected_date = selected_date
 
@@ -873,11 +891,13 @@ else:
         status_filter=st.session_state.selected_status
     )
 
-    # 요약 지표
-    daily_df = filtered_df[filtered_df["Date"].apply(lambda x: to_date_safe(x)) == st.session_state.selected_date]
+    day_df = filtered_df.copy()
+    day_df["Date"] = pd.to_datetime(day_df["Date"], errors="coerce").dt.date
+    day_df = day_df[day_df["Date"] == st.session_state.selected_date].sort_values(by="Time")
+
     m1, m2, m3, m4 = st.columns(4)
     with m1:
-        st.markdown(f'<div class="metric-card"><div class="metric-label">선택일 일정 수</div><div class="metric-value">{len(daily_df)}</div></div>', unsafe_allow_html=True)
+        st.markdown(f'<div class="metric-card"><div class="metric-label">선택일 일정 수</div><div class="metric-value">{len(day_df)}</div></div>', unsafe_allow_html=True)
     with m2:
         st.markdown(f'<div class="metric-card"><div class="metric-label">확정 일정</div><div class="metric-value">{len(filtered_df[filtered_df["Status"]=="확정"])}</div></div>', unsafe_allow_html=True)
     with m3:
@@ -888,7 +908,7 @@ else:
     tabs = st.tabs(["일별 보기", "주간 보기", "월별 보기"])
 
     # -----------------------------------------------------
-    # 10-1. 일별 보기
+    # 일별 보기
     # -----------------------------------------------------
     with tabs[0]:
         st.markdown(
@@ -896,34 +916,29 @@ else:
             unsafe_allow_html=True
         )
 
+        # 수정 중이면 해당 일정만 수정 화면
         if st.session_state.edit_id:
-            target_df = st.session_state.data[st.session_state.data["ID"] == st.session_state.edit_id]
-            if not target_df.empty:
-                render_form(mode="edit", row_data=target_df.iloc[0].to_dict())
+            edit_target = st.session_state.data[st.session_state.data["ID"] == st.session_state.edit_id]
+            if not edit_target.empty:
+                render_form(mode="edit", row_data=edit_target.iloc[0].to_dict())
+        else:
+            if day_df.empty:
+                st.info("조건에 맞는 일정이 없습니다.")
 
-        day_df = filtered_df.copy()
-        day_df["Date"] = pd.to_datetime(day_df["Date"], errors="coerce").dt.date
-        day_df = day_df[day_df["Date"] == st.session_state.selected_date].sort_values(by="Time")
-
-        if day_df.empty:
-            st.info("조건에 맞는 일정이 없습니다.")
-
-        for _, row in day_df.iterrows():
-            if st.session_state.edit_id == row["ID"]:
-                continue
-            render_event_card(row)
-            render_action_buttons(row)
+            for idx, (_, row) in enumerate(day_df.iterrows()):
+                render_day_expander(row, prefix=f"day_{idx}", expanded=True)
 
     # -----------------------------------------------------
-    # 10-2. 주간 보기
+    # 주간 보기
     # -----------------------------------------------------
     with tabs[1]:
         st.markdown('<div class="section-title">📅 주간 일정</div>', unsafe_allow_html=True)
 
         wc1, wc2 = st.columns([1.3, 4.7])
-        week_anchor = wc1.date_input("기준 날짜", value=st.session_state.selected_date, key="week_anchor")
-        if wc2.button("이 날짜가 포함된 주 보기", use_container_width=False):
+        week_anchor = wc1.date_input("기준 날짜", value=st.session_state.selected_date, key="week_anchor_date")
+        if wc2.button("이 날짜가 포함된 주 보기", key="apply_week_anchor"):
             st.session_state.selected_date = week_anchor
+            st.rerun()
 
         week_days = week_dates_from_any_day(st.session_state.selected_date)
         week_df = filtered_df.copy()
@@ -935,99 +950,76 @@ else:
 
         for idx, day_obj in enumerate(week_days):
             with cols[idx]:
-                with st.container(border=True):
-                    st.markdown(f"**{day_obj.month}/{day_obj.day} ({day_names[idx]})**")
-                    daily = week_df[week_df["Date"] == day_obj].sort_values(by="Time")
+                st.markdown('<div class="day-box">', unsafe_allow_html=True)
+                st.markdown(f'<div class="day-head">{day_obj.month}/{day_obj.day} ({day_names[idx]})</div>', unsafe_allow_html=True)
 
-                    if daily.empty:
-                        st.caption("일정 없음")
-                    else:
-                        show_rows = daily.head(6)
-                        for _, row in show_rows.iterrows():
-                            c = get_color(row["Category"])
-                            line = f"{safe_str(row['Time'])} [{safe_str(row['Category'])}] {safe_str(row['Subject'])}"
-                            st.markdown(
-                                category_color_text_html(line, row["Category"]),
-                                unsafe_allow_html=True
-                            )
-                            open_cols = st.columns([5, 1])
-                            if open_cols[1].button("↗", key=f"week_open_{row['ID']}", use_container_width=True):
-                                st.session_state.selected_event_id = row["ID"]
-                                st.rerun()
+                daily = week_df[week_df["Date"] == day_obj].sort_values(by="Time")
+                if daily.empty:
+                    st.caption("일정 없음")
+                else:
+                    for ridx, (_, row) in enumerate(daily.iterrows()):
+                        c = get_color(row["Category"])
+                        st.markdown(
+                            f'<div class="month-event-line" style="color:{c["text"]}; border-color:{c["line"]}; background:{c["soft"]};">{event_label(row)}</div>',
+                            unsafe_allow_html=True
+                        )
+                        render_week_month_expander(row, prefix=f"week_{idx}_{ridx}")
 
-                        if len(daily) > 6:
-                            st.caption(f"+ {len(daily) - 6}개 더")
-
-        if st.session_state.selected_event_id:
-            selected_df = st.session_state.data[st.session_state.data["ID"] == st.session_state.selected_event_id]
-            if not selected_df.empty:
-                st.markdown('<div class="small-title">선택한 일정 상세정보</div>', unsafe_allow_html=True)
-                render_event_card(selected_df.iloc[0])
-                render_action_buttons(selected_df.iloc[0])
+                st.markdown('</div>', unsafe_allow_html=True)
 
     # -----------------------------------------------------
-    # 10-3. 월별 보기
+    # 월별 보기
     # -----------------------------------------------------
     with tabs[2]:
         st.markdown('<div class="section-title">🗓️ 월별 일정</div>', unsafe_allow_html=True)
 
         mc1, mc2 = st.columns([1, 1])
         year_options = list(range(datetime.now().year - 2, datetime.now().year + 4))
-        month_year = mc1.selectbox("년도", year_options, index=year_options.index(st.session_state.selected_date.year))
-        month_month = mc2.selectbox("월", list(range(1, 13)), index=st.session_state.selected_date.month - 1)
+        month_year = mc1.selectbox(
+            "년도",
+            year_options,
+            index=year_options.index(st.session_state.selected_date.year),
+            key="month_year_select"
+        )
+        month_month = mc2.selectbox(
+            "월",
+            list(range(1, 13)),
+            index=st.session_state.selected_date.month - 1,
+            key="month_month_select"
+        )
 
         month_df = filtered_df.copy()
         month_df["Date"] = pd.to_datetime(month_df["Date"], errors="coerce").dt.date
-        month_df = month_df[month_df["Date"].apply(lambda d: d.year == month_year and d.month == month_month if pd.notna(d) else False)]
+        month_df = month_df[
+            month_df["Date"].apply(
+                lambda d: d.year == month_year and d.month == month_month if pd.notna(d) else False
+            )
+        ]
 
         weeks = month_calendar_weeks(month_year, month_month)
         weekday_names = ["일", "월", "화", "수", "목", "금", "토"]
-
         head_cols = st.columns(7)
         for i, name in enumerate(weekday_names):
             head_cols[i].markdown(f"**{name}**")
 
-        for week_idx, week in enumerate(weeks):
+        for widx, week in enumerate(weeks):
             week_cols = st.columns(7)
-            for day_idx, day_obj in enumerate(week):
-                with week_cols[day_idx]:
-                    with st.container(border=True):
-                        if day_obj.month != month_month:
-                            st.markdown(f"<div class='month-day-head' style='color:#B5BBC8;'>{day_obj.day}일</div>", unsafe_allow_html=True)
-                            st.caption(" ")
+            for didx, day_obj in enumerate(week):
+                with week_cols[didx]:
+                    st.markdown('<div class="day-box">', unsafe_allow_html=True)
+                    if day_obj.month != month_month:
+                        st.markdown(f"<div class='day-head' style='color:#B5BBC8;'>{day_obj.day}일</div>", unsafe_allow_html=True)
+                    else:
+                        st.markdown(f"<div class='day-head'>{day_obj.day}일</div>", unsafe_allow_html=True)
+                        daily = month_df[month_df["Date"] == day_obj].sort_values(by="Time")
+                        if daily.empty:
+                            st.caption("일정 없음")
                         else:
-                            st.markdown(f"<div class='month-day-head'>{day_obj.day}일</div>", unsafe_allow_html=True)
-                            daily = month_df[month_df["Date"] == day_obj].sort_values(by="Time")
-
-                            if daily.empty:
-                                st.caption("일정 없음")
-                            else:
-                                show_rows = daily.head(4)
-                                for _, row in show_rows.iterrows():
-                                    line = f"{safe_str(row['Time'])} [{safe_str(row['Category'])}] {safe_str(row['Subject'])}"
-                                    st.markdown(
-                                        category_color_text_html(line, row["Category"]),
-                                        unsafe_allow_html=True
-                                    )
-                                    btn_cols = st.columns([5, 1])
-                                    if btn_cols[1].button("↗", key=f"month_open_{row['ID']}", use_container_width=True):
-                                        st.session_state.selected_event_id = row["ID"]
-                                        st.rerun()
-
-                                if len(daily) > 4:
-                                    st.caption(f"+ {len(daily) - 4}개 더")
-
-        if st.session_state.selected_event_id:
-            selected_df = st.session_state.data[st.session_state.data["ID"] == st.session_state.selected_event_id]
-            if not selected_df.empty:
-                st.markdown('<div class="small-title">선택한 일정 상세정보</div>', unsafe_allow_html=True)
-                render_event_card(selected_df.iloc[0])
-                render_action_buttons(selected_df.iloc[0])
-
-    st.markdown("""
-    <div class="helper-box">
-    현재 버전에는 실무용으로 바로 쓰기 좋은 필드를 넣었습니다.
-    특히 <b>주 담당자 · 후속/준비사항 · 준비 완료기한 · 공유 메모</b>를 활용하면,
-    회장 일정이 단순 보기용이 아니라 사무처 협업용 보드로도 작동합니다.
-    </div>
-    """, unsafe_allow_html=True)
+                            for ridx, (_, row) in enumerate(daily.iterrows()):
+                                c = get_color(row["Category"])
+                                st.markdown(
+                                    f'<div class="month-event-line" style="color:{c["text"]}; border-color:{c["line"]}; background:{c["soft"]};">{event_label(row)}</div>',
+                                    unsafe_allow_html=True
+                                )
+                                render_week_month_expander(row, prefix=f"month_{widx}_{didx}_{ridx}")
+                    st.markdown('</div>', unsafe_allow_html=True)
