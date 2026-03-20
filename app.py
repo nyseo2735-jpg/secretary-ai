@@ -387,6 +387,8 @@ div[data-testid="stForm"] {
 # 4. 유틸
 # =========================================================
 def ensure_columns(df: pd.DataFrame) -> pd.DataFrame:
+    if df is None:
+        df = pd.DataFrame(columns=DATA_COLUMNS)
     for col in DATA_COLUMNS:
         if col not in df.columns:
             df[col] = ""
@@ -412,9 +414,11 @@ def esc(v):
     return html.escape(safe_str(v) if safe_str(v) else "-")
 
 def csv_download_bytes(df: pd.DataFrame) -> bytes:
+    df = ensure_columns(df)
     return df.to_csv(index=False, encoding="utf-8-sig").encode("utf-8-sig")
 
 def excel_download_bytes(df: pd.DataFrame) -> bytes:
+    df = ensure_columns(df)
     output = BytesIO()
     with pd.ExcelWriter(output, engine="openpyxl") as writer:
         df.to_excel(writer, index=False, sheet_name="Schedule")
@@ -423,14 +427,20 @@ def excel_download_bytes(df: pd.DataFrame) -> bytes:
 
 @st.cache_resource
 def get_gspread_client():
+    if "gcp_service_account" not in st.secrets:
+        raise KeyError("gcp_service_account")
     creds_info = dict(st.secrets["gcp_service_account"])
     credentials = Credentials.from_service_account_info(creds_info, scopes=SCOPES)
     return gspread.authorize(credentials)
 
 def get_worksheet():
     gc = get_gspread_client()
-    sheet_name = st.secrets["google_sheet_name"]
-    worksheet_name = st.secrets["google_worksheet_name"]
+    sheet_name = st.secrets.get("google_sheet_name", "")
+    worksheet_name = st.secrets.get("google_worksheet_name", "Schedule")
+
+    if not sheet_name:
+        raise ValueError("google_sheet_name 이 설정되지 않았습니다.")
+
     sh = gc.open(sheet_name)
     try:
         ws = sh.worksheet(worksheet_name)
@@ -451,14 +461,26 @@ def ensure_sheet_header(ws):
 
 def load_data_from_gsheet():
     try:
+        if "gcp_service_account" not in st.secrets:
+            st.warning("구글 시트 연결 정보가 아직 설정되지 않았습니다. Streamlit Secrets를 먼저 입력해 주세요.")
+            return ensure_columns(pd.DataFrame(columns=DATA_COLUMNS))
+
+        if "google_sheet_name" not in st.secrets or "google_worksheet_name" not in st.secrets:
+            st.warning("google_sheet_name 또는 google_worksheet_name 설정이 없습니다.")
+            return ensure_columns(pd.DataFrame(columns=DATA_COLUMNS))
+
         ws = get_worksheet()
         ensure_sheet_header(ws)
         records = ws.get_all_records()
+
         if not records:
             return ensure_columns(pd.DataFrame(columns=DATA_COLUMNS))
-        return ensure_columns(pd.DataFrame(records))
+
+        df = pd.DataFrame(records)
+        return ensure_columns(df)
+
     except Exception as e:
-        st.error(f"구글 시트 데이터를 불러오지 못했습니다: {e}")
+        st.warning(f"구글 시트 데이터를 불러오지 못했습니다: {e}")
         return ensure_columns(pd.DataFrame(columns=DATA_COLUMNS))
 
 def save_all_to_gsheet(df: pd.DataFrame):
@@ -469,7 +491,7 @@ def save_all_to_gsheet(df: pd.DataFrame):
     ws.update(values)
 
 def get_filtered_df(df, selected_cat="카테고리", search_text="", status_filter="현황"):
-    temp = df.copy()
+    temp = ensure_columns(df.copy())
     temp["Date"] = pd.to_datetime(temp["Date"], errors="coerce").dt.date
 
     if selected_cat not in ["전체", "카테고리"]:
@@ -492,7 +514,7 @@ def get_filtered_df(df, selected_cat="카테고리", search_text="", status_filt
         )
         temp = temp[mask]
 
-    return temp.sort_values(by=["Date", "Time", "Updated"], ascending=[True, True, False])
+    return ensure_columns(temp.sort_values(by=["Date", "Time", "Updated"], ascending=[True, True, False]))
 
 def week_dates_from_any_day(any_day: date):
     start = any_day - timedelta(days=(any_day.weekday() + 1) % 7)
@@ -506,7 +528,10 @@ def next_id():
     return datetime.now().strftime("%Y%m%d%H%M%S%f")
 
 def persist_data():
-    save_all_to_gsheet(st.session_state.data)
+    try:
+        save_all_to_gsheet(st.session_state.data)
+    except Exception as e:
+        st.session_state.flash_message = f"저장은 화면에 반영되었지만 구글 시트 저장은 실패했습니다: {e}"
 
 def save_record(record: dict, is_edit=False):
     record["Updated"] = datetime.now().strftime("%Y-%m-%d %H:%M")
@@ -724,9 +749,10 @@ def render_action_buttons(row, prefix=""):
     toggle_next = "취소" if row["Status"] != "취소" else "확정"
     if c2.button(toggle_label, key=f"{prefix}_cancel_{row['ID']}", use_container_width=True):
         mask = st.session_state.data["ID"].astype(str) == str(row["ID"])
-        st.session_state.data.loc[
-            mask, ["Status", "Updated"]
-        ] = [toggle_next, datetime.now().strftime("%Y-%m-%d %H:%M")]
+        st.session_state.data.loc[mask, ["Status", "Updated"]] = [
+            toggle_next, datetime.now().strftime("%Y-%m-%d %H:%M")
+        ]
+        st.session_state.data = ensure_columns(st.session_state.data)
         persist_data()
         st.session_state.flash_message = "상태가 변경되었습니다."
         st.rerun()
@@ -735,6 +761,7 @@ def render_action_buttons(row, prefix=""):
         st.session_state.data = st.session_state.data[
             st.session_state.data["ID"].astype(str) != str(row["ID"])
         ].reset_index(drop=True)
+        st.session_state.data = ensure_columns(st.session_state.data)
         if st.session_state.edit_id == row["ID"]:
             st.session_state.edit_id = None
         persist_data()
@@ -901,7 +928,8 @@ def render_form(mode="new", row_data=None):
                     st.session_state.main_menu = "📅 일정 보기"
                     st.session_state.selected_date = input_date
                     st.session_state.edit_id = None
-                    st.session_state.flash_message = "신규 일정이 저장되었습니다."
+                    if "실패했습니다" not in str(st.session_state.flash_message):
+                        st.session_state.flash_message = "신규 일정이 저장되었습니다."
                     st.rerun()
         else:
             b1, b2 = st.columns([1, 1])
@@ -939,7 +967,8 @@ def render_form(mode="new", row_data=None):
                     save_record(record, is_edit=True)
                     st.session_state.edit_id = None
                     st.session_state.selected_date = input_date
-                    st.session_state.flash_message = "일정이 수정되었습니다."
+                    if "실패했습니다" not in str(st.session_state.flash_message):
+                        st.session_state.flash_message = "일정이 수정되었습니다."
                     st.rerun()
 
             if cancel_btn:
@@ -983,7 +1012,7 @@ if st.sidebar.button("🔄 구글 시트에서 다시 불러오기", use_contain
     st.rerun()
 
 with st.sidebar.expander("📊 저장된 일정표 미리보기", expanded=False):
-    preview_df = st.session_state.data.copy()
+    preview_df = ensure_columns(st.session_state.data.copy())
     if not preview_df.empty:
         st.dataframe(
             preview_df.sort_values(by=["Date", "Time", "Updated"], ascending=[True, True, False]),
@@ -1057,14 +1086,14 @@ else:
     render_legend()
     st.markdown('</div>', unsafe_allow_html=True)
 
-    filtered_df = get_filtered_df(
+    filtered_df = ensure_columns(get_filtered_df(
         st.session_state.data,
         selected_cat=st.session_state.selected_cat,
         search_text=search_text,
         status_filter=st.session_state.selected_status
-    )
+    ))
 
-    day_df = filtered_df.copy()
+    day_df = ensure_columns(filtered_df.copy())
     day_df["Date"] = pd.to_datetime(day_df["Date"], errors="coerce").dt.date
     day_df = day_df[day_df["Date"] == st.session_state.selected_date].sort_values(by="Time")
 
@@ -1101,9 +1130,9 @@ else:
         )
 
         if st.session_state.edit_id:
-            edit_target = st.session_state.data[
+            edit_target = ensure_columns(st.session_state.data[
                 st.session_state.data["ID"].astype(str) == str(st.session_state.edit_id)
-            ]
+            ])
             if not edit_target.empty:
                 render_form(mode="edit", row_data=edit_target.iloc[0].to_dict())
         else:
@@ -1126,7 +1155,7 @@ else:
             st.rerun()
 
         week_days = week_dates_from_any_day(st.session_state.selected_date)
-        week_df = filtered_df.copy()
+        week_df = ensure_columns(filtered_df.copy())
         week_df["Date"] = pd.to_datetime(week_df["Date"], errors="coerce").dt.date
         week_df = week_df[week_df["Date"].isin(week_days)]
 
@@ -1140,7 +1169,7 @@ else:
                     unsafe_allow_html=True
                 )
 
-                daily = week_df[week_df["Date"] == day_obj].sort_values(by="Time")
+                daily = ensure_columns(week_df[week_df["Date"] == day_obj].sort_values(by="Time"))
                 if daily.empty:
                     st.caption("일정 없음")
                 else:
@@ -1166,7 +1195,7 @@ else:
             key="month_month_select"
         )
 
-        month_df = filtered_df.copy()
+        month_df = ensure_columns(filtered_df.copy())
         month_df["Date"] = pd.to_datetime(month_df["Date"], errors="coerce").dt.date
         month_df = month_df[
             month_df["Date"].apply(
@@ -1196,8 +1225,7 @@ else:
                             f"<div class='day-head'>{day_obj.day}일</div>",
                             unsafe_allow_html=True
                         )
-                        daily = month_df[month_df["Date"] == day_obj].sort_values(by="Time")
-
+                        daily = ensure_columns(month_df[month_df["Date"] == day_obj].sort_values(by="Time"))
                         if daily.empty:
                             st.caption("일정 없음")
                         else:
@@ -1207,7 +1235,7 @@ else:
     with tabs[3]:
         st.markdown('<div class="section-title">📋 전체 일정표</div>', unsafe_allow_html=True)
 
-        table_df = filtered_df.copy()
+        table_df = ensure_columns(filtered_df.copy())
         if table_df.empty:
             st.caption("표시할 일정이 없습니다.")
         else:
