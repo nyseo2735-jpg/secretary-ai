@@ -3,6 +3,9 @@ import pandas as pd
 from datetime import datetime, date, timedelta
 import calendar
 import html
+from io import BytesIO
+import gspread
+from google.oauth2.service_account import Credentials
 
 # =========================================================
 # 1. 페이지 설정
@@ -53,6 +56,11 @@ DATA_COLUMNS = [
     "FollowDue",
     "SharedNote",
     "Updated",
+]
+
+SCOPES = [
+    "https://www.googleapis.com/auth/spreadsheets",
+    "https://www.googleapis.com/auth/drive",
 ]
 
 # =========================================================
@@ -281,7 +289,6 @@ div[data-testid="stForm"] {
     font-size: 1rem !important;
 }
 
-/* 주간/월간 HTML details */
 .wm-detail {
     margin-bottom: 8px;
     border-radius: 12px;
@@ -347,8 +354,22 @@ div[data-testid="stForm"] {
     margin-bottom: 8px;
 }
 
-.week-anchor-row {
-    margin-bottom: 10px;
+.canceled-title {
+    text-decoration: line-through;
+    opacity: 0.65;
+}
+
+.cancel-pill {
+    display: inline-block;
+    margin-left: 6px;
+    padding: 4px 8px;
+    border-radius: 999px;
+    font-size: 0.72rem;
+    font-weight: 800;
+    background: #FEE2E2;
+    color: #B42318;
+    border: 1px solid #FECACA;
+    vertical-align: middle;
 }
 
 @media (max-width: 1000px) {
@@ -369,7 +390,7 @@ def ensure_columns(df: pd.DataFrame) -> pd.DataFrame:
     for col in DATA_COLUMNS:
         if col not in df.columns:
             df[col] = ""
-    return df[DATA_COLUMNS].copy()
+    return df[DATA_COLUMNS].copy().fillna("")
 
 def get_color(cat: str):
     return COLOR_MAP.get(cat, COLOR_MAP["기타"])
@@ -377,7 +398,10 @@ def get_color(cat: str):
 def to_date_safe(v):
     if pd.isna(v) or v == "":
         return None
-    return pd.to_datetime(v, errors="coerce").date()
+    parsed = pd.to_datetime(v, errors="coerce")
+    if pd.isna(parsed):
+        return None
+    return parsed.date()
 
 def safe_str(v):
     if pd.isna(v):
@@ -390,83 +414,59 @@ def esc(v):
 def csv_download_bytes(df: pd.DataFrame) -> bytes:
     return df.to_csv(index=False, encoding="utf-8-sig").encode("utf-8-sig")
 
-def init_sample_data():
-    today = datetime.now().date()
-    sample = pd.DataFrame([
-        {
-            "ID": "1",
-            "Date": str(today),
-            "Time": "14:00",
-            "Category": "국회",
-            "Subject": "수의사법 개정안 관련 면담",
-            "OrgName": "국회 의원회관",
-            "DetailPlace": "504호",
-            "TargetDept": "보건복지위원회",
-            "TargetName": "김의원",
-            "TargetContact": "010-1234-5678",
-            "Companion": "부회장, 정책국장",
-            "Staff": "이비서, 박기사",
-            "Purpose": "법안 통과 협조 요청",
-            "ActionPlan": "정책국장 대동 및 자료 준비",
-            "Memo": "정문 면회실 신분증 지참",
-            "Status": "확정",
-            "Priority": "높음",
-            "FollowOwner": "정책국장",
-            "FollowTask": "면담자료 최종본 준비, 참석자별 역할 정리",
-            "FollowDue": str(today),
-            "SharedNote": "면담 후 결과 요약을 사무처 단톡방에 공유",
-            "Updated": datetime.now().strftime("%Y-%m-%d %H:%M"),
-        },
-        {
-            "ID": "2",
-            "Date": str(today),
-            "Time": "09:00",
-            "Category": "정부기관",
-            "Subject": "동물의료법 대수 의견 건의",
-            "OrgName": "세종청사 농림부",
-            "DetailPlace": "404호",
-            "TargetDept": "동물의료과",
-            "TargetName": "주무관",
-            "TargetContact": "01033333333",
-            "Companion": "수석",
-            "Staff": "정책국장",
-            "Purpose": "회의",
-            "ActionPlan": "회의",
-            "Memo": "신분증 지참해",
-            "Status": "보류",
-            "Priority": "보통",
-            "FollowOwner": "정책국장",
-            "FollowTask": "회의록",
-            "FollowDue": str(today),
-            "SharedNote": "후속 팔롬",
-            "Updated": datetime.now().strftime("%Y-%m-%d %H:%M"),
-        },
-        {
-            "ID": "3",
-            "Date": str(today),
-            "Time": "08:30",
-            "Category": "수의과대학",
-            "Subject": "회관도착",
-            "OrgName": "수의과대학 본관",
-            "DetailPlace": "정문",
-            "TargetDept": "행정실",
-            "TargetName": "담당자",
-            "TargetContact": "010-2222-3333",
-            "Companion": "비서",
-            "Staff": "수행직원",
-            "Purpose": "행사 전 도착",
-            "ActionPlan": "행사장 확인",
-            "Memo": "도착 후 안내 연락",
-            "Status": "확정",
-            "Priority": "보통",
-            "FollowOwner": "비서",
-            "FollowTask": "도착 확인",
-            "FollowDue": str(today),
-            "SharedNote": "행사 준비팀과 공유",
-            "Updated": datetime.now().strftime("%Y-%m-%d %H:%M"),
-        }
-    ])
-    return ensure_columns(sample)
+def excel_download_bytes(df: pd.DataFrame) -> bytes:
+    output = BytesIO()
+    with pd.ExcelWriter(output, engine="openpyxl") as writer:
+        df.to_excel(writer, index=False, sheet_name="Schedule")
+    output.seek(0)
+    return output.getvalue()
+
+@st.cache_resource
+def get_gspread_client():
+    creds_info = dict(st.secrets["gcp_service_account"])
+    credentials = Credentials.from_service_account_info(creds_info, scopes=SCOPES)
+    return gspread.authorize(credentials)
+
+def get_worksheet():
+    gc = get_gspread_client()
+    sheet_name = st.secrets["google_sheet_name"]
+    worksheet_name = st.secrets["google_worksheet_name"]
+    sh = gc.open(sheet_name)
+    try:
+        ws = sh.worksheet(worksheet_name)
+    except gspread.WorksheetNotFound:
+        ws = sh.add_worksheet(title=worksheet_name, rows=1000, cols=len(DATA_COLUMNS) + 5)
+        ws.append_row(DATA_COLUMNS)
+    return ws
+
+def ensure_sheet_header(ws):
+    values = ws.get_all_values()
+    if not values:
+        ws.append_row(DATA_COLUMNS)
+        return
+    first_row = values[0]
+    if first_row != DATA_COLUMNS:
+        ws.clear()
+        ws.append_row(DATA_COLUMNS)
+
+def load_data_from_gsheet():
+    try:
+        ws = get_worksheet()
+        ensure_sheet_header(ws)
+        records = ws.get_all_records()
+        if not records:
+            return ensure_columns(pd.DataFrame(columns=DATA_COLUMNS))
+        return ensure_columns(pd.DataFrame(records))
+    except Exception as e:
+        st.error(f"구글 시트 데이터를 불러오지 못했습니다: {e}")
+        return ensure_columns(pd.DataFrame(columns=DATA_COLUMNS))
+
+def save_all_to_gsheet(df: pd.DataFrame):
+    ws = get_worksheet()
+    df = ensure_columns(df)
+    values = [DATA_COLUMNS] + df.astype(str).fillna("").values.tolist()
+    ws.clear()
+    ws.update(values)
 
 def get_filtered_df(df, selected_cat="카테고리", search_text="", status_filter="현황"):
     temp = df.copy()
@@ -492,7 +492,7 @@ def get_filtered_df(df, selected_cat="카테고리", search_text="", status_filt
         )
         temp = temp[mask]
 
-    return temp.sort_values(by=["Date", "Time"])
+    return temp.sort_values(by=["Date", "Time", "Updated"], ascending=[True, True, False])
 
 def week_dates_from_any_day(any_day: date):
     start = any_day - timedelta(days=(any_day.weekday() + 1) % 7)
@@ -502,18 +502,28 @@ def month_calendar_weeks(year: int, month: int):
     cal = calendar.Calendar(firstweekday=6)
     return cal.monthdatescalendar(year, month)
 
+def next_id():
+    return datetime.now().strftime("%Y%m%d%H%M%S%f")
+
+def persist_data():
+    save_all_to_gsheet(st.session_state.data)
+
 def save_record(record: dict, is_edit=False):
     record["Updated"] = datetime.now().strftime("%Y-%m-%d %H:%M")
+
     if is_edit:
-        st.session_state.data.loc[
-            st.session_state.data["ID"] == record["ID"], DATA_COLUMNS[1:]
-        ] = [record[col] for col in DATA_COLUMNS[1:]]
+        mask = st.session_state.data["ID"].astype(str) == str(record["ID"])
+        st.session_state.data.loc[mask, DATA_COLUMNS[1:]] = [
+            record[col] for col in DATA_COLUMNS[1:]
+        ]
     else:
         st.session_state.data = pd.concat(
             [st.session_state.data, pd.DataFrame([record])],
             ignore_index=True
         )
+
     st.session_state.data = ensure_columns(st.session_state.data)
+    persist_data()
 
 def contact_text(row):
     parts = []
@@ -539,22 +549,40 @@ def render_legend():
         )
     st.markdown("".join(parts), unsafe_allow_html=True)
 
-def event_label(row):
-    return f"{safe_str(row['Time'])} [{safe_str(row['Category'])}] {safe_str(row['Subject'])}"
+def format_subject_html(row):
+    subject = esc(row["Subject"])
+    if safe_str(row["Status"]) == "취소":
+        return f'<span class="canceled-title">{subject}</span><span class="cancel-pill">취소</span>'
+    return subject
+
+def format_subject_md(row):
+    subject = safe_str(row["Subject"])
+    if safe_str(row["Status"]) == "취소":
+        return f"{safe_str(row['Time'])} · ~~{subject}~~"
+    return f"{safe_str(row['Time'])} · {subject}"
 
 # =========================================================
 # 5. 상태 초기화
 # =========================================================
+today = datetime.now().date()
+
 if "data" not in st.session_state:
-    st.session_state.data = init_sample_data()
+    st.session_state.data = load_data_from_gsheet()
 else:
     st.session_state.data = ensure_columns(st.session_state.data)
+
+if "app_today" not in st.session_state:
+    st.session_state.app_today = today
+
+if st.session_state.app_today != today:
+    st.session_state.app_today = today
+    st.session_state.selected_date = today
 
 if "main_menu" not in st.session_state:
     st.session_state.main_menu = "📅 일정 보기"
 
 if "selected_date" not in st.session_state:
-    st.session_state.selected_date = datetime.now().date()
+    st.session_state.selected_date = today
 
 if "selected_cat" not in st.session_state:
     st.session_state.selected_cat = "카테고리"
@@ -584,7 +612,7 @@ def render_summary_header(row):
                     <span class="tag-pill">{esc(row["Status"])}</span>
                     <span class="tag-pill">우선순위 {esc(row["Priority"])}</span>
                 </div>
-                <div class="summary-title">{esc(row["Subject"])}</div>
+                <div class="summary-title">{format_subject_html(row)}</div>
             </div>
         </div>
     </div>
@@ -695,25 +723,28 @@ def render_action_buttons(row, prefix=""):
     toggle_label = "일정 취소" if row["Status"] != "취소" else "취소 해제"
     toggle_next = "취소" if row["Status"] != "취소" else "확정"
     if c2.button(toggle_label, key=f"{prefix}_cancel_{row['ID']}", use_container_width=True):
+        mask = st.session_state.data["ID"].astype(str) == str(row["ID"])
         st.session_state.data.loc[
-            st.session_state.data["ID"] == row["ID"], ["Status", "Updated"]
+            mask, ["Status", "Updated"]
         ] = [toggle_next, datetime.now().strftime("%Y-%m-%d %H:%M")]
+        persist_data()
         st.session_state.flash_message = "상태가 변경되었습니다."
         st.rerun()
 
     if c3.button("삭제", key=f"{prefix}_delete_{row['ID']}", use_container_width=True):
         st.session_state.data = st.session_state.data[
-            st.session_state.data["ID"] != row["ID"]
+            st.session_state.data["ID"].astype(str) != str(row["ID"])
         ].reset_index(drop=True)
         if st.session_state.edit_id == row["ID"]:
             st.session_state.edit_id = None
+        persist_data()
         st.session_state.flash_message = "일정이 삭제되었습니다."
         st.rerun()
 
     st.markdown('</div>', unsafe_allow_html=True)
 
-def render_day_expander(row, prefix="", expanded=True):
-    label = f"{safe_str(row['Time'])} · {safe_str(row['Subject'])}"
+def render_day_expander(row, prefix="", expanded=False):
+    label = format_subject_md(row)
     with st.expander(label, expanded=expanded):
         render_summary_header(row)
         render_detail_blocks(row)
@@ -721,65 +752,30 @@ def render_day_expander(row, prefix="", expanded=True):
 
 def render_week_month_details_html(row):
     c = get_color(row["Category"])
+    summary_text = f'{html.escape(safe_str(row["Time"]))} [{html.escape(safe_str(row["Category"]))}] {html.escape(safe_str(row["Subject"]))}'
+    if safe_str(row["Status"]) == "취소":
+        summary_text = f'{html.escape(safe_str(row["Time"]))} [{html.escape(safe_str(row["Category"]))}] <span class="canceled-title">{html.escape(safe_str(row["Subject"]))}</span><span class="cancel-pill">취소</span>'
+
     return f"""
     <details class="wm-detail">
         <summary class="wm-summary" style="color:{c["text"]}; border-color:{c["line"]}; background:{c["soft"]};">
-            {html.escape(event_label(row))}
+            {summary_text}
         </summary>
         <div class="wm-content">
             <div class="wm-grid">
-                <div class="wm-box">
-                    <div class="wm-label">방문기관명</div>
-                    <div class="wm-value">{esc(row["OrgName"])}</div>
-                </div>
-                <div class="wm-box">
-                    <div class="wm-label">회의장소(세부)</div>
-                    <div class="wm-value">{esc(row["DetailPlace"])}</div>
-                </div>
-                <div class="wm-box">
-                    <div class="wm-label">보좌관/비서/담당자 정보</div>
-                    <div class="wm-value">{html.escape(contact_text(row))}</div>
-                </div>
-                <div class="wm-box">
-                    <div class="wm-label">회장님 외 동행인</div>
-                    <div class="wm-value">{esc(row["Companion"])}</div>
-                </div>
-                <div class="wm-box">
-                    <div class="wm-label">사무처 수행직원</div>
-                    <div class="wm-value">{esc(row["Staff"])}</div>
-                </div>
-                <div class="wm-box">
-                    <div class="wm-label">회의 목적</div>
-                    <div class="wm-value">{esc(row["Purpose"])}</div>
-                </div>
-                <div class="wm-box">
-                    <div class="wm-label">대응 방향</div>
-                    <div class="wm-value">{esc(row["ActionPlan"])}</div>
-                </div>
-                <div class="wm-box">
-                    <div class="wm-label">주 담당자</div>
-                    <div class="wm-value">{esc(row["FollowOwner"])}</div>
-                </div>
-                <div class="wm-box">
-                    <div class="wm-label">준비 완료기한</div>
-                    <div class="wm-value">{esc(row["FollowDue"])}</div>
-                </div>
-                <div class="wm-box">
-                    <div class="wm-label">후속/준비사항</div>
-                    <div class="wm-value">{esc(row["FollowTask"])}</div>
-                </div>
-                <div class="wm-box">
-                    <div class="wm-label">공유 메모</div>
-                    <div class="wm-value">{esc(row["SharedNote"])}</div>
-                </div>
-                <div class="wm-box">
-                    <div class="wm-label">Memo</div>
-                    <div class="wm-value">{esc(row["Memo"])}</div>
-                </div>
-                <div class="wm-box">
-                    <div class="wm-label">최종 수정</div>
-                    <div class="wm-value">{esc(row["Updated"])}</div>
-                </div>
+                <div class="wm-box"><div class="wm-label">방문기관명</div><div class="wm-value">{esc(row["OrgName"])}</div></div>
+                <div class="wm-box"><div class="wm-label">회의장소(세부)</div><div class="wm-value">{esc(row["DetailPlace"])}</div></div>
+                <div class="wm-box"><div class="wm-label">보좌관/비서/담당자 정보</div><div class="wm-value">{html.escape(contact_text(row))}</div></div>
+                <div class="wm-box"><div class="wm-label">회장님 외 동행인</div><div class="wm-value">{esc(row["Companion"])}</div></div>
+                <div class="wm-box"><div class="wm-label">사무처 수행직원</div><div class="wm-value">{esc(row["Staff"])}</div></div>
+                <div class="wm-box"><div class="wm-label">회의 목적</div><div class="wm-value">{esc(row["Purpose"])}</div></div>
+                <div class="wm-box"><div class="wm-label">대응 방향</div><div class="wm-value">{esc(row["ActionPlan"])}</div></div>
+                <div class="wm-box"><div class="wm-label">주 담당자</div><div class="wm-value">{esc(row["FollowOwner"])}</div></div>
+                <div class="wm-box"><div class="wm-label">준비 완료기한</div><div class="wm-value">{esc(row["FollowDue"])}</div></div>
+                <div class="wm-box"><div class="wm-label">후속/준비사항</div><div class="wm-value">{esc(row["FollowTask"])}</div></div>
+                <div class="wm-box"><div class="wm-label">공유 메모</div><div class="wm-value">{esc(row["SharedNote"])}</div></div>
+                <div class="wm-box"><div class="wm-label">Memo</div><div class="wm-value">{esc(row["Memo"])}</div></div>
+                <div class="wm-box"><div class="wm-label">최종 수정</div><div class="wm-value">{esc(row["Updated"])}</div></div>
             </div>
         </div>
     </details>
@@ -818,7 +814,12 @@ def render_form(mode="new", row_data=None):
     with st.form(f"form_{mode}", clear_on_submit=False):
         r1c1, r1c2, r1c3 = st.columns(3)
         input_date = r1c1.date_input("일정 날짜", value=to_date_safe(row_data["Date"]) or datetime.now().date())
-        default_time = datetime.strptime(safe_str(row_data["Time"]) or "09:00", "%H:%M").time()
+
+        try:
+            default_time = datetime.strptime(safe_str(row_data["Time"]) or "09:00", "%H:%M").time()
+        except Exception:
+            default_time = datetime.strptime("09:00", "%H:%M").time()
+
         input_time = r1c2.time_input("일정 시간", value=default_time)
         input_category = r1c3.selectbox(
             "카테고리",
@@ -869,70 +870,77 @@ def render_form(mode="new", row_data=None):
         if mode == "new":
             submit = st.form_submit_button("저장 후 일정 보기로 이동", use_container_width=True)
             if submit:
-                record = {
-                    "ID": str(datetime.now().timestamp()),
-                    "Date": str(input_date),
-                    "Time": str(input_time)[:5],
-                    "Category": input_category,
-                    "Subject": input_subject,
-                    "OrgName": input_org,
-                    "DetailPlace": input_detail_place,
-                    "TargetDept": input_target_dept,
-                    "TargetName": input_target_name,
-                    "TargetContact": input_target_contact,
-                    "Companion": input_companion,
-                    "Staff": input_staff,
-                    "Purpose": input_purpose,
-                    "ActionPlan": input_action,
-                    "Memo": input_memo,
-                    "Status": input_status,
-                    "Priority": input_priority,
-                    "FollowOwner": input_follow_owner,
-                    "FollowTask": input_follow_task,
-                    "FollowDue": str(input_follow_due),
-                    "SharedNote": input_shared_note,
-                    "Updated": "",
-                }
-                save_record(record, is_edit=False)
-                st.session_state.main_menu = "📅 일정 보기"
-                st.session_state.selected_date = input_date
-                st.session_state.edit_id = None
-                st.session_state.flash_message = "신규 일정이 저장되었습니다."
-                st.rerun()
+                if not safe_str(input_subject):
+                    st.warning("회의명은 입력해 주세요.")
+                else:
+                    record = {
+                        "ID": next_id(),
+                        "Date": str(input_date),
+                        "Time": str(input_time)[:5],
+                        "Category": input_category,
+                        "Subject": input_subject,
+                        "OrgName": input_org,
+                        "DetailPlace": input_detail_place,
+                        "TargetDept": input_target_dept,
+                        "TargetName": input_target_name,
+                        "TargetContact": input_target_contact,
+                        "Companion": input_companion,
+                        "Staff": input_staff,
+                        "Purpose": input_purpose,
+                        "ActionPlan": input_action,
+                        "Memo": input_memo,
+                        "Status": input_status,
+                        "Priority": input_priority,
+                        "FollowOwner": input_follow_owner,
+                        "FollowTask": input_follow_task,
+                        "FollowDue": str(input_follow_due),
+                        "SharedNote": input_shared_note,
+                        "Updated": "",
+                    }
+                    save_record(record, is_edit=False)
+                    st.session_state.main_menu = "📅 일정 보기"
+                    st.session_state.selected_date = input_date
+                    st.session_state.edit_id = None
+                    st.session_state.flash_message = "신규 일정이 저장되었습니다."
+                    st.rerun()
         else:
             b1, b2 = st.columns([1, 1])
             save_btn = b1.form_submit_button("수정 저장", use_container_width=True)
             cancel_btn = b2.form_submit_button("수정 취소", use_container_width=True)
 
             if save_btn:
-                record = {
-                    "ID": row_data["ID"],
-                    "Date": str(input_date),
-                    "Time": str(input_time)[:5],
-                    "Category": input_category,
-                    "Subject": input_subject,
-                    "OrgName": input_org,
-                    "DetailPlace": input_detail_place,
-                    "TargetDept": input_target_dept,
-                    "TargetName": input_target_name,
-                    "TargetContact": input_target_contact,
-                    "Companion": input_companion,
-                    "Staff": input_staff,
-                    "Purpose": input_purpose,
-                    "ActionPlan": input_action,
-                    "Memo": input_memo,
-                    "Status": input_status,
-                    "Priority": input_priority,
-                    "FollowOwner": input_follow_owner,
-                    "FollowTask": input_follow_task,
-                    "FollowDue": str(input_follow_due),
-                    "SharedNote": input_shared_note,
-                    "Updated": "",
-                }
-                save_record(record, is_edit=True)
-                st.session_state.edit_id = None
-                st.session_state.flash_message = "일정이 수정되었습니다."
-                st.rerun()
+                if not safe_str(input_subject):
+                    st.warning("회의명은 입력해 주세요.")
+                else:
+                    record = {
+                        "ID": row_data["ID"],
+                        "Date": str(input_date),
+                        "Time": str(input_time)[:5],
+                        "Category": input_category,
+                        "Subject": input_subject,
+                        "OrgName": input_org,
+                        "DetailPlace": input_detail_place,
+                        "TargetDept": input_target_dept,
+                        "TargetName": input_target_name,
+                        "TargetContact": input_target_contact,
+                        "Companion": input_companion,
+                        "Staff": input_staff,
+                        "Purpose": input_purpose,
+                        "ActionPlan": input_action,
+                        "Memo": input_memo,
+                        "Status": input_status,
+                        "Priority": input_priority,
+                        "FollowOwner": input_follow_owner,
+                        "FollowTask": input_follow_task,
+                        "FollowDue": str(input_follow_due),
+                        "SharedNote": input_shared_note,
+                        "Updated": "",
+                    }
+                    save_record(record, is_edit=True)
+                    st.session_state.edit_id = None
+                    st.session_state.selected_date = input_date
+                    st.session_state.flash_message = "일정이 수정되었습니다."
+                    st.rerun()
 
             if cancel_btn:
                 st.session_state.edit_id = None
@@ -951,6 +959,8 @@ menu = st.sidebar.radio(
 st.session_state.main_menu = menu
 
 csv_bytes = csv_download_bytes(st.session_state.data)
+xlsx_bytes = excel_download_bytes(st.session_state.data)
+
 st.sidebar.download_button(
     "📥 일정 CSV 다운로드",
     data=csv_bytes,
@@ -958,6 +968,31 @@ st.sidebar.download_button(
     mime="text/csv",
     use_container_width=True
 )
+
+st.sidebar.download_button(
+    "📥 일정 엑셀 다운로드",
+    data=xlsx_bytes,
+    file_name=f"kvma_schedule_{datetime.now().strftime('%Y%m%d_%H%M')}.xlsx",
+    mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+    use_container_width=True
+)
+
+if st.sidebar.button("🔄 구글 시트에서 다시 불러오기", use_container_width=True):
+    st.session_state.data = load_data_from_gsheet()
+    st.session_state.flash_message = "구글 시트에서 최신 데이터를 다시 불러왔습니다."
+    st.rerun()
+
+with st.sidebar.expander("📊 저장된 일정표 미리보기", expanded=False):
+    preview_df = st.session_state.data.copy()
+    if not preview_df.empty:
+        st.dataframe(
+            preview_df.sort_values(by=["Date", "Time", "Updated"], ascending=[True, True, False]),
+            use_container_width=True,
+            hide_index=True,
+            height=320
+        )
+    else:
+        st.caption("저장된 일정이 없습니다.")
 
 # =========================================================
 # 8. 상단
@@ -1057,11 +1092,8 @@ else:
     with m5:
         st.empty()
 
-    tabs = st.tabs(["일별 보기", "주간 보기", "월별 보기"])
+    tabs = st.tabs(["일별 보기", "주간 보기", "월별 보기", "전체 일정표"])
 
-    # -----------------------------------------------------
-    # 일별 보기
-    # -----------------------------------------------------
     with tabs[0]:
         st.markdown(
             f'<div class="section-title">📍 {st.session_state.selected_date.strftime("%Y년 %m월 %d일")} 일정</div>',
@@ -1070,20 +1102,15 @@ else:
 
         if st.session_state.edit_id:
             edit_target = st.session_state.data[
-                st.session_state.data["ID"] == st.session_state.edit_id
+                st.session_state.data["ID"].astype(str) == str(st.session_state.edit_id)
             ]
             if not edit_target.empty:
                 render_form(mode="edit", row_data=edit_target.iloc[0].to_dict())
         else:
-            if day_df.empty:
-                st.info("조건에 맞는 일정이 없습니다.")
+            if not day_df.empty:
+                for idx, (_, row) in enumerate(day_df.iterrows()):
+                    render_day_expander(row, prefix=f"day_{idx}", expanded=False)
 
-            for idx, (_, row) in enumerate(day_df.iterrows()):
-                render_day_expander(row, prefix=f"day_{idx}", expanded=True)
-
-    # -----------------------------------------------------
-    # 주간 보기
-    # -----------------------------------------------------
     with tabs[1]:
         st.markdown('<div class="section-title">📅 주간 일정</div>', unsafe_allow_html=True)
 
@@ -1120,9 +1147,6 @@ else:
                     for _, row in daily.iterrows():
                         st.markdown(render_week_month_details_html(row), unsafe_allow_html=True)
 
-    # -----------------------------------------------------
-    # 월별 보기
-    # -----------------------------------------------------
     with tabs[2]:
         st.markdown('<div class="section-title">🗓️ 월별 일정</div>', unsafe_allow_html=True)
 
@@ -1179,3 +1203,17 @@ else:
                         else:
                             for _, row in daily.iterrows():
                                 st.markdown(render_week_month_details_html(row), unsafe_allow_html=True)
+
+    with tabs[3]:
+        st.markdown('<div class="section-title">📋 전체 일정표</div>', unsafe_allow_html=True)
+
+        table_df = filtered_df.copy()
+        if table_df.empty:
+            st.caption("표시할 일정이 없습니다.")
+        else:
+            st.dataframe(
+                table_df.sort_values(by=["Date", "Time", "Updated"], ascending=[True, True, False]),
+                use_container_width=True,
+                hide_index=True,
+                height=500
+            )
