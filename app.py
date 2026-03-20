@@ -387,15 +387,27 @@ div[data-testid="stForm"] {
 # 4. 유틸
 # =========================================================
 def ensure_columns(df: pd.DataFrame) -> pd.DataFrame:
-    if df is None:
-        df = pd.DataFrame(columns=DATA_COLUMNS)
+    if df is None or not isinstance(df, pd.DataFrame):
+        return pd.DataFrame(columns=DATA_COLUMNS)
+
+    if df.empty:
+        return pd.DataFrame(columns=DATA_COLUMNS)
+
+    df = df.copy()
     for col in DATA_COLUMNS:
         if col not in df.columns:
             df[col] = ""
+
     return df[DATA_COLUMNS].copy().fillna("")
+
+
+def empty_df():
+    return pd.DataFrame(columns=DATA_COLUMNS)
+
 
 def get_color(cat: str):
     return COLOR_MAP.get(cat, COLOR_MAP["기타"])
+
 
 def to_date_safe(v):
     if pd.isna(v) or v == "":
@@ -405,17 +417,21 @@ def to_date_safe(v):
         return None
     return parsed.date()
 
+
 def safe_str(v):
     if pd.isna(v):
         return ""
     return str(v).strip()
 
+
 def esc(v):
     return html.escape(safe_str(v) if safe_str(v) else "-")
+
 
 def csv_download_bytes(df: pd.DataFrame) -> bytes:
     df = ensure_columns(df)
     return df.to_csv(index=False, encoding="utf-8-sig").encode("utf-8-sig")
+
 
 def excel_download_bytes(df: pd.DataFrame) -> bytes:
     df = ensure_columns(df)
@@ -425,13 +441,16 @@ def excel_download_bytes(df: pd.DataFrame) -> bytes:
     output.seek(0)
     return output.getvalue()
 
+
 @st.cache_resource
 def get_gspread_client():
     if "gcp_service_account" not in st.secrets:
         raise KeyError("gcp_service_account")
+
     creds_info = dict(st.secrets["gcp_service_account"])
     credentials = Credentials.from_service_account_info(creds_info, scopes=SCOPES)
     return gspread.authorize(credentials)
+
 
 def get_worksheet():
     gc = get_gspread_client()
@@ -449,49 +468,64 @@ def get_worksheet():
         ws.append_row(DATA_COLUMNS)
     return ws
 
+
 def ensure_sheet_header(ws):
     values = ws.get_all_values()
     if not values:
         ws.append_row(DATA_COLUMNS)
         return
+
     first_row = values[0]
     if first_row != DATA_COLUMNS:
         ws.clear()
         ws.append_row(DATA_COLUMNS)
 
+
 def load_data_from_gsheet():
     try:
         if "gcp_service_account" not in st.secrets:
             st.warning("구글 시트 연결 정보가 아직 설정되지 않았습니다. Streamlit Secrets를 먼저 입력해 주세요.")
-            return ensure_columns(pd.DataFrame(columns=DATA_COLUMNS))
+            return empty_df()
 
         if "google_sheet_name" not in st.secrets or "google_worksheet_name" not in st.secrets:
             st.warning("google_sheet_name 또는 google_worksheet_name 설정이 없습니다.")
-            return ensure_columns(pd.DataFrame(columns=DATA_COLUMNS))
+            return empty_df()
 
         ws = get_worksheet()
         ensure_sheet_header(ws)
         records = ws.get_all_records()
 
         if not records:
-            return ensure_columns(pd.DataFrame(columns=DATA_COLUMNS))
+            return empty_df()
 
         df = pd.DataFrame(records)
         return ensure_columns(df)
 
     except Exception as e:
         st.warning(f"구글 시트 데이터를 불러오지 못했습니다: {e}")
-        return ensure_columns(pd.DataFrame(columns=DATA_COLUMNS))
+        return empty_df()
+
 
 def save_all_to_gsheet(df: pd.DataFrame):
     ws = get_worksheet()
     df = ensure_columns(df)
-    values = [DATA_COLUMNS] + df.astype(str).fillna("").values.tolist()
+
+    if df.empty:
+        values = [DATA_COLUMNS]
+    else:
+        values = [DATA_COLUMNS] + df.astype(str).fillna("").values.tolist()
+
     ws.clear()
     ws.update(values)
 
+
 def get_filtered_df(df, selected_cat="카테고리", search_text="", status_filter="현황"):
-    temp = ensure_columns(df.copy())
+    temp = ensure_columns(df)
+
+    if temp.empty:
+        return empty_df()
+
+    temp = temp.copy()
     temp["Date"] = pd.to_datetime(temp["Date"], errors="coerce").dt.date
 
     if selected_cat not in ["전체", "카테고리"]:
@@ -514,18 +548,25 @@ def get_filtered_df(df, selected_cat="카테고리", search_text="", status_filt
         )
         temp = temp[mask]
 
+    if temp.empty:
+        return empty_df()
+
     return ensure_columns(temp.sort_values(by=["Date", "Time", "Updated"], ascending=[True, True, False]))
+
 
 def week_dates_from_any_day(any_day: date):
     start = any_day - timedelta(days=(any_day.weekday() + 1) % 7)
     return [start + timedelta(days=i) for i in range(7)]
 
+
 def month_calendar_weeks(year: int, month: int):
     cal = calendar.Calendar(firstweekday=6)
     return cal.monthdatescalendar(year, month)
 
+
 def next_id():
     return datetime.now().strftime("%Y%m%d%H%M%S%f")
+
 
 def persist_data():
     try:
@@ -533,22 +574,27 @@ def persist_data():
     except Exception as e:
         st.session_state.flash_message = f"저장은 화면에 반영되었지만 구글 시트 저장은 실패했습니다: {e}"
 
+
 def save_record(record: dict, is_edit=False):
     record["Updated"] = datetime.now().strftime("%Y-%m-%d %H:%M")
 
-    if is_edit:
-        mask = st.session_state.data["ID"].astype(str) == str(record["ID"])
-        st.session_state.data.loc[mask, DATA_COLUMNS[1:]] = [
-            record[col] for col in DATA_COLUMNS[1:]
-        ]
-    else:
-        st.session_state.data = pd.concat(
-            [st.session_state.data, pd.DataFrame([record])],
-            ignore_index=True
-        )
+    current = ensure_columns(st.session_state.data)
 
-    st.session_state.data = ensure_columns(st.session_state.data)
+    if is_edit:
+        if current.empty:
+            current = pd.DataFrame([record], columns=DATA_COLUMNS)
+        else:
+            mask = current["ID"].astype(str) == str(record["ID"])
+            if mask.any():
+                current.loc[mask, DATA_COLUMNS[1:]] = [record[col] for col in DATA_COLUMNS[1:]]
+            else:
+                current = pd.concat([current, pd.DataFrame([record])], ignore_index=True)
+    else:
+        current = pd.concat([current, pd.DataFrame([record])], ignore_index=True)
+
+    st.session_state.data = ensure_columns(current)
     persist_data()
+
 
 def contact_text(row):
     parts = []
@@ -560,10 +606,16 @@ def contact_text(row):
         parts.append(f"연락처: {row['TargetContact']}")
     return " / ".join(parts) if parts else "-"
 
+
 def show_flash():
     if st.session_state.flash_message:
-        st.success(st.session_state.flash_message)
+        msg = st.session_state.flash_message
+        if "실패" in str(msg):
+            st.warning(msg)
+        else:
+            st.success(msg)
         st.session_state.flash_message = None
+
 
 def render_legend():
     parts = []
@@ -574,17 +626,20 @@ def render_legend():
         )
     st.markdown("".join(parts), unsafe_allow_html=True)
 
+
 def format_subject_html(row):
     subject = esc(row["Subject"])
     if safe_str(row["Status"]) == "취소":
         return f'<span class="canceled-title">{subject}</span><span class="cancel-pill">취소</span>'
     return subject
 
+
 def format_subject_md(row):
     subject = safe_str(row["Subject"])
     if safe_str(row["Status"]) == "취소":
         return f"{safe_str(row['Time'])} · ~~{subject}~~"
     return f"{safe_str(row['Time'])} · {subject}"
+
 
 # =========================================================
 # 5. 상태 초기화
@@ -642,6 +697,7 @@ def render_summary_header(row):
         </div>
     </div>
     """, unsafe_allow_html=True)
+
 
 def render_detail_blocks(row):
     c1, c2, c3 = st.columns(3)
@@ -737,6 +793,7 @@ def render_detail_blocks(row):
     </div>
     """, unsafe_allow_html=True)
 
+
 def render_action_buttons(row, prefix=""):
     st.markdown('<div class="small-action">', unsafe_allow_html=True)
     c1, c2, c3, c4 = st.columns([0.8, 0.9, 0.8, 6.5])
@@ -747,28 +804,34 @@ def render_action_buttons(row, prefix=""):
 
     toggle_label = "일정 취소" if row["Status"] != "취소" else "취소 해제"
     toggle_next = "취소" if row["Status"] != "취소" else "확정"
+
     if c2.button(toggle_label, key=f"{prefix}_cancel_{row['ID']}", use_container_width=True):
-        mask = st.session_state.data["ID"].astype(str) == str(row["ID"])
-        st.session_state.data.loc[mask, ["Status", "Updated"]] = [
-            toggle_next, datetime.now().strftime("%Y-%m-%d %H:%M")
-        ]
-        st.session_state.data = ensure_columns(st.session_state.data)
-        persist_data()
-        st.session_state.flash_message = "상태가 변경되었습니다."
+        current = ensure_columns(st.session_state.data)
+        if not current.empty:
+            mask = current["ID"].astype(str) == str(row["ID"])
+            current.loc[mask, ["Status", "Updated"]] = [
+                toggle_next, datetime.now().strftime("%Y-%m-%d %H:%M")
+            ]
+            st.session_state.data = ensure_columns(current)
+            persist_data()
+            st.session_state.flash_message = "상태가 변경되었습니다."
         st.rerun()
 
     if c3.button("삭제", key=f"{prefix}_delete_{row['ID']}", use_container_width=True):
-        st.session_state.data = st.session_state.data[
-            st.session_state.data["ID"].astype(str) != str(row["ID"])
-        ].reset_index(drop=True)
-        st.session_state.data = ensure_columns(st.session_state.data)
+        current = ensure_columns(st.session_state.data)
+        if not current.empty:
+            current = current[current["ID"].astype(str) != str(row["ID"])].reset_index(drop=True)
+        st.session_state.data = ensure_columns(current)
+
         if st.session_state.edit_id == row["ID"]:
             st.session_state.edit_id = None
+
         persist_data()
         st.session_state.flash_message = "일정이 삭제되었습니다."
         st.rerun()
 
     st.markdown('</div>', unsafe_allow_html=True)
+
 
 def render_day_expander(row, prefix="", expanded=False):
     label = format_subject_md(row)
@@ -776,6 +839,7 @@ def render_day_expander(row, prefix="", expanded=False):
         render_summary_header(row)
         render_detail_blocks(row)
         render_action_buttons(row, prefix=prefix)
+
 
 def render_week_month_details_html(row):
     c = get_color(row["Category"])
@@ -807,6 +871,7 @@ def render_week_month_details_html(row):
         </div>
     </details>
     """
+
 
 def render_form(mode="new", row_data=None):
     if row_data is None:
@@ -928,7 +993,7 @@ def render_form(mode="new", row_data=None):
                     st.session_state.main_menu = "📅 일정 보기"
                     st.session_state.selected_date = input_date
                     st.session_state.edit_id = None
-                    if "실패했습니다" not in str(st.session_state.flash_message):
+                    if not st.session_state.flash_message:
                         st.session_state.flash_message = "신규 일정이 저장되었습니다."
                     st.rerun()
         else:
@@ -967,7 +1032,7 @@ def render_form(mode="new", row_data=None):
                     save_record(record, is_edit=True)
                     st.session_state.edit_id = None
                     st.session_state.selected_date = input_date
-                    if "실패했습니다" not in str(st.session_state.flash_message):
+                    if not st.session_state.flash_message:
                         st.session_state.flash_message = "일정이 수정되었습니다."
                     st.rerun()
 
@@ -1012,16 +1077,16 @@ if st.sidebar.button("🔄 구글 시트에서 다시 불러오기", use_contain
     st.rerun()
 
 with st.sidebar.expander("📊 저장된 일정표 미리보기", expanded=False):
-    preview_df = ensure_columns(st.session_state.data.copy())
-    if not preview_df.empty:
+    preview_df = ensure_columns(st.session_state.data)
+    if preview_df.empty:
+        st.caption("저장된 일정이 없습니다.")
+    else:
         st.dataframe(
             preview_df.sort_values(by=["Date", "Time", "Updated"], ascending=[True, True, False]),
             use_container_width=True,
             hide_index=True,
             height=320
         )
-    else:
-        st.caption("저장된 일정이 없습니다.")
 
 # =========================================================
 # 8. 상단
@@ -1093,9 +1158,14 @@ else:
         status_filter=st.session_state.selected_status
     ))
 
+    # 일별용
     day_df = ensure_columns(filtered_df.copy())
-    day_df["Date"] = pd.to_datetime(day_df["Date"], errors="coerce").dt.date
-    day_df = day_df[day_df["Date"] == st.session_state.selected_date].sort_values(by="Time")
+    if not day_df.empty and "Date" in day_df.columns:
+        day_df["Date"] = pd.to_datetime(day_df["Date"], errors="coerce").dt.date
+        day_df = day_df[day_df["Date"] == st.session_state.selected_date].sort_values(by="Time")
+        day_df = ensure_columns(day_df)
+    else:
+        day_df = empty_df()
 
     m1, m2, m3, m4, m5 = st.columns([1, 1, 1, 1, 1.8])
     with m1:
@@ -1104,18 +1174,21 @@ else:
             unsafe_allow_html=True
         )
     with m2:
+        confirmed_count = 0 if filtered_df.empty else len(filtered_df[filtered_df["Status"] == "확정"])
         st.markdown(
-            f'<div class="metric-card"><div class="metric-label">확정 일정</div><div class="metric-value">{len(filtered_df[filtered_df["Status"]=="확정"])}</div></div>',
+            f'<div class="metric-card"><div class="metric-label">확정 일정</div><div class="metric-value">{confirmed_count}</div></div>',
             unsafe_allow_html=True
         )
     with m3:
+        pending_count = 0 if filtered_df.empty else len(filtered_df[filtered_df["Status"] == "보류"])
         st.markdown(
-            f'<div class="metric-card"><div class="metric-label">보류 일정</div><div class="metric-value">{len(filtered_df[filtered_df["Status"]=="보류"])}</div></div>',
+            f'<div class="metric-card"><div class="metric-label">보류 일정</div><div class="metric-value">{pending_count}</div></div>',
             unsafe_allow_html=True
         )
     with m4:
+        cancel_count = 0 if filtered_df.empty else len(filtered_df[filtered_df["Status"] == "취소"])
         st.markdown(
-            f'<div class="metric-card"><div class="metric-label">취소 일정</div><div class="metric-value">{len(filtered_df[filtered_df["Status"]=="취소"])}</div></div>',
+            f'<div class="metric-card"><div class="metric-label">취소 일정</div><div class="metric-value">{cancel_count}</div></div>',
             unsafe_allow_html=True
         )
     with m5:
@@ -1123,6 +1196,9 @@ else:
 
     tabs = st.tabs(["일별 보기", "주간 보기", "월별 보기", "전체 일정표"])
 
+    # -----------------------------------------------------
+    # 일별 보기
+    # -----------------------------------------------------
     with tabs[0]:
         st.markdown(
             f'<div class="section-title">📍 {st.session_state.selected_date.strftime("%Y년 %m월 %d일")} 일정</div>',
@@ -1130,9 +1206,13 @@ else:
         )
 
         if st.session_state.edit_id:
-            edit_target = ensure_columns(st.session_state.data[
-                st.session_state.data["ID"].astype(str) == str(st.session_state.edit_id)
-            ])
+            current = ensure_columns(st.session_state.data)
+            if current.empty:
+                edit_target = empty_df()
+            else:
+                edit_target = current[current["ID"].astype(str) == str(st.session_state.edit_id)]
+                edit_target = ensure_columns(edit_target)
+
             if not edit_target.empty:
                 render_form(mode="edit", row_data=edit_target.iloc[0].to_dict())
         else:
@@ -1140,6 +1220,9 @@ else:
                 for idx, (_, row) in enumerate(day_df.iterrows()):
                     render_day_expander(row, prefix=f"day_{idx}", expanded=False)
 
+    # -----------------------------------------------------
+    # 주간 보기
+    # -----------------------------------------------------
     with tabs[1]:
         st.markdown('<div class="section-title">📅 주간 일정</div>', unsafe_allow_html=True)
 
@@ -1156,8 +1239,13 @@ else:
 
         week_days = week_dates_from_any_day(st.session_state.selected_date)
         week_df = ensure_columns(filtered_df.copy())
-        week_df["Date"] = pd.to_datetime(week_df["Date"], errors="coerce").dt.date
-        week_df = week_df[week_df["Date"].isin(week_days)]
+
+        if not week_df.empty and "Date" in week_df.columns:
+            week_df["Date"] = pd.to_datetime(week_df["Date"], errors="coerce").dt.date
+            week_df = week_df[week_df["Date"].isin(week_days)]
+            week_df = ensure_columns(week_df)
+        else:
+            week_df = empty_df()
 
         day_names = ["일", "월", "화", "수", "목", "금", "토"]
         cols = st.columns(7)
@@ -1169,13 +1257,23 @@ else:
                     unsafe_allow_html=True
                 )
 
-                daily = ensure_columns(week_df[week_df["Date"] == day_obj].sort_values(by="Time"))
+                if not week_df.empty and "Date" in week_df.columns:
+                    daily = week_df.loc[week_df["Date"] == day_obj].copy()
+                    daily = ensure_columns(daily)
+                    if not daily.empty:
+                        daily = daily.sort_values(by="Time")
+                else:
+                    daily = empty_df()
+
                 if daily.empty:
                     st.caption("일정 없음")
                 else:
                     for _, row in daily.iterrows():
                         st.markdown(render_week_month_details_html(row), unsafe_allow_html=True)
 
+    # -----------------------------------------------------
+    # 월별 보기
+    # -----------------------------------------------------
     with tabs[2]:
         st.markdown('<div class="section-title">🗓️ 월별 일정</div>', unsafe_allow_html=True)
 
@@ -1196,12 +1294,17 @@ else:
         )
 
         month_df = ensure_columns(filtered_df.copy())
-        month_df["Date"] = pd.to_datetime(month_df["Date"], errors="coerce").dt.date
-        month_df = month_df[
-            month_df["Date"].apply(
-                lambda d: d.year == month_year and d.month == month_month if pd.notna(d) else False
-            )
-        ]
+
+        if not month_df.empty and "Date" in month_df.columns:
+            month_df["Date"] = pd.to_datetime(month_df["Date"], errors="coerce").dt.date
+            month_df = month_df[
+                month_df["Date"].apply(
+                    lambda d: d.year == month_year and d.month == month_month if pd.notna(d) else False
+                )
+            ]
+            month_df = ensure_columns(month_df)
+        else:
+            month_df = empty_df()
 
         weeks = month_calendar_weeks(month_year, month_month)
         weekday_names = ["일", "월", "화", "수", "목", "금", "토"]
@@ -1225,13 +1328,24 @@ else:
                             f"<div class='day-head'>{day_obj.day}일</div>",
                             unsafe_allow_html=True
                         )
-                        daily = ensure_columns(month_df[month_df["Date"] == day_obj].sort_values(by="Time"))
+
+                        if not month_df.empty and "Date" in month_df.columns:
+                            daily = month_df.loc[month_df["Date"] == day_obj].copy()
+                            daily = ensure_columns(daily)
+                            if not daily.empty:
+                                daily = daily.sort_values(by="Time")
+                        else:
+                            daily = empty_df()
+
                         if daily.empty:
                             st.caption("일정 없음")
                         else:
                             for _, row in daily.iterrows():
                                 st.markdown(render_week_month_details_html(row), unsafe_allow_html=True)
 
+    # -----------------------------------------------------
+    # 전체 일정표
+    # -----------------------------------------------------
     with tabs[3]:
         st.markdown('<div class="section-title">📋 전체 일정표</div>', unsafe_allow_html=True)
 
