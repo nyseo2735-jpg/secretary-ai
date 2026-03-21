@@ -34,6 +34,7 @@ COLOR_MAP = {
 CATEGORIES = list(COLOR_MAP.keys())
 STATUS_OPTIONS = ["확정", "보류", "완료", "취소"]
 PRIORITY_OPTIONS = ["높음", "보통", "낮음"]
+FOLLOW_STATUS_OPTIONS = ["미착수", "진행중", "완료", "보류"]
 
 DATA_COLUMNS = [
     "ID",
@@ -57,6 +58,9 @@ DATA_COLUMNS = [
     "FollowTask",
     "FollowDue",
     "SharedNote",
+    "FollowStatus",
+    "FollowProgressMemo",
+    "FollowUpdated",
     "Updated",
 ]
 
@@ -193,6 +197,19 @@ h1, h2, h3 {
     vertical-align: middle;
 }
 
+.follow-pill {
+    display: inline-block;
+    padding: 5px 10px;
+    border-radius: 999px;
+    font-size: 0.74rem;
+    font-weight: 800;
+    border: 1px solid #D1D5DB;
+    background: #F8FAFC;
+    color: #344054;
+    margin-right: 6px;
+    vertical-align: middle;
+}
+
 .info-box {
     background: #ffffff;
     border: 1px solid #ECEEF3;
@@ -239,6 +256,52 @@ h1, h2, h3 {
     color: #4B5563;
     line-height: 1.55;
     white-space: pre-wrap;
+}
+
+.follow-wrap {
+    background: #F7FAFF;
+    border: 1px solid #D7E7FF;
+    border-left: 8px solid #3B82F6;
+    border-radius: 18px;
+    padding: 14px 16px;
+    margin-top: 12px;
+    margin-bottom: 10px;
+}
+
+.follow-title {
+    font-size: 1rem;
+    font-weight: 800;
+    color: #1D4ED8;
+    margin-bottom: 10px;
+}
+
+.follow-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+}
+
+.follow-box {
+    border: 1px solid #DDE6F4;
+    border-radius: 14px;
+    padding: 10px 12px;
+    background: #ffffff;
+}
+
+.follow-label {
+    font-size: 0.75rem;
+    font-weight: 800;
+    color: #6B7280;
+    margin-bottom: 4px;
+}
+
+.follow-value {
+    font-size: 0.92rem;
+    font-weight: 600;
+    color: #1F2937;
+    line-height: 1.45;
+    white-space: pre-wrap;
+    word-break: break-word;
 }
 
 .small-action button {
@@ -417,6 +480,9 @@ div[data-testid="stForm"] {
     .summary-title {
         font-size: 1.10rem;
     }
+    .follow-grid {
+        grid-template-columns: 1fr;
+    }
 }
 </style>
 """, unsafe_allow_html=True)
@@ -494,7 +560,7 @@ def get_worksheet():
     try:
         ws = sh.worksheet(worksheet_name)
     except gspread.WorksheetNotFound:
-        ws = sh.add_worksheet(title=worksheet_name, rows=1000, cols=len(DATA_COLUMNS) + 5)
+        ws = sh.add_worksheet(title=worksheet_name, rows=1000, cols=len(DATA_COLUMNS) + 8)
         ws.append_row(DATA_COLUMNS)
     return ws
 
@@ -504,11 +570,6 @@ def ensure_sheet_header(ws):
     if not values:
         ws.append_row(DATA_COLUMNS)
         return
-
-    first_row = values[0]
-    if first_row != DATA_COLUMNS:
-        ws.clear()
-        ws.append_row(DATA_COLUMNS)
 
 
 def load_data_from_gsheet():
@@ -538,11 +599,7 @@ def load_data_from_gsheet():
 def save_all_to_gsheet(df: pd.DataFrame):
     ws = get_worksheet()
     df = ensure_columns(df)
-    if df.empty:
-        values = [DATA_COLUMNS]
-    else:
-        values = [DATA_COLUMNS] + df.astype(str).fillna("").values.tolist()
-
+    values = [DATA_COLUMNS] + df.astype(str).fillna("").values.tolist()
     ws.clear()
     ws.update(values)
 
@@ -569,6 +626,7 @@ def get_filtered_df(df, selected_cat="카테고리", search_text="", status_filt
             | temp["FollowOwner"].fillna("").str.contains(q, case=False, na=False)
             | temp["FollowTask"].fillna("").str.contains(q, case=False, na=False)
             | temp["Memo"].fillna("").str.contains(q, case=False, na=False)
+            | temp["FollowProgressMemo"].fillna("").str.contains(q, case=False, na=False)
         )
         temp = temp[mask]
 
@@ -613,6 +671,16 @@ def save_record(record: dict, is_edit=False):
 
     st.session_state.data = ensure_columns(current)
     persist_data()
+
+
+def update_follow_status(record_id: str, new_status: str):
+    current = ensure_columns(st.session_state.data)
+    mask = current["ID"].astype(str) == str(record_id)
+    if mask.any():
+        current.loc[mask, "FollowStatus"] = new_status
+        current.loc[mask, "FollowUpdated"] = datetime.now().strftime("%Y-%m-%d %H:%M")
+        st.session_state.data = ensure_columns(current)
+        persist_data()
 
 
 def contact_text(row):
@@ -679,7 +747,6 @@ def weekday_class_by_index(idx: int):
 
 
 def weekday_class_by_date(d: date):
-    # python weekday: monday=0 ... sunday=6
     if d.weekday() == 6:
         return "sun"
     if d.weekday() == 5:
@@ -766,6 +833,45 @@ if "show_reload_password" not in st.session_state:
 # =========================================================
 # 6. 렌더 함수
 # =========================================================
+def render_followup_section(row):
+    st.markdown(f"""
+    <div class="follow-wrap">
+        <div class="follow-title">📌 사무처 팔로우업 핵심 영역</div>
+        <div style="margin-bottom:10px;">
+            <span class="follow-pill">팔로우업 상태: {esc(row["FollowStatus"])}</span>
+            <span class="follow-pill">주 담당자: {esc(row["FollowOwner"])}</span>
+            <span class="follow-pill">준비기한: {esc(row["FollowDue"])}</span>
+        </div>
+        <div class="follow-grid">
+            <div class="follow-box">
+                <div class="follow-label">회의 목적</div>
+                <div class="follow-value">{esc(row["Purpose"])}</div>
+            </div>
+            <div class="follow-box">
+                <div class="follow-label">대응 방향</div>
+                <div class="follow-value">{esc(row["ActionPlan"])}</div>
+            </div>
+            <div class="follow-box">
+                <div class="follow-label">후속/준비사항</div>
+                <div class="follow-value">{esc(row["FollowTask"])}</div>
+            </div>
+            <div class="follow-box">
+                <div class="follow-label">진행 메모</div>
+                <div class="follow-value">{esc(row["FollowProgressMemo"])}</div>
+            </div>
+            <div class="follow-box">
+                <div class="follow-label">공유 메모</div>
+                <div class="follow-value">{esc(row["SharedNote"])}</div>
+            </div>
+            <div class="follow-box">
+                <div class="follow-label">최종 추적일</div>
+                <div class="follow-value">{esc(row["FollowUpdated"])}</div>
+            </div>
+        </div>
+    </div>
+    """, unsafe_allow_html=True)
+
+
 def render_summary_header(row):
     c = get_color(row["Category"])
     st.markdown(f"""
@@ -778,6 +884,7 @@ def render_summary_header(row):
                     <span class="tag-pill" style="background:{c["soft"]}; color:{c["text"]}; border-color:{c["line"]};">{esc(row["Category"])}</span>
                     <span class="tag-pill">{esc(row["Status"])}</span>
                     <span class="tag-pill">우선순위 {esc(row["Priority"])}</span>
+                    <span class="tag-pill">팔로우업 {esc(row["FollowStatus"])}</span>
                 </div>
                 <div class="summary-title">{format_subject_html(row)}</div>
             </div>
@@ -830,52 +937,11 @@ def render_detail_blocks(row):
         </div>
         """, unsafe_allow_html=True)
 
-    p1, p2 = st.columns(2)
-    with p1:
-        st.markdown(f"""
-        <div class="info-box">
-            <div class="info-label">회의 목적</div>
-            <div class="info-value">{esc(row["Purpose"])}</div>
-        </div>
-        """, unsafe_allow_html=True)
-        st.markdown(f"""
-        <div class="info-box">
-            <div class="info-label">주 담당자</div>
-            <div class="info-value">{esc(row["FollowOwner"])}</div>
-        </div>
-        """, unsafe_allow_html=True)
-
-    with p2:
-        st.markdown(f"""
-        <div class="info-box">
-            <div class="info-label">대응 방향</div>
-            <div class="info-value">{esc(row["ActionPlan"])}</div>
-        </div>
-        """, unsafe_allow_html=True)
-        st.markdown(f"""
-        <div class="info-box">
-            <div class="info-label">준비 완료기한</div>
-            <div class="info-value">{esc(row["FollowDue"])}</div>
-        </div>
-        """, unsafe_allow_html=True)
-
-    st.markdown(f"""
-    <div class="info-box">
-        <div class="info-label">후속/준비사항</div>
-        <div class="info-value">{esc(row["FollowTask"])}</div>
-    </div>
-    """, unsafe_allow_html=True)
-
-    st.markdown(f"""
-    <div class="info-box">
-        <div class="info-label">공유 메모</div>
-        <div class="info-value">{esc(row["SharedNote"])}</div>
-    </div>
-    """, unsafe_allow_html=True)
+    render_followup_section(row)
 
     st.markdown(f"""
     <div class="memo-box">
-        <div class="memo-title">📌 Memo</div>
+        <div class="memo-title">📌 일반 메모</div>
         <div class="memo-text">{esc(row["Memo"])}</div>
     </div>
     """, unsafe_allow_html=True)
@@ -883,7 +949,7 @@ def render_detail_blocks(row):
 
 def render_action_buttons(row, prefix=""):
     st.markdown('<div class="small-action">', unsafe_allow_html=True)
-    c1, c2, c3, c4 = st.columns([0.8, 0.9, 0.8, 6.5])
+    c1, c2, c3, c4, c5 = st.columns([0.8, 0.9, 0.8, 1.0, 1.0])
 
     if c1.button("수정", key=f"{prefix}_edit_{row['ID']}", use_container_width=True):
         st.session_state.edit_id = row["ID"]
@@ -915,6 +981,16 @@ def render_action_buttons(row, prefix=""):
         st.session_state.flash_message = "일정이 삭제되었습니다."
         st.rerun()
 
+    if c4.button("진행중", key=f"{prefix}_follow_inprogress_{row['ID']}", use_container_width=True):
+        update_follow_status(row["ID"], "진행중")
+        st.session_state.flash_message = "팔로우업 상태를 진행중으로 변경했습니다."
+        st.rerun()
+
+    if c5.button("완료", key=f"{prefix}_follow_done_{row['ID']}", use_container_width=True):
+        update_follow_status(row["ID"], "완료")
+        st.session_state.flash_message = "팔로우업 상태를 완료로 변경했습니다."
+        st.rerun()
+
     st.markdown('</div>', unsafe_allow_html=True)
 
 
@@ -940,18 +1016,13 @@ def render_week_month_details_html(row):
         <div class="wm-content">
             <div class="wm-grid">
                 <div class="wm-box"><div class="wm-label">방문기관명</div><div class="wm-value">{esc(row["OrgName"])}</div></div>
-                <div class="wm-box"><div class="wm-label">회의장소(세부)</div><div class="wm-value">{esc(row["DetailPlace"])}</div></div>
-                <div class="wm-box"><div class="wm-label">보좌관/비서/담당자 정보</div><div class="wm-value">{html.escape(contact_text(row))}</div></div>
-                <div class="wm-box"><div class="wm-label">회장님 외 동행인</div><div class="wm-value">{esc(row["Companion"])}</div></div>
-                <div class="wm-box"><div class="wm-label">사무처 수행직원</div><div class="wm-value">{esc(row["Staff"])}</div></div>
-                <div class="wm-box"><div class="wm-label">회의 목적</div><div class="wm-value">{esc(row["Purpose"])}</div></div>
-                <div class="wm-box"><div class="wm-label">대응 방향</div><div class="wm-value">{esc(row["ActionPlan"])}</div></div>
+                <div class="wm-box"><div class="wm-label">장소</div><div class="wm-value">{esc(row["DetailPlace"])}</div></div>
+                <div class="wm-box"><div class="wm-label">팔로우업 상태</div><div class="wm-value">{esc(row["FollowStatus"])}</div></div>
                 <div class="wm-box"><div class="wm-label">주 담당자</div><div class="wm-value">{esc(row["FollowOwner"])}</div></div>
-                <div class="wm-box"><div class="wm-label">준비 완료기한</div><div class="wm-value">{esc(row["FollowDue"])}</div></div>
+                <div class="wm-box"><div class="wm-label">회의 목적</div><div class="wm-value">{esc(row["Purpose"])}</div></div>
                 <div class="wm-box"><div class="wm-label">후속/준비사항</div><div class="wm-value">{esc(row["FollowTask"])}</div></div>
-                <div class="wm-box"><div class="wm-label">공유 메모</div><div class="wm-value">{esc(row["SharedNote"])}</div></div>
-                <div class="wm-box"><div class="wm-label">Memo</div><div class="wm-value">{esc(row["Memo"])}</div></div>
-                <div class="wm-box"><div class="wm-label">최종 수정</div><div class="wm-value">{esc(row["Updated"])}</div></div>
+                <div class="wm-box"><div class="wm-label">진행 메모</div><div class="wm-value">{esc(row["FollowProgressMemo"])}</div></div>
+                <div class="wm-box"><div class="wm-label">준비 완료기한</div><div class="wm-value">{esc(row["FollowDue"])}</div></div>
             </div>
         </div>
     </details>
@@ -982,6 +1053,9 @@ def render_form(mode="new", row_data=None):
             "FollowTask": "",
             "FollowDue": "",
             "SharedNote": "",
+            "FollowStatus": "미착수",
+            "FollowProgressMemo": "",
+            "FollowUpdated": "",
             "Updated": "",
         }
 
@@ -1030,19 +1104,27 @@ def render_form(mode="new", row_data=None):
         input_companion = r5c1.text_input("회장님 외 동행인", value=safe_str(row_data["Companion"]))
         input_staff = r5c2.text_input("사무처 수행직원", value=safe_str(row_data["Staff"]))
 
+        st.markdown("#### 📌 사무처 팔로우업 입력")
         input_purpose = st.text_area("회의 목적", value=safe_str(row_data["Purpose"]), height=90)
         input_action = st.text_area("대응 방향", value=safe_str(row_data["ActionPlan"]), height=90)
 
-        r6c1, r6c2 = st.columns(2)
+        r6c1, r6c2, r6c3 = st.columns(3)
         input_follow_owner = r6c1.text_input("주 담당자", value=safe_str(row_data["FollowOwner"]))
         input_follow_due = r6c2.date_input(
             "준비 완료기한",
             value=to_date_safe(row_data["FollowDue"]) or input_date
         )
+        input_follow_status = r6c3.selectbox(
+            "팔로우업 상태",
+            FOLLOW_STATUS_OPTIONS,
+            index=FOLLOW_STATUS_OPTIONS.index(row_data["FollowStatus"])
+            if row_data["FollowStatus"] in FOLLOW_STATUS_OPTIONS else 0
+        )
 
         input_follow_task = st.text_area("후속/준비사항", value=safe_str(row_data["FollowTask"]), height=100)
+        input_follow_progress = st.text_area("진행 메모", value=safe_str(row_data["FollowProgressMemo"]), height=80)
         input_shared_note = st.text_area("공유 메모", value=safe_str(row_data["SharedNote"]), height=90)
-        input_memo = st.text_area("Memo", value=safe_str(row_data["Memo"]), height=80)
+        input_memo = st.text_area("일반 Memo", value=safe_str(row_data["Memo"]), height=80)
 
         if mode == "new":
             b1, b2 = st.columns(2)
@@ -1075,6 +1157,9 @@ def render_form(mode="new", row_data=None):
                         "FollowTask": input_follow_task,
                         "FollowDue": str(input_follow_due),
                         "SharedNote": input_shared_note,
+                        "FollowStatus": input_follow_status,
+                        "FollowProgressMemo": input_follow_progress,
+                        "FollowUpdated": datetime.now().strftime("%Y-%m-%d %H:%M"),
                         "Updated": "",
                     }
                     save_record(record, is_edit=False)
@@ -1119,6 +1204,9 @@ def render_form(mode="new", row_data=None):
                         "FollowTask": input_follow_task,
                         "FollowDue": str(input_follow_due),
                         "SharedNote": input_shared_note,
+                        "FollowStatus": input_follow_status,
+                        "FollowProgressMemo": input_follow_progress,
+                        "FollowUpdated": datetime.now().strftime("%Y-%m-%d %H:%M"),
                         "Updated": "",
                     }
                     save_record(record, is_edit=True)
@@ -1153,10 +1241,9 @@ st.sidebar.download_button(
 )
 
 selected_day_sidebar = ensure_columns(st.session_state.data).copy()
-if not selected_day_sidebar.empty:
-    selected_day_sidebar["Date"] = pd.to_datetime(selected_day_sidebar["Date"], errors="coerce").dt.date
-    selected_day_sidebar = selected_day_sidebar[selected_day_sidebar["Date"] == st.session_state.selected_date]
-    selected_day_sidebar = sort_oldest_first(selected_day_sidebar)
+selected_day_sidebar["Date"] = pd.to_datetime(selected_day_sidebar["Date"], errors="coerce").dt.date
+selected_day_sidebar = selected_day_sidebar[selected_day_sidebar["Date"] == st.session_state.selected_date]
+selected_day_sidebar = sort_oldest_first(selected_day_sidebar)
 
 with st.sidebar.expander(f"📊 선택일 일정 미리보기 ({st.session_state.selected_date})", expanded=False):
     st.caption("현재 화면에서 선택한 날짜의 일정을 요약해서 보여줍니다.")
@@ -1168,7 +1255,7 @@ with st.sidebar.expander(f"📊 선택일 일정 미리보기 ({st.session_state
             st.markdown(
                 f"""
                 <div class="sidebar-day-item" style="border-color:{c["line"]}; background:{c["bg"]};">
-                    <div class="sidebar-day-time">{esc(row["Time"])} · {esc(row["Category"])}</div>
+                    <div class="sidebar-day-time">{esc(row["Time"])} · {esc(row["Category"])} · {esc(row["FollowStatus"])}</div>
                     <div class="sidebar-day-title">{format_subject_html(row)}</div>
                 </div>
                 """,
@@ -1369,7 +1456,7 @@ else:
     with tabs[2]:
         st.markdown('<div class="section-title">🗓️ 월별 일정</div>', unsafe_allow_html=True)
 
-        mc1, mc2 = st.columns([1, 1])
+        mc1, mc2, mc3 = st.columns([1, 1, 2])
         year_options = list(range(2025, 2041))
 
         month_year = mc1.selectbox(
@@ -1385,6 +1472,12 @@ else:
             index=st.session_state.selected_date.month - 1,
             key="month_month_select"
         )
+        month_view_mode = mc3.radio(
+            "보기 방식",
+            ["캘린더형", "목록형"],
+            horizontal=True,
+            key="month_view_mode"
+        )
 
         month_df = ensure_columns(filtered_df.copy())
         month_df["Date"] = pd.to_datetime(month_df["Date"], errors="coerce").dt.date
@@ -1395,41 +1488,62 @@ else:
         ]
         month_df = ensure_columns(month_df)
 
-        weeks = month_calendar_weeks(month_year, month_month)
-        weekday_names = ["일", "월", "화", "수", "목", "금", "토"]
+        if month_view_mode == "캘린더형":
+            weeks = month_calendar_weeks(month_year, month_month)
+            weekday_names = ["일", "월", "화", "수", "목", "금", "토"]
 
-        head_cols = st.columns(7)
-        for i, name in enumerate(weekday_names):
-            cls = weekday_class_by_index(i)
-            label_cls = "day-head"
-            if cls:
-                label_cls += f" {cls}"
-            head_cols[i].markdown(f'<div class="{label_cls}">{name}</div>', unsafe_allow_html=True)
+            head_cols = st.columns(7)
+            for i, name in enumerate(weekday_names):
+                cls = weekday_class_by_index(i)
+                label_cls = "day-head"
+                if cls:
+                    label_cls += f" {cls}"
+                head_cols[i].markdown(f'<div class="{label_cls}">{name}</div>', unsafe_allow_html=True)
 
-        for week in weeks:
-            week_cols = st.columns(7)
-            for didx, day_obj in enumerate(week):
-                with week_cols[didx]:
-                    if day_obj.month != month_month:
-                        st.markdown(
-                            day_header_html(day_obj, f"{day_obj.day}일", dim=True),
-                            unsafe_allow_html=True
-                        )
-                        st.caption(" ")
-                    else:
-                        st.markdown(
-                            day_header_html(day_obj, f"{day_obj.day}일", dim=False),
-                            unsafe_allow_html=True
-                        )
-
-                        daily = month_df.loc[month_df["Date"] == day_obj].copy()
-                        daily = sort_oldest_first(daily)
-
-                        if daily.empty:
-                            st.caption("일정 없음")
+            for week in weeks:
+                week_cols = st.columns(7)
+                for didx, day_obj in enumerate(week):
+                    with week_cols[didx]:
+                        if day_obj.month != month_month:
+                            st.markdown(
+                                day_header_html(day_obj, f"{day_obj.day}일", dim=True),
+                                unsafe_allow_html=True
+                            )
+                            st.caption(" ")
                         else:
-                            for _, row in daily.iterrows():
-                                st.markdown(render_week_month_details_html(row), unsafe_allow_html=True)
+                            st.markdown(
+                                day_header_html(day_obj, f"{day_obj.day}일", dim=False),
+                                unsafe_allow_html=True
+                            )
+
+                            daily = month_df.loc[month_df["Date"] == day_obj].copy()
+                            daily = sort_oldest_first(daily)
+
+                            if daily.empty:
+                                st.caption("일정 없음")
+                            else:
+                                for _, row in daily.iterrows():
+                                    st.markdown(render_week_month_details_html(row), unsafe_allow_html=True)
+        else:
+            st.caption("화면 폭이 좁을 때는 목록형이 더 보기 편합니다.")
+            month_list = sort_oldest_first(month_df)
+            all_days = month_calendar_weeks(month_year, month_month)
+            flat_days = [d for week in all_days for d in week if d.month == month_month]
+            seen = set()
+            ordered_days = []
+            for d in flat_days:
+                if d not in seen:
+                    seen.add(d)
+                    ordered_days.append(d)
+
+            for d in ordered_days:
+                st.markdown(day_header_html(d, f"{d.month}월 {d.day}일", dim=False), unsafe_allow_html=True)
+                daily = month_list.loc[month_list["Date"] == d].copy()
+                if daily.empty:
+                    st.caption("일정 없음")
+                else:
+                    for _, row in daily.iterrows():
+                        st.markdown(render_week_month_details_html(row), unsafe_allow_html=True)
 
     # -----------------------------------------------------
     # 전체 일정표
@@ -1437,12 +1551,23 @@ else:
     with tabs[3]:
         st.markdown('<div class="section-title">📋 전체 일정표</div>', unsafe_allow_html=True)
 
-        tc1, tc2, tc3 = st.columns([1.2, 1.2, 3.6])
+        tc1, tc2, tc3, tc4 = st.columns([1.25, 1.3, 1.4, 2.8])
         table_sort_mode = tc1.selectbox("정렬", ["최신 일정 우선", "오래된 일정 우선"], index=0, key="table_sort_mode")
-        table_page_size = tc2.selectbox("페이지 크기", [20, 50, 100, 200], index=1, key="table_page_size")
-        tc3.caption("데이터가 많이 쌓일 것을 대비해 최신순 정렬 + 페이지 단위로 보도록 구성했습니다.")
+        table_page_size = tc2.selectbox("한 페이지 행 수", [20, 50, 100, 200], index=1, key="table_page_size")
+        table_follow_filter = tc3.selectbox("팔로우업 상태", ["전체"] + FOLLOW_STATUS_OPTIONS, index=0, key="table_follow_filter")
+        only_open_follow = tc4.checkbox("미완료 팔로우업만 보기", value=False, key="only_open_follow")
+
+        st.caption("‘한 페이지 행 수’는 한 번에 보여줄 일정 데이터 행 개수입니다.")
 
         table_df = ensure_columns(filtered_df.copy())
+
+        if table_follow_filter != "전체":
+            table_df = table_df[table_df["FollowStatus"] == table_follow_filter]
+
+        if only_open_follow:
+            table_df = table_df[table_df["FollowStatus"].isin(["미착수", "진행중", "보류"])]
+
+        table_df = ensure_columns(table_df)
 
         if table_df.empty:
             st.caption("표시할 일정이 없습니다.")
@@ -1454,7 +1579,15 @@ else:
 
             total_rows = len(table_df)
             total_pages = max(1, math.ceil(total_rows / table_page_size))
-            page_num = st.number_input("페이지", min_value=1, max_value=total_pages, value=1, step=1, key="table_page_num")
+            page_num = st.number_input(
+                "페이지",
+                min_value=1,
+                max_value=total_pages,
+                value=min(st.session_state.get("table_page_num_value", 1), total_pages),
+                step=1,
+                key="table_page_num"
+            )
+            st.session_state.table_page_num_value = page_num
 
             start_idx = (page_num - 1) * table_page_size
             end_idx = start_idx + table_page_size
