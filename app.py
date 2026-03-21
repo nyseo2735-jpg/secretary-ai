@@ -473,6 +473,13 @@ div[data-testid="stForm"] {
     line-height: 1.45;
 }
 
+.view-switch > div {
+    background: #ffffff;
+    border: 1px solid #E5E7EB;
+    border-radius: 14px;
+    padding: 8px 10px 4px 10px;
+}
+
 @media (max-width: 1000px) {
     .main-title {
         font-size: 2.1rem;
@@ -493,13 +500,10 @@ div[data-testid="stForm"] {
 def ensure_columns(df: pd.DataFrame) -> pd.DataFrame:
     if df is None or not isinstance(df, pd.DataFrame):
         return pd.DataFrame(columns=DATA_COLUMNS)
-
     df = df.copy()
-
     for col in DATA_COLUMNS:
         if col not in df.columns:
             df[col] = ""
-
     return df[DATA_COLUMNS].copy().fillna("")
 
 
@@ -569,7 +573,6 @@ def ensure_sheet_header(ws):
     values = ws.get_all_values()
     if not values:
         ws.append_row(DATA_COLUMNS)
-        return
 
 
 def load_data_from_gsheet():
@@ -604,15 +607,18 @@ def save_all_to_gsheet(df: pd.DataFrame):
     ws.update(values)
 
 
-def get_filtered_df(df, selected_cat="카테고리", search_text="", status_filter="현황"):
+def get_filtered_df(df, selected_cat="카테고리", search_text="", status_filter="일정 현황", follow_status_filter="팔로우업 상태"):
     temp = ensure_columns(df)
     temp["Date"] = pd.to_datetime(temp["Date"], errors="coerce").dt.date
 
     if selected_cat not in ["전체", "카테고리"]:
         temp = temp[temp["Category"] == selected_cat]
 
-    if status_filter not in ["전체", "현황"]:
+    if status_filter not in ["전체", "일정 현황"]:
         temp = temp[temp["Status"] == status_filter]
+
+    if follow_status_filter not in ["전체", "팔로우업 상태"]:
+        temp = temp[temp["FollowStatus"] == follow_status_filter]
 
     if search_text:
         q = str(search_text).strip()
@@ -785,7 +791,6 @@ def sort_oldest_first(df: pd.DataFrame):
     df = df.sort_values(by=["DateSort", "TimeSort", "UpdatedSort"], ascending=[True, True, False])
     return df.drop(columns=["DateSort", "TimeSort", "UpdatedSort"], errors="ignore")
 
-
 # =========================================================
 # 5. 상태 초기화
 # =========================================================
@@ -813,7 +818,10 @@ if "selected_cat" not in st.session_state:
     st.session_state.selected_cat = "카테고리"
 
 if "selected_status" not in st.session_state:
-    st.session_state.selected_status = "현황"
+    st.session_state.selected_status = "일정 현황"
+
+if "selected_follow_status" not in st.session_state:
+    st.session_state.selected_follow_status = "팔로우업 상태"
 
 if "search_text" not in st.session_state:
     st.session_state.search_text = ""
@@ -829,6 +837,15 @@ if "reload_password_input" not in st.session_state:
 
 if "show_reload_password" not in st.session_state:
     st.session_state.show_reload_password = False
+
+if "table_page_num_value" not in st.session_state:
+    st.session_state.table_page_num_value = 1
+
+if "content_view" not in st.session_state:
+    st.session_state.content_view = "일별 보기"
+
+if "month_view_mode" not in st.session_state:
+    st.session_state.month_view_mode = "캘린더형"
 
 # =========================================================
 # 6. 렌더 함수
@@ -973,10 +990,8 @@ def render_action_buttons(row, prefix=""):
         current = ensure_columns(st.session_state.data)
         current = current[current["ID"].astype(str) != str(row["ID"])].reset_index(drop=True)
         st.session_state.data = ensure_columns(current)
-
         if st.session_state.edit_id == row["ID"]:
             st.session_state.edit_id = None
-
         persist_data()
         st.session_state.flash_message = "일정이 삭제되었습니다."
         st.rerun()
@@ -1081,7 +1096,7 @@ def render_form(mode="new", row_data=None):
         r2c1, r2c2, r2c3 = st.columns([2, 1, 1])
         input_subject = r2c1.text_input("회의명", value=safe_str(row_data["Subject"]))
         input_status = r2c2.selectbox(
-            "현황",
+            "일정 현황",
             STATUS_OPTIONS,
             index=STATUS_OPTIONS.index(row_data["Status"]) if row_data["Status"] in STATUS_OPTIONS else 0
         )
@@ -1224,12 +1239,15 @@ def render_form(mode="new", row_data=None):
 # =========================================================
 st.sidebar.markdown("# 🏢 KVMA 비서실")
 
-menu = st.sidebar.radio(
-    "메뉴",
-    ["📅 일정 보기", "✍️ 신규 일정 등록"],
-    index=["📅 일정 보기", "✍️ 신규 일정 등록"].index(st.session_state.main_menu)
-)
-st.session_state.main_menu = menu
+if st.sidebar.button("📅 일정 보기", use_container_width=True):
+    st.session_state.main_menu = "📅 일정 보기"
+    st.session_state.edit_id = None
+    st.rerun()
+
+if st.sidebar.button("✍️ 신규 일정 등록", use_container_width=True):
+    st.session_state.main_menu = "✍️ 신규 일정 등록"
+    st.session_state.edit_id = None
+    st.rerun()
 
 xlsx_bytes = excel_download_bytes(st.session_state.data)
 st.sidebar.download_button(
@@ -1309,14 +1327,14 @@ if st.session_state.main_menu == "✍️ 신규 일정 등록":
 # =========================================================
 else:
     st.markdown('<div class="panel">', unsafe_allow_html=True)
-    st.markdown("**검색어 · 카테고리 · 현황 · 날짜를 기준으로 일정을 찾을 수 있습니다.**")
+    st.markdown("**검색어 · 카테고리 · 일정 현황 · 팔로우업 상태 · 날짜를 기준으로 일정을 찾을 수 있습니다.**")
 
-    fc1, fc2, fc3, fc4, fc5, fc6 = st.columns([2.6, 1.15, 1.05, 1.15, 0.75, 1.35])
+    fc1, fc2, fc3, fc4, fc5, fc6 = st.columns([2.3, 1.0, 1.0, 1.1, 1.0, 0.8])
 
     search_text = fc1.text_input(
         "검색",
         value=st.session_state.search_text,
-        placeholder="회의명 / 방문기관명 / 담당자명 / 연락처 / 후속업무 검색",
+        placeholder="회의명 / 방문기관명 / 담당자명 / 연락처 / 후속 검색",
         label_visibility="collapsed"
     )
     st.session_state.search_text = search_text
@@ -1332,32 +1350,39 @@ else:
 
     selected_status = fc3.selectbox(
         "",
-        ["현황"] + STATUS_OPTIONS,
-        index=(["현황"] + STATUS_OPTIONS).index(st.session_state.selected_status)
-        if st.session_state.selected_status in (["현황"] + STATUS_OPTIONS) else 0,
+        ["일정 현황"] + STATUS_OPTIONS,
+        index=(["일정 현황"] + STATUS_OPTIONS).index(st.session_state.selected_status)
+        if st.session_state.selected_status in (["일정 현황"] + STATUS_OPTIONS) else 0,
         label_visibility="collapsed"
     )
     st.session_state.selected_status = selected_status
 
-    selected_date = fc4.date_input(
+    selected_follow_status = fc4.selectbox(
+        "",
+        ["팔로우업 상태"] + FOLLOW_STATUS_OPTIONS,
+        index=(["팔로우업 상태"] + FOLLOW_STATUS_OPTIONS).index(st.session_state.selected_follow_status)
+        if st.session_state.selected_follow_status in (["팔로우업 상태"] + FOLLOW_STATUS_OPTIONS) else 0,
+        label_visibility="collapsed"
+    )
+    st.session_state.selected_follow_status = selected_follow_status
+
+    selected_date = fc5.date_input(
         "",
         value=st.session_state.selected_date,
         label_visibility="collapsed"
     )
     st.session_state.selected_date = selected_date
 
-    if fc5.button("오늘", use_container_width=True):
-        st.session_state.selected_date = today
-        st.rerun()
-
-    if fc6.button("초기화", use_container_width=True):
+    if fc6.button("오늘", use_container_width=True):
         st.session_state.search_text = ""
         st.session_state.selected_cat = "카테고리"
-        st.session_state.selected_status = "현황"
+        st.session_state.selected_status = "일정 현황"
+        st.session_state.selected_follow_status = "팔로우업 상태"
         st.session_state.selected_date = today
+        st.session_state.edit_id = None
+        st.session_state.content_view = "일별 보기"
         st.rerun()
 
-    st.caption("검색 후 전체 오늘 일정으로 바로 돌아가려면 ‘초기화’ 버튼을 누르면 됩니다.")
     render_legend()
     st.markdown('</div>', unsafe_allow_html=True)
 
@@ -1365,7 +1390,8 @@ else:
         st.session_state.data,
         selected_cat=st.session_state.selected_cat,
         search_text=st.session_state.search_text,
-        status_filter=st.session_state.selected_status
+        status_filter=st.session_state.selected_status,
+        follow_status_filter=st.session_state.selected_follow_status
     ))
 
     day_df = ensure_columns(filtered_df.copy())
@@ -1379,12 +1405,16 @@ else:
 
     render_metric_chips(len(day_df), confirmed_count, pending_count, cancel_count)
 
-    tabs = st.tabs(["일별 보기", "주간 보기", "월별 보기", "전체 일정표"])
+    st.markdown('<div class="view-switch">', unsafe_allow_html=True)
+    content_view = st.radio(
+        "보기 전환",
+        ["일별 보기", "주간 보기", "월별 보기", "전체 일정표"],
+        horizontal=True,
+        key="content_view"
+    )
+    st.markdown('</div>', unsafe_allow_html=True)
 
-    # -----------------------------------------------------
-    # 일별 보기
-    # -----------------------------------------------------
-    with tabs[0]:
+    if content_view == "일별 보기":
         st.markdown(
             f'<div class="section-title">📍 {st.session_state.selected_date.strftime("%Y년 %m월 %d일")} 일정</div>',
             unsafe_allow_html=True
@@ -1404,10 +1434,9 @@ else:
                 for idx, (_, row) in enumerate(day_df.iterrows()):
                     render_day_expander(row, prefix=f"day_{idx}", expanded=False)
 
-    # -----------------------------------------------------
-    # 주간 보기
-    # -----------------------------------------------------
-    with tabs[1]:
+    elif content_view == "주간 보기":
+        st.session_state.edit_id = None
+
         st.markdown('<div class="section-title">📅 주간 일정</div>', unsafe_allow_html=True)
 
         wc1, wc2 = st.columns([1.3, 4.7])
@@ -1450,10 +1479,9 @@ else:
                     for _, row in daily.iterrows():
                         st.markdown(render_week_month_details_html(row), unsafe_allow_html=True)
 
-    # -----------------------------------------------------
-    # 월별 보기
-    # -----------------------------------------------------
-    with tabs[2]:
+    elif content_view == "월별 보기":
+        st.session_state.edit_id = None
+
         st.markdown('<div class="section-title">🗓️ 월별 일정</div>', unsafe_allow_html=True)
 
         mc1, mc2, mc3 = st.columns([1, 1, 2])
@@ -1545,10 +1573,9 @@ else:
                     for _, row in daily.iterrows():
                         st.markdown(render_week_month_details_html(row), unsafe_allow_html=True)
 
-    # -----------------------------------------------------
-    # 전체 일정표
-    # -----------------------------------------------------
-    with tabs[3]:
+    else:
+        st.session_state.edit_id = None
+
         st.markdown('<div class="section-title">📋 전체 일정표</div>', unsafe_allow_html=True)
 
         tc1, tc2, tc3, tc4 = st.columns([1.25, 1.3, 1.4, 2.8])
@@ -1579,11 +1606,13 @@ else:
 
             total_rows = len(table_df)
             total_pages = max(1, math.ceil(total_rows / table_page_size))
+            current_page_value = min(st.session_state.get("table_page_num_value", 1), total_pages)
+
             page_num = st.number_input(
                 "페이지",
                 min_value=1,
                 max_value=total_pages,
-                value=min(st.session_state.get("table_page_num_value", 1), total_pages),
+                value=current_page_value,
                 step=1,
                 key="table_page_num"
             )
