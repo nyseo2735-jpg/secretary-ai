@@ -4,6 +4,7 @@ from datetime import datetime, date, timedelta
 import calendar
 import html
 from io import BytesIO
+import math
 import gspread
 from google.oauth2.service_account import Credentials
 
@@ -27,6 +28,7 @@ COLOR_MAP = {
     "언론사": {"bg": "#FFF8F1", "soft": "#FFF0DE", "line": "#F59E0B", "text": "#C56A00"},
     "기업": {"bg": "#F8FAFC", "soft": "#EEF2F6", "line": "#64748B", "text": "#334155"},
     "유관단체": {"bg": "#F2FCFD", "soft": "#E3F7F9", "line": "#14B8A6", "text": "#0F8F82"},
+    "시도지부": {"bg": "#F7F5FF", "soft": "#EEE9FF", "line": "#7C3AED", "text": "#5B21B6"},
     "기타": {"bg": "#FAFAFA", "soft": "#F2F2F2", "line": "#9CA3AF", "text": "#4B5563"},
 }
 CATEGORIES = list(COLOR_MAP.keys())
@@ -63,6 +65,8 @@ SCOPES = [
     "https://www.googleapis.com/auth/drive",
 ]
 
+ADMIN_RELOAD_PASSWORD = "2735"
+
 # =========================================================
 # 3. 스타일
 # =========================================================
@@ -75,8 +79,8 @@ html, body, [class*="css"] {
 }
 
 .block-container {
-    padding-top: 2.4rem;
-    padding-bottom: 2rem;
+    padding-top: 2rem;
+    padding-bottom: 1.8rem;
     max-width: 1600px;
 }
 
@@ -85,22 +89,19 @@ h1, h2, h3 {
 }
 
 .main-title {
-    font-size: 2.9rem;
+    font-size: 2.7rem;
     font-weight: 800;
     color: #2F3142;
-    margin-top: 0.5rem;
-    margin-bottom: 0.55rem;
+    margin-top: 0.4rem;
+    margin-bottom: 0.45rem;
     line-height: 1.2;
     word-break: keep-all;
-    white-space: normal;
-    overflow: visible;
-    padding-top: 0.25rem;
 }
 
 .sub-text {
-    font-size: 1rem;
+    font-size: 0.98rem;
     color: #6B7280;
-    margin-bottom: 1.1rem;
+    margin-bottom: 0.95rem;
     line-height: 1.5;
     word-break: keep-all;
 }
@@ -111,11 +112,11 @@ h1, h2, h3 {
     border-radius: 18px;
     padding: 14px 16px;
     box-shadow: 0 4px 16px rgba(20, 24, 40, 0.04);
-    margin-bottom: 16px;
+    margin-bottom: 14px;
 }
 
 .section-title {
-    font-size: 1.85rem;
+    font-size: 1.7rem;
     font-weight: 800;
     color: #2F3142;
     margin: 10px 0 12px 0;
@@ -126,33 +127,22 @@ h1, h2, h3 {
     display: inline-block;
     padding: 6px 12px;
     border-radius: 999px;
-    font-size: 0.82rem;
+    font-size: 0.80rem;
     font-weight: 700;
     margin: 0 8px 8px 0;
     border: 1px solid;
 }
 
-.metric-card {
-    background: #ffffff;
-    border: 1px solid #ECEEF3;
-    border-radius: 14px;
-    padding: 8px 12px 7px 12px;
-    min-height: 62px;
-}
-
-.metric-label {
-    font-size: 0.76rem;
-    color: #6B7280;
-    font-weight: 700;
-    margin-bottom: 2px;
-    line-height: 1.15;
-}
-
-.metric-value {
-    font-size: 0.95rem;
+.metric-chip {
+    display: inline-block;
+    padding: 6px 12px;
+    border-radius: 999px;
+    font-size: 0.80rem;
     font-weight: 800;
-    color: #2F3142;
-    line-height: 1.05;
+    margin: 0 8px 8px 0;
+    border: 1px solid #D8DEE8;
+    background: #ffffff;
+    color: #344054;
 }
 
 .summary-card {
@@ -177,13 +167,13 @@ h1, h2, h3 {
 }
 
 .summary-meta {
-    font-size: 0.95rem;
+    font-size: 0.92rem;
     font-weight: 800;
     margin-bottom: 6px;
 }
 
 .summary-title {
-    font-size: 1.35rem;
+    font-size: 1.22rem;
     font-weight: 800;
     color: #232634;
     line-height: 1.28;
@@ -194,7 +184,7 @@ h1, h2, h3 {
     display: inline-block;
     padding: 5px 10px;
     border-radius: 999px;
-    font-size: 0.76rem;
+    font-size: 0.74rem;
     font-weight: 800;
     border: 1px solid #D1D5DB;
     background: #ffffff;
@@ -208,19 +198,19 @@ h1, h2, h3 {
     border: 1px solid #ECEEF3;
     border-radius: 16px;
     padding: 12px 14px 10px 14px;
-    min-height: 74px;
+    min-height: 72px;
     margin-bottom: 10px;
 }
 
 .info-label {
-    font-size: 0.78rem;
+    font-size: 0.77rem;
     font-weight: 800;
     color: #6B7280;
     margin-bottom: 6px;
 }
 
 .info-value {
-    font-size: 0.98rem;
+    font-size: 0.96rem;
     font-weight: 600;
     color: #232634;
     line-height: 1.45;
@@ -238,14 +228,14 @@ h1, h2, h3 {
 }
 
 .memo-title {
-    font-size: 0.92rem;
+    font-size: 0.90rem;
     font-weight: 800;
     color: #7A5A00;
     margin-bottom: 6px;
 }
 
 .memo-text {
-    font-size: 0.95rem;
+    font-size: 0.94rem;
     color: #4B5563;
     line-height: 1.55;
     white-space: pre-wrap;
@@ -354,6 +344,26 @@ div[data-testid="stForm"] {
     margin-bottom: 8px;
 }
 
+.day-head.sun {
+    color: #C1121F;
+}
+
+.day-head.sat {
+    color: #1D4ED8;
+}
+
+.day-head.dim.sun {
+    color: #F1A0A7;
+}
+
+.day-head.dim.sat {
+    color: #9BB8F5;
+}
+
+.day-head.dim {
+    color: #B5BBC8;
+}
+
 .canceled-title {
     text-decoration: line-through;
     opacity: 0.65;
@@ -372,12 +382,40 @@ div[data-testid="stForm"] {
     vertical-align: middle;
 }
 
+.sidebar-day-item {
+    border: 1px solid #ECEEF3;
+    border-radius: 12px;
+    padding: 8px 10px;
+    margin-bottom: 8px;
+    background: #ffffff;
+}
+
+.sidebar-day-time {
+    font-size: 0.78rem;
+    font-weight: 800;
+    color: #475467;
+    margin-bottom: 4px;
+}
+
+.sidebar-day-title {
+    font-size: 0.86rem;
+    font-weight: 700;
+    color: #1F2937;
+    line-height: 1.35;
+}
+
+.helper-note {
+    font-size: 0.82rem;
+    color: #667085;
+    line-height: 1.45;
+}
+
 @media (max-width: 1000px) {
     .main-title {
         font-size: 2.1rem;
     }
     .summary-title {
-        font-size: 1.15rem;
+        font-size: 1.10rem;
     }
 }
 </style>
@@ -390,10 +428,8 @@ def ensure_columns(df: pd.DataFrame) -> pd.DataFrame:
     if df is None or not isinstance(df, pd.DataFrame):
         return pd.DataFrame(columns=DATA_COLUMNS)
 
-    if df.empty:
-        return pd.DataFrame(columns=DATA_COLUMNS)
-
     df = df.copy()
+
     for col in DATA_COLUMNS:
         if col not in df.columns:
             df[col] = ""
@@ -428,11 +464,6 @@ def esc(v):
     return html.escape(safe_str(v) if safe_str(v) else "-")
 
 
-def csv_download_bytes(df: pd.DataFrame) -> bytes:
-    df = ensure_columns(df)
-    return df.to_csv(index=False, encoding="utf-8-sig").encode("utf-8-sig")
-
-
 def excel_download_bytes(df: pd.DataFrame) -> bytes:
     df = ensure_columns(df)
     output = BytesIO()
@@ -446,7 +477,6 @@ def excel_download_bytes(df: pd.DataFrame) -> bytes:
 def get_gspread_client():
     if "gcp_service_account" not in st.secrets:
         raise KeyError("gcp_service_account")
-
     creds_info = dict(st.secrets["gcp_service_account"])
     credentials = Credentials.from_service_account_info(creds_info, scopes=SCOPES)
     return gspread.authorize(credentials)
@@ -484,11 +514,11 @@ def ensure_sheet_header(ws):
 def load_data_from_gsheet():
     try:
         if "gcp_service_account" not in st.secrets:
-            st.warning("구글 시트 연결 정보가 아직 설정되지 않았습니다. Streamlit Secrets를 먼저 입력해 주세요.")
+            st.info("구글 시트 연결 정보가 아직 설정되지 않았습니다. 현재는 임시 세션 데이터만 보입니다.")
             return empty_df()
 
         if "google_sheet_name" not in st.secrets or "google_worksheet_name" not in st.secrets:
-            st.warning("google_sheet_name 또는 google_worksheet_name 설정이 없습니다.")
+            st.info("google_sheet_name 또는 google_worksheet_name 설정이 없습니다. 현재는 임시 세션 데이터만 보입니다.")
             return empty_df()
 
         ws = get_worksheet()
@@ -498,8 +528,7 @@ def load_data_from_gsheet():
         if not records:
             return empty_df()
 
-        df = pd.DataFrame(records)
-        return ensure_columns(df)
+        return ensure_columns(pd.DataFrame(records))
 
     except Exception as e:
         st.warning(f"구글 시트 데이터를 불러오지 못했습니다: {e}")
@@ -509,7 +538,6 @@ def load_data_from_gsheet():
 def save_all_to_gsheet(df: pd.DataFrame):
     ws = get_worksheet()
     df = ensure_columns(df)
-
     if df.empty:
         values = [DATA_COLUMNS]
     else:
@@ -521,11 +549,6 @@ def save_all_to_gsheet(df: pd.DataFrame):
 
 def get_filtered_df(df, selected_cat="카테고리", search_text="", status_filter="현황"):
     temp = ensure_columns(df)
-
-    if temp.empty:
-        return empty_df()
-
-    temp = temp.copy()
     temp["Date"] = pd.to_datetime(temp["Date"], errors="coerce").dt.date
 
     if selected_cat not in ["전체", "카테고리"]:
@@ -545,13 +568,11 @@ def get_filtered_df(df, selected_cat="카테고리", search_text="", status_filt
             | temp["TargetContact"].fillna("").str.contains(q, case=False, na=False)
             | temp["FollowOwner"].fillna("").str.contains(q, case=False, na=False)
             | temp["FollowTask"].fillna("").str.contains(q, case=False, na=False)
+            | temp["Memo"].fillna("").str.contains(q, case=False, na=False)
         )
         temp = temp[mask]
 
-    if temp.empty:
-        return empty_df()
-
-    return ensure_columns(temp.sort_values(by=["Date", "Time", "Updated"], ascending=[True, True, False]))
+    return ensure_columns(temp)
 
 
 def week_dates_from_any_day(any_day: date):
@@ -570,9 +591,10 @@ def next_id():
 
 def persist_data():
     try:
-        save_all_to_gsheet(st.session_state.data)
+        if "gcp_service_account" in st.secrets and "google_sheet_name" in st.secrets:
+            save_all_to_gsheet(st.session_state.data)
     except Exception as e:
-        st.session_state.flash_message = f"저장은 화면에 반영되었지만 구글 시트 저장은 실패했습니다: {e}"
+        st.session_state.flash_message = f"화면에는 저장되었지만 구글 시트 저장은 실패했습니다: {e}"
 
 
 def save_record(record: dict, is_edit=False):
@@ -581,14 +603,11 @@ def save_record(record: dict, is_edit=False):
     current = ensure_columns(st.session_state.data)
 
     if is_edit:
-        if current.empty:
-            current = pd.DataFrame([record], columns=DATA_COLUMNS)
+        mask = current["ID"].astype(str) == str(record["ID"])
+        if mask.any():
+            current.loc[mask, DATA_COLUMNS[1:]] = [record[col] for col in DATA_COLUMNS[1:]]
         else:
-            mask = current["ID"].astype(str) == str(record["ID"])
-            if mask.any():
-                current.loc[mask, DATA_COLUMNS[1:]] = [record[col] for col in DATA_COLUMNS[1:]]
-            else:
-                current = pd.concat([current, pd.DataFrame([record])], ignore_index=True)
+            current = pd.concat([current, pd.DataFrame([record])], ignore_index=True)
     else:
         current = pd.concat([current, pd.DataFrame([record])], ignore_index=True)
 
@@ -627,6 +646,16 @@ def render_legend():
     st.markdown("".join(parts), unsafe_allow_html=True)
 
 
+def render_metric_chips(day_count, confirmed_count, pending_count, cancel_count):
+    html_text = f"""
+    <span class="metric-chip">선택일 {day_count}</span>
+    <span class="metric-chip">확정 {confirmed_count}</span>
+    <span class="metric-chip">보류 {pending_count}</span>
+    <span class="metric-chip">취소 {cancel_count}</span>
+    """
+    st.markdown(html_text, unsafe_allow_html=True)
+
+
 def format_subject_html(row):
     subject = esc(row["Subject"])
     if safe_str(row["Status"]) == "취소":
@@ -639,6 +668,55 @@ def format_subject_md(row):
     if safe_str(row["Status"]) == "취소":
         return f"{safe_str(row['Time'])} · ~~{subject}~~"
     return f"{safe_str(row['Time'])} · {subject}"
+
+
+def weekday_class_by_index(idx: int):
+    if idx == 0:
+        return "sun"
+    if idx == 6:
+        return "sat"
+    return ""
+
+
+def weekday_class_by_date(d: date):
+    # python weekday: monday=0 ... sunday=6
+    if d.weekday() == 6:
+        return "sun"
+    if d.weekday() == 5:
+        return "sat"
+    return ""
+
+
+def day_header_html(day_obj: date, text: str, dim: bool = False):
+    cls = weekday_class_by_date(day_obj)
+    classes = "day-head"
+    if dim:
+        classes += " dim"
+    if cls:
+        classes += f" {cls}"
+    return f"<div class='{classes}'>{text}</div>"
+
+
+def sort_latest_first(df: pd.DataFrame):
+    df = ensure_columns(df).copy()
+    if df.empty:
+        return df
+    df["DateSort"] = pd.to_datetime(df["Date"], errors="coerce")
+    df["TimeSort"] = pd.to_datetime(df["Time"], format="%H:%M", errors="coerce")
+    df["UpdatedSort"] = pd.to_datetime(df["Updated"], errors="coerce")
+    df = df.sort_values(by=["DateSort", "TimeSort", "UpdatedSort"], ascending=[False, False, False])
+    return df.drop(columns=["DateSort", "TimeSort", "UpdatedSort"], errors="ignore")
+
+
+def sort_oldest_first(df: pd.DataFrame):
+    df = ensure_columns(df).copy()
+    if df.empty:
+        return df
+    df["DateSort"] = pd.to_datetime(df["Date"], errors="coerce")
+    df["TimeSort"] = pd.to_datetime(df["Time"], format="%H:%M", errors="coerce")
+    df["UpdatedSort"] = pd.to_datetime(df["Updated"], errors="coerce")
+    df = df.sort_values(by=["DateSort", "TimeSort", "UpdatedSort"], ascending=[True, True, False])
+    return df.drop(columns=["DateSort", "TimeSort", "UpdatedSort"], errors="ignore")
 
 
 # =========================================================
@@ -670,11 +748,20 @@ if "selected_cat" not in st.session_state:
 if "selected_status" not in st.session_state:
     st.session_state.selected_status = "현황"
 
+if "search_text" not in st.session_state:
+    st.session_state.search_text = ""
+
 if "edit_id" not in st.session_state:
     st.session_state.edit_id = None
 
 if "flash_message" not in st.session_state:
     st.session_state.flash_message = None
+
+if "reload_password_input" not in st.session_state:
+    st.session_state.reload_password_input = ""
+
+if "show_reload_password" not in st.session_state:
+    st.session_state.show_reload_password = False
 
 # =========================================================
 # 6. 렌더 함수
@@ -807,20 +894,18 @@ def render_action_buttons(row, prefix=""):
 
     if c2.button(toggle_label, key=f"{prefix}_cancel_{row['ID']}", use_container_width=True):
         current = ensure_columns(st.session_state.data)
-        if not current.empty:
-            mask = current["ID"].astype(str) == str(row["ID"])
-            current.loc[mask, ["Status", "Updated"]] = [
-                toggle_next, datetime.now().strftime("%Y-%m-%d %H:%M")
-            ]
-            st.session_state.data = ensure_columns(current)
-            persist_data()
-            st.session_state.flash_message = "상태가 변경되었습니다."
+        mask = current["ID"].astype(str) == str(row["ID"])
+        current.loc[mask, ["Status", "Updated"]] = [
+            toggle_next, datetime.now().strftime("%Y-%m-%d %H:%M")
+        ]
+        st.session_state.data = ensure_columns(current)
+        persist_data()
+        st.session_state.flash_message = "상태가 변경되었습니다."
         st.rerun()
 
     if c3.button("삭제", key=f"{prefix}_delete_{row['ID']}", use_container_width=True):
         current = ensure_columns(st.session_state.data)
-        if not current.empty:
-            current = current[current["ID"].astype(str) != str(row["ID"])].reset_index(drop=True)
+        current = current[current["ID"].astype(str) != str(row["ID"])].reset_index(drop=True)
         st.session_state.data = ensure_columns(current)
 
         if st.session_state.edit_id == row["ID"]:
@@ -960,8 +1045,11 @@ def render_form(mode="new", row_data=None):
         input_memo = st.text_area("Memo", value=safe_str(row_data["Memo"]), height=80)
 
         if mode == "new":
-            submit = st.form_submit_button("저장 후 일정 보기로 이동", use_container_width=True)
-            if submit:
+            b1, b2 = st.columns(2)
+            submit_view = b1.form_submit_button("저장 후 일정 보기", use_container_width=True)
+            submit_continue = b2.form_submit_button("저장 후 계속 등록", use_container_width=True)
+
+            if submit_view or submit_continue:
                 if not safe_str(input_subject):
                     st.warning("회의명은 입력해 주세요.")
                 else:
@@ -990,14 +1078,18 @@ def render_form(mode="new", row_data=None):
                         "Updated": "",
                     }
                     save_record(record, is_edit=False)
-                    st.session_state.main_menu = "📅 일정 보기"
                     st.session_state.selected_date = input_date
                     st.session_state.edit_id = None
-                    if not st.session_state.flash_message:
-                        st.session_state.flash_message = "신규 일정이 저장되었습니다."
+                    st.session_state.flash_message = "신규 일정이 저장되었습니다."
+
+                    if submit_view:
+                        st.session_state.main_menu = "📅 일정 보기"
+                    else:
+                        st.session_state.main_menu = "✍️ 신규 일정 등록"
+
                     st.rerun()
         else:
-            b1, b2 = st.columns([1, 1])
+            b1, b2 = st.columns(2)
             save_btn = b1.form_submit_button("수정 저장", use_container_width=True)
             cancel_btn = b2.form_submit_button("수정 취소", use_container_width=True)
 
@@ -1032,8 +1124,7 @@ def render_form(mode="new", row_data=None):
                     save_record(record, is_edit=True)
                     st.session_state.edit_id = None
                     st.session_state.selected_date = input_date
-                    if not st.session_state.flash_message:
-                        st.session_state.flash_message = "일정이 수정되었습니다."
+                    st.session_state.flash_message = "일정이 수정되었습니다."
                     st.rerun()
 
             if cancel_btn:
@@ -1052,17 +1143,7 @@ menu = st.sidebar.radio(
 )
 st.session_state.main_menu = menu
 
-csv_bytes = csv_download_bytes(st.session_state.data)
 xlsx_bytes = excel_download_bytes(st.session_state.data)
-
-st.sidebar.download_button(
-    "📥 일정 CSV 다운로드",
-    data=csv_bytes,
-    file_name=f"kvma_schedule_{datetime.now().strftime('%Y%m%d_%H%M')}.csv",
-    mime="text/csv",
-    use_container_width=True
-)
-
 st.sidebar.download_button(
     "📥 일정 엑셀 다운로드",
     data=xlsx_bytes,
@@ -1071,22 +1152,50 @@ st.sidebar.download_button(
     use_container_width=True
 )
 
-if st.sidebar.button("🔄 구글 시트에서 다시 불러오기", use_container_width=True):
-    st.session_state.data = load_data_from_gsheet()
-    st.session_state.flash_message = "구글 시트에서 최신 데이터를 다시 불러왔습니다."
-    st.rerun()
+selected_day_sidebar = ensure_columns(st.session_state.data).copy()
+if not selected_day_sidebar.empty:
+    selected_day_sidebar["Date"] = pd.to_datetime(selected_day_sidebar["Date"], errors="coerce").dt.date
+    selected_day_sidebar = selected_day_sidebar[selected_day_sidebar["Date"] == st.session_state.selected_date]
+    selected_day_sidebar = sort_oldest_first(selected_day_sidebar)
 
-with st.sidebar.expander("📊 저장된 일정표 미리보기", expanded=False):
-    preview_df = ensure_columns(st.session_state.data)
-    if preview_df.empty:
-        st.caption("저장된 일정이 없습니다.")
+with st.sidebar.expander(f"📊 선택일 일정 미리보기 ({st.session_state.selected_date})", expanded=False):
+    st.caption("현재 화면에서 선택한 날짜의 일정을 요약해서 보여줍니다.")
+    if selected_day_sidebar.empty:
+        st.caption("선택한 날짜의 일정이 없습니다.")
     else:
-        st.dataframe(
-            preview_df.sort_values(by=["Date", "Time", "Updated"], ascending=[True, True, False]),
-            use_container_width=True,
-            hide_index=True,
-            height=320
-        )
+        for _, row in selected_day_sidebar.iterrows():
+            c = get_color(row["Category"])
+            st.markdown(
+                f"""
+                <div class="sidebar-day-item" style="border-color:{c["line"]}; background:{c["bg"]};">
+                    <div class="sidebar-day-time">{esc(row["Time"])} · {esc(row["Category"])}</div>
+                    <div class="sidebar-day-title">{format_subject_html(row)}</div>
+                </div>
+                """,
+                unsafe_allow_html=True
+            )
+
+st.sidebar.markdown("---")
+st.sidebar.markdown('<div class="helper-note">구글 시트 다시 불러오기는 맨 아래에서 비밀번호 입력 후 실행할 수 있습니다.</div>', unsafe_allow_html=True)
+
+if st.sidebar.button("🔒 구글 시트 다시 불러오기 열기", use_container_width=True):
+    st.session_state.show_reload_password = not st.session_state.show_reload_password
+
+if st.session_state.show_reload_password:
+    st.sidebar.text_input(
+        "관리자 비밀번호",
+        type="password",
+        key="reload_password_input"
+    )
+    if st.sidebar.button("🔄 구글 시트에서 다시 불러오기 실행", use_container_width=True):
+        if st.session_state.reload_password_input == ADMIN_RELOAD_PASSWORD:
+            st.session_state.data = load_data_from_gsheet()
+            st.session_state.flash_message = "구글 시트의 최신 내용을 화면으로 다시 불러왔습니다."
+            st.session_state.reload_password_input = ""
+            st.session_state.show_reload_password = False
+            st.rerun()
+        else:
+            st.sidebar.error("비밀번호가 올바르지 않습니다.")
 
 # =========================================================
 # 8. 상단
@@ -1096,6 +1205,10 @@ st.markdown(
     '<div class="sub-text">회장님 일정 등록 · 조회 · 수정 · 취소 · 삭제와 함께, 직원들이 후속 준비사항을 공유할 수 있는 스케줄러입니다.</div>',
     unsafe_allow_html=True
 )
+
+if "gcp_service_account" not in st.secrets:
+    st.info("현재는 임시 세션 상태입니다. 새로고침 후에도 일정이 계속 유지되려면 구글 시트 연결이 필요합니다.")
+
 show_flash()
 
 # =========================================================
@@ -1111,13 +1224,15 @@ else:
     st.markdown('<div class="panel">', unsafe_allow_html=True)
     st.markdown("**검색어 · 카테고리 · 현황 · 날짜를 기준으로 일정을 찾을 수 있습니다.**")
 
-    fc1, fc2, fc3, fc4, fc5 = st.columns([2.7, 1.2, 1.2, 1.25, 0.8])
+    fc1, fc2, fc3, fc4, fc5, fc6 = st.columns([2.6, 1.15, 1.05, 1.15, 0.75, 1.35])
 
     search_text = fc1.text_input(
         "검색",
+        value=st.session_state.search_text,
         placeholder="회의명 / 방문기관명 / 담당자명 / 연락처 / 후속업무 검색",
         label_visibility="collapsed"
     )
+    st.session_state.search_text = search_text
 
     selected_cat = fc2.selectbox(
         "",
@@ -1145,54 +1260,37 @@ else:
     st.session_state.selected_date = selected_date
 
     if fc5.button("오늘", use_container_width=True):
-        st.session_state.selected_date = datetime.now().date()
+        st.session_state.selected_date = today
         st.rerun()
 
+    if fc6.button("초기화", use_container_width=True):
+        st.session_state.search_text = ""
+        st.session_state.selected_cat = "카테고리"
+        st.session_state.selected_status = "현황"
+        st.session_state.selected_date = today
+        st.rerun()
+
+    st.caption("검색 후 전체 오늘 일정으로 바로 돌아가려면 ‘초기화’ 버튼을 누르면 됩니다.")
     render_legend()
     st.markdown('</div>', unsafe_allow_html=True)
 
     filtered_df = ensure_columns(get_filtered_df(
         st.session_state.data,
         selected_cat=st.session_state.selected_cat,
-        search_text=search_text,
+        search_text=st.session_state.search_text,
         status_filter=st.session_state.selected_status
     ))
 
-    # 일별용
     day_df = ensure_columns(filtered_df.copy())
-    if not day_df.empty and "Date" in day_df.columns:
-        day_df["Date"] = pd.to_datetime(day_df["Date"], errors="coerce").dt.date
-        day_df = day_df[day_df["Date"] == st.session_state.selected_date].sort_values(by="Time")
-        day_df = ensure_columns(day_df)
-    else:
-        day_df = empty_df()
+    day_df["Date"] = pd.to_datetime(day_df["Date"], errors="coerce").dt.date
+    day_df = day_df[day_df["Date"] == st.session_state.selected_date]
+    day_df = sort_oldest_first(day_df)
 
-    m1, m2, m3, m4, m5 = st.columns([1, 1, 1, 1, 1.8])
-    with m1:
-        st.markdown(
-            f'<div class="metric-card"><div class="metric-label">선택일 일정 수</div><div class="metric-value">{len(day_df)}</div></div>',
-            unsafe_allow_html=True
-        )
-    with m2:
-        confirmed_count = 0 if filtered_df.empty else len(filtered_df[filtered_df["Status"] == "확정"])
-        st.markdown(
-            f'<div class="metric-card"><div class="metric-label">확정 일정</div><div class="metric-value">{confirmed_count}</div></div>',
-            unsafe_allow_html=True
-        )
-    with m3:
-        pending_count = 0 if filtered_df.empty else len(filtered_df[filtered_df["Status"] == "보류"])
-        st.markdown(
-            f'<div class="metric-card"><div class="metric-label">보류 일정</div><div class="metric-value">{pending_count}</div></div>',
-            unsafe_allow_html=True
-        )
-    with m4:
-        cancel_count = 0 if filtered_df.empty else len(filtered_df[filtered_df["Status"] == "취소"])
-        st.markdown(
-            f'<div class="metric-card"><div class="metric-label">취소 일정</div><div class="metric-value">{cancel_count}</div></div>',
-            unsafe_allow_html=True
-        )
-    with m5:
-        st.empty()
+    confirmed_count = 0 if filtered_df.empty else len(filtered_df[filtered_df["Status"] == "확정"])
+    pending_count = 0 if filtered_df.empty else len(filtered_df[filtered_df["Status"] == "보류"])
+    cancel_count = 0 if filtered_df.empty else len(filtered_df[filtered_df["Status"] == "취소"])
+
+    render_metric_chips(len(day_df), confirmed_count, pending_count, cancel_count)
 
     tabs = st.tabs(["일별 보기", "주간 보기", "월별 보기", "전체 일정표"])
 
@@ -1207,16 +1305,15 @@ else:
 
         if st.session_state.edit_id:
             current = ensure_columns(st.session_state.data)
-            if current.empty:
-                edit_target = empty_df()
-            else:
-                edit_target = current[current["ID"].astype(str) == str(st.session_state.edit_id)]
-                edit_target = ensure_columns(edit_target)
+            edit_target = current[current["ID"].astype(str) == str(st.session_state.edit_id)]
+            edit_target = ensure_columns(edit_target)
 
             if not edit_target.empty:
                 render_form(mode="edit", row_data=edit_target.iloc[0].to_dict())
         else:
-            if not day_df.empty:
+            if day_df.empty:
+                st.caption("선택한 날짜의 일정이 없습니다.")
+            else:
                 for idx, (_, row) in enumerate(day_df.iterrows()):
                     render_day_expander(row, prefix=f"day_{idx}", expanded=False)
 
@@ -1239,31 +1336,26 @@ else:
 
         week_days = week_dates_from_any_day(st.session_state.selected_date)
         week_df = ensure_columns(filtered_df.copy())
-
-        if not week_df.empty and "Date" in week_df.columns:
-            week_df["Date"] = pd.to_datetime(week_df["Date"], errors="coerce").dt.date
-            week_df = week_df[week_df["Date"].isin(week_days)]
-            week_df = ensure_columns(week_df)
-        else:
-            week_df = empty_df()
+        week_df["Date"] = pd.to_datetime(week_df["Date"], errors="coerce").dt.date
+        week_df = week_df[week_df["Date"].isin(week_days)]
+        week_df = ensure_columns(week_df)
 
         day_names = ["일", "월", "화", "수", "목", "금", "토"]
         cols = st.columns(7)
 
         for idx, day_obj in enumerate(week_days):
             with cols[idx]:
+                cls = weekday_class_by_index(idx)
+                label_cls = "day-head"
+                if cls:
+                    label_cls += f" {cls}"
                 st.markdown(
-                    f'<div class="day-head">{day_obj.month}/{day_obj.day} ({day_names[idx]})</div>',
+                    f'<div class="{label_cls}">{day_obj.month}/{day_obj.day} ({day_names[idx]})</div>',
                     unsafe_allow_html=True
                 )
 
-                if not week_df.empty and "Date" in week_df.columns:
-                    daily = week_df.loc[week_df["Date"] == day_obj].copy()
-                    daily = ensure_columns(daily)
-                    if not daily.empty:
-                        daily = daily.sort_values(by="Time")
-                else:
-                    daily = empty_df()
+                daily = week_df.loc[week_df["Date"] == day_obj].copy()
+                daily = sort_oldest_first(daily)
 
                 if daily.empty:
                     st.caption("일정 없음")
@@ -1278,12 +1370,13 @@ else:
         st.markdown('<div class="section-title">🗓️ 월별 일정</div>', unsafe_allow_html=True)
 
         mc1, mc2 = st.columns([1, 1])
-        year_options = list(range(datetime.now().year - 2, datetime.now().year + 4))
+        year_options = list(range(2025, 2041))
 
         month_year = mc1.selectbox(
             "년도",
             year_options,
-            index=year_options.index(st.session_state.selected_date.year),
+            index=year_options.index(st.session_state.selected_date.year)
+            if st.session_state.selected_date.year in year_options else 0,
             key="month_year_select"
         )
         month_month = mc2.selectbox(
@@ -1294,24 +1387,24 @@ else:
         )
 
         month_df = ensure_columns(filtered_df.copy())
-
-        if not month_df.empty and "Date" in month_df.columns:
-            month_df["Date"] = pd.to_datetime(month_df["Date"], errors="coerce").dt.date
-            month_df = month_df[
-                month_df["Date"].apply(
-                    lambda d: d.year == month_year and d.month == month_month if pd.notna(d) else False
-                )
-            ]
-            month_df = ensure_columns(month_df)
-        else:
-            month_df = empty_df()
+        month_df["Date"] = pd.to_datetime(month_df["Date"], errors="coerce").dt.date
+        month_df = month_df[
+            month_df["Date"].apply(
+                lambda d: d.year == month_year and d.month == month_month if pd.notna(d) else False
+            )
+        ]
+        month_df = ensure_columns(month_df)
 
         weeks = month_calendar_weeks(month_year, month_month)
         weekday_names = ["일", "월", "화", "수", "목", "금", "토"]
 
         head_cols = st.columns(7)
         for i, name in enumerate(weekday_names):
-            head_cols[i].markdown(f"**{name}**")
+            cls = weekday_class_by_index(i)
+            label_cls = "day-head"
+            if cls:
+                label_cls += f" {cls}"
+            head_cols[i].markdown(f'<div class="{label_cls}">{name}</div>', unsafe_allow_html=True)
 
         for week in weeks:
             week_cols = st.columns(7)
@@ -1319,23 +1412,18 @@ else:
                 with week_cols[didx]:
                     if day_obj.month != month_month:
                         st.markdown(
-                            f"<div class='day-head' style='color:#B5BBC8;'>{day_obj.day}일</div>",
+                            day_header_html(day_obj, f"{day_obj.day}일", dim=True),
                             unsafe_allow_html=True
                         )
                         st.caption(" ")
                     else:
                         st.markdown(
-                            f"<div class='day-head'>{day_obj.day}일</div>",
+                            day_header_html(day_obj, f"{day_obj.day}일", dim=False),
                             unsafe_allow_html=True
                         )
 
-                        if not month_df.empty and "Date" in month_df.columns:
-                            daily = month_df.loc[month_df["Date"] == day_obj].copy()
-                            daily = ensure_columns(daily)
-                            if not daily.empty:
-                                daily = daily.sort_values(by="Time")
-                        else:
-                            daily = empty_df()
+                        daily = month_df.loc[month_df["Date"] == day_obj].copy()
+                        daily = sort_oldest_first(daily)
 
                         if daily.empty:
                             st.caption("일정 없음")
@@ -1349,13 +1437,34 @@ else:
     with tabs[3]:
         st.markdown('<div class="section-title">📋 전체 일정표</div>', unsafe_allow_html=True)
 
+        tc1, tc2, tc3 = st.columns([1.2, 1.2, 3.6])
+        table_sort_mode = tc1.selectbox("정렬", ["최신 일정 우선", "오래된 일정 우선"], index=0, key="table_sort_mode")
+        table_page_size = tc2.selectbox("페이지 크기", [20, 50, 100, 200], index=1, key="table_page_size")
+        tc3.caption("데이터가 많이 쌓일 것을 대비해 최신순 정렬 + 페이지 단위로 보도록 구성했습니다.")
+
         table_df = ensure_columns(filtered_df.copy())
+
         if table_df.empty:
             st.caption("표시할 일정이 없습니다.")
         else:
+            if table_sort_mode == "최신 일정 우선":
+                table_df = sort_latest_first(table_df)
+            else:
+                table_df = sort_oldest_first(table_df)
+
+            total_rows = len(table_df)
+            total_pages = max(1, math.ceil(total_rows / table_page_size))
+            page_num = st.number_input("페이지", min_value=1, max_value=total_pages, value=1, step=1, key="table_page_num")
+
+            start_idx = (page_num - 1) * table_page_size
+            end_idx = start_idx + table_page_size
+            page_df = table_df.iloc[start_idx:end_idx].copy()
+
+            st.caption(f"총 {total_rows}건 중 {start_idx + 1} ~ {min(end_idx, total_rows)}건 표시")
+
             st.dataframe(
-                table_df.sort_values(by=["Date", "Time", "Updated"], ascending=[True, True, False]),
+                page_df,
                 use_container_width=True,
                 hide_index=True,
-                height=500
+                height=560
             )
