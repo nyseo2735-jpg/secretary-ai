@@ -541,6 +541,25 @@ def excel_download_bytes(df: pd.DataFrame) -> bytes:
     output.seek(0)
     return output.getvalue()
 
+
+def get_secret_value(key: str, default=""):
+    # 1순위: 루트에서 찾기
+    if key in st.secrets:
+        return str(st.secrets.get(key, default)).strip()
+
+    # 2순위: app_config 블록 안에서 찾기
+    if "app_config" in st.secrets and key in st.secrets["app_config"]:
+        return str(st.secrets["app_config"].get(key, default)).strip()
+
+    return default
+
+
+def get_sheet_config():
+    sheet_name = get_secret_value("google_sheet_name", "")
+    worksheet_name = get_secret_value("google_worksheet_name", "")
+    return sheet_name, worksheet_name
+
+
 def get_secret_value(key: str, default=""):
     # 1순위: 루트에서 찾기
     if key in st.secrets:
@@ -1344,8 +1363,7 @@ st.markdown(
 
 if "gcp_service_account" not in st.secrets:
     st.info("현재는 임시 세션 상태입니다. 새로고침 후에도 일정이 계속 유지되려면 구글 시트 연결이 필요합니다.")
-sheet_name_debug, worksheet_name_debug = get_sheet_config()
-st.caption(f"DEBUG | sheet='{sheet_name_debug}' / worksheet='{worksheet_name_debug}'")
+
 
 show_flash()
 
