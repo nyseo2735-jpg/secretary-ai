@@ -902,7 +902,7 @@ def persist_data_full_sync():
 def save_record(record: dict, is_edit=False):
     record = {col: normalize_cell(record.get(col, "")) for col in DATA_COLUMNS}
     record["Updated"] = now_kst_str()
-    record["UpdatedBy"] = safe_str(st.session_state.get("editor_name", ""))
+    record["UpdatedBy"] = safe_str(record.get("UpdatedBy", ""))
     record["IsDeleted"] = ""
 
     try:
@@ -1151,8 +1151,6 @@ if "show_reload_password" not in st.session_state:
 if "table_page_num_value" not in st.session_state:
     st.session_state.table_page_num_value = 1
 
-if "editor_name" not in st.session_state:
-    st.session_state.editor_name = ""
 
 # =========================================================
 # 6. 렌더 함수
@@ -1410,7 +1408,7 @@ def render_form(mode="new", row_data=None):
             index=CATEGORIES.index(row_data["Category"]) if row_data["Category"] in CATEGORIES else 0
         )
 
-        r2c1, r2c2, r2c3 = st.columns([2, 1, 1])
+        r2c1, r2c2, r2c3, r2c4 = st.columns([2, 1, 1, 1.2])
         input_subject = r2c1.text_input("회의명", value=safe_str(row_data["Subject"]))
         input_status = r2c2.selectbox(
             "일정 현황",
@@ -1421,6 +1419,11 @@ def render_form(mode="new", row_data=None):
             "우선순위",
             PRIORITY_OPTIONS,
             index=PRIORITY_OPTIONS.index(row_data["Priority"]) if row_data["Priority"] in PRIORITY_OPTIONS else 1
+        )
+        input_editor_name = r2c4.text_input(
+            "작성자/수정자 이름",
+            value=safe_str(row_data["UpdatedBy"]),
+            placeholder="예: 홍길동"
         )
 
         r3c1, r3c2 = st.columns(2)
@@ -1444,16 +1447,10 @@ def render_form(mode="new", row_data=None):
         input_follow_owner = r6c1.text_input("주 담당자", value=safe_str(row_data["FollowOwner"]))
 
         existing_follow_due = to_date_safe(row_data["FollowDue"])
-        input_follow_due_enabled = r6c2.checkbox(
-            "준비 완료기한 입력",
-            value=True if existing_follow_due else False,
-            key=f"follow_due_enabled_{mode}_{safe_str(row_data['ID']) or 'new'}"
-        )
 
         input_follow_due = r6c2.date_input(
             "준비 완료기한",
             value=existing_follow_due or input_date,
-            disabled=not input_follow_due_enabled,
             key=f"follow_due_date_{mode}_{safe_str(row_data['ID']) or 'new'}"
         )
 
@@ -1469,7 +1466,7 @@ def render_form(mode="new", row_data=None):
         input_shared_note = st.text_area("공유 메모", value=safe_str(row_data["SharedNote"]), height=90)
         input_memo = st.text_area("일반 Memo", value=safe_str(row_data["Memo"]), height=80)
 
-        follow_due_value = str(input_follow_due) if input_follow_due_enabled else ""
+        follow_due_value = str(input_follow_due) if input_follow_due else ""
 
         if mode == "new":
             b1, b2 = st.columns(2)
@@ -1479,6 +1476,8 @@ def render_form(mode="new", row_data=None):
             if submit_view or submit_continue:
                 if not safe_str(input_subject):
                     st.warning("회의명은 입력해 주세요.")
+                elif not safe_str(input_editor_name):
+                    st.warning("작성자/수정자 이름은 입력해 주세요.")
                 else:
                     record = {
                         "ID": next_id(),
@@ -1507,7 +1506,7 @@ def render_form(mode="new", row_data=None):
                         "FollowUpdated": now_kst_str(),
                         "Updated": "",
                         "IsDeleted": "",
-                        "UpdatedBy": "",
+                        "UpdatedBy": safe_str(input_editor_name),
                     }
 
                     ok, err = save_record(record, is_edit=False)
@@ -1530,6 +1529,8 @@ def render_form(mode="new", row_data=None):
             if save_btn:
                 if not safe_str(input_subject):
                     st.warning("회의명은 입력해 주세요.")
+                elif not safe_str(input_editor_name):
+                    st.warning("작성자/수정자 이름은 입력해 주세요.")
                 else:
                     record = {
                         "ID": row_data["ID"],
@@ -1558,7 +1559,7 @@ def render_form(mode="new", row_data=None):
                         "FollowUpdated": now_kst_str(),
                         "Updated": "",
                         "IsDeleted": "",
-                        "UpdatedBy": "",
+                        "UpdatedBy": safe_str(input_editor_name),
                     }
 
                     ok, err = save_record(record, is_edit=True)
@@ -1592,11 +1593,6 @@ if st.sidebar.button("✍️ 신규 일정 등록", use_container_width=True):
     st.rerun()
 st.sidebar.markdown('</div>', unsafe_allow_html=True)
 
-st.session_state.editor_name = st.sidebar.text_input(
-    "사용자명",
-    value=st.session_state.editor_name,
-    placeholder="예: 홍길동"
-)
 
 xlsx_bytes = excel_download_bytes(st.session_state.data)
 st.sidebar.download_button(
