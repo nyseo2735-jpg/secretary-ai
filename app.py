@@ -961,6 +961,59 @@ def to_display_dataframe(df: pd.DataFrame) -> pd.DataFrame:
     display_df = display_df.drop(columns=["IsDeleted"], errors="ignore")
     return display_df
 
+# =========================================================
+# 5. 상태 초기화
+# =========================================================
+today = now_kst().date()
+
+if "data" not in st.session_state:
+    st.session_state.data = load_data_from_gsheet()
+else:
+    st.session_state.data = clean_records_df(st.session_state.data)
+
+if "app_today" not in st.session_state:
+    st.session_state.app_today = today
+
+if st.session_state.app_today != today:
+    st.session_state.app_today = today
+    st.session_state.selected_date = today
+
+if "main_menu" not in st.session_state:
+    st.session_state.main_menu = "📅 일정 보기"
+
+if "selected_date" not in st.session_state:
+    st.session_state.selected_date = today
+
+if "selected_cat" not in st.session_state:
+    st.session_state.selected_cat = "카테고리"
+
+if "selected_status" not in st.session_state:
+    st.session_state.selected_status = "일정 현황"
+
+if "selected_follow_status" not in st.session_state:
+    st.session_state.selected_follow_status = "팔로우업 상태"
+
+if "search_text" not in st.session_state:
+    st.session_state.search_text = ""
+
+if "edit_id" not in st.session_state:
+    st.session_state.edit_id = None
+
+if "flash_message" not in st.session_state:
+    st.session_state.flash_message = None
+
+if "reload_password_input" not in st.session_state:
+    st.session_state.reload_password_input = ""
+
+if "show_reload_password" not in st.session_state:
+    st.session_state.show_reload_password = False
+
+if "table_page_num_value" not in st.session_state:
+    st.session_state.table_page_num_value = 1
+
+# =========================================================
+# 6. 렌더 함수
+# =========================================================
 def render_followup_section(row):
     st.markdown(f"""
     <div class="follow-wrap">
@@ -1394,7 +1447,7 @@ def render_form(mode="new", row_data=None):
 # =========================================================
 # 7. 사이드바
 # =========================================================
-st.sidebar.markdown("# 🏢 KVMA Secretary")
+st.sidebar.markdown("# 🏢 KVMA 비서실")
 
 st.sidebar.markdown('<div class="menu-btn-wrap">', unsafe_allow_html=True)
 if st.sidebar.button("📅 일정 보기", use_container_width=True):
@@ -1464,7 +1517,7 @@ if st.session_state.show_reload_password:
 # =========================================================
 # 8. 상단
 # =========================================================
-st.markdown('<div class="main-title">📒 KVMA President Schedule</div>', unsafe_allow_html=True)
+st.markdown('<div class="main-title">📒 KVMA 회장님 일정</div>', unsafe_allow_html=True)
 st.markdown(
     '<div class="sub-text">회장님 일정 등록 · 조회 · 수정 · 취소 · 삭제와 함께, 직원들이 후속 준비사항을 공유할 수 있는 스케줄러입니다.</div>',
     unsafe_allow_html=True
