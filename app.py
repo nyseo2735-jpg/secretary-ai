@@ -553,11 +553,13 @@ def get_gspread_client():
 
 def get_worksheet():
     gc = get_gspread_client()
-    sheet_name = st.secrets.get("google_sheet_name", "")
-    worksheet_name = st.secrets.get("google_worksheet_name", "Schedule")
+    sheet_name, worksheet_name = get_sheet_config()
 
     if not sheet_name:
         raise ValueError("google_sheet_name 이 설정되지 않았습니다.")
+
+    if not worksheet_name:
+        raise ValueError("google_worksheet_name 이 설정되지 않았습니다.")
 
     sh = gc.open(sheet_name)
     try:
@@ -581,7 +583,9 @@ def load_data_from_gsheet():
             st.info("구글 시트 연결 정보가 아직 설정되지 않았습니다. 현재는 임시 세션 데이터만 보입니다.")
             return empty_df()
 
-        if "google_sheet_name" not in st.secrets or "google_worksheet_name" not in st.secrets:
+        sheet_name, worksheet_name = get_sheet_config()
+
+        if not sheet_name or not worksheet_name:
             st.info("google_sheet_name 또는 google_worksheet_name 설정이 없습니다. 현재는 임시 세션 데이터만 보입니다.")
             return empty_df()
 
@@ -655,7 +659,9 @@ def next_id():
 
 def persist_data():
     try:
-        if "gcp_service_account" in st.secrets and "google_sheet_name" in st.secrets:
+        sheet_name, worksheet_name = get_sheet_config()
+
+        if "gcp_service_account" in st.secrets and sheet_name and worksheet_name:
             save_all_to_gsheet(st.session_state.data)
         return True, None
     except Exception as e:
@@ -1321,6 +1327,8 @@ st.markdown(
 
 if "gcp_service_account" not in st.secrets:
     st.info("현재는 임시 세션 상태입니다. 새로고침 후에도 일정이 계속 유지되려면 구글 시트 연결이 필요합니다.")
+sheet_name_debug, worksheet_name_debug = get_sheet_config()
+st.caption(f"DEBUG | sheet='{sheet_name_debug}' / worksheet='{worksheet_name_debug}'")
 
 show_flash()
 
@@ -1621,3 +1629,20 @@ else:
                 hide_index=True,
                 height=560
             )
+
+def get_secret_value(key: str, default=""):
+    # 1순위: 루트에서 찾기
+    if key in st.secrets:
+        return str(st.secrets.get(key, default)).strip()
+
+    # 2순위: app_config 블록 안에서 찾기
+    if "app_config" in st.secrets and key in st.secrets["app_config"]:
+        return str(st.secrets["app_config"].get(key, default)).strip()
+
+    return default
+
+
+def get_sheet_config():
+    sheet_name = get_secret_value("google_sheet_name", "")
+    worksheet_name = get_secret_value("google_worksheet_name", "")
+    return sheet_name, worksheet_name
