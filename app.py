@@ -43,6 +43,7 @@ DATA_COLUMNS = [
     "Time",
     "Category",
     "Subject",
+    "PresidentAttend",
     "OrgName",
     "DetailPlace",
     "TargetDept",
@@ -315,6 +316,10 @@ h1, h2, h3 {
     font-size: 0.84rem !important;
 }
 
+.compact-wrap {
+    margin-bottom: 8px;
+}
+
 div[data-testid="stButton"] > button {
     border-radius: 10px !important;
     font-weight: 700 !important;
@@ -338,11 +343,6 @@ div[data-testid="stForm"] {
     border-radius: 18px;
     padding: 16px 16px 10px 16px;
     background: #ffffff;
-}
-
-.streamlit-expanderHeader {
-    font-weight: 800 !important;
-    font-size: 1rem !important;
 }
 
 .day-head {
@@ -390,6 +390,19 @@ div[data-testid="stForm"] {
     vertical-align: middle;
 }
 
+.attend-pill {
+    display: inline-block;
+    margin-left: 6px;
+    padding: 4px 8px;
+    border-radius: 999px;
+    font-size: 0.72rem;
+    font-weight: 800;
+    background: #FFF7D6;
+    color: #8A6500;
+    border: 1px solid #F2D675;
+    vertical-align: middle;
+}
+
 .sidebar-day-item {
     border: 1px solid #ECEEF3;
     border-radius: 12px;
@@ -420,6 +433,12 @@ div[data-testid="stForm"] {
 
 .menu-btn-wrap {
     margin-bottom: 8px;
+}
+
+.segment-note {
+    font-size: 0.84rem;
+    color: #667085;
+    margin-bottom: 10px;
 }
 
 @media (max-width: 1000px) {
@@ -528,6 +547,26 @@ def parse_time_safe(v, default_str="09:00"):
 def esc(v):
     value = safe_str(v)
     return html.escape(value if value else "-")
+
+def is_president_attend(row):
+    return safe_str(row.get("PresidentAttend", "")).upper() == "Y"
+
+def attend_prefix(row):
+    return "👑 " if is_president_attend(row) else ""
+
+def attend_label(row):
+    return "회장 직접 참석" if is_president_attend(row) else "직원 대참/회장 미참석"
+
+def compact_subject_text(row):
+    subject = f"{attend_prefix(row)}{safe_str(row.get('Subject'))}"
+    if safe_str(row.get("Status")) == "취소":
+        subject = f"{subject} (취소)"
+    return subject
+
+def compact_line_text(row):
+    time_text = safe_str(row.get("Time")) or "-"
+    cat_text = safe_str(row.get("Category")) or "-"
+    return f"{time_text} / [{cat_text}] / {compact_subject_text(row)}"
 
 def excel_download_bytes(df: pd.DataFrame) -> bytes:
     export_df = get_active_df(df).copy()
@@ -645,6 +684,7 @@ def clean_records_df(df: pd.DataFrame) -> pd.DataFrame:
     df["Priority"] = df["Priority"].apply(lambda x: x if x in PRIORITY_OPTIONS else "보통")
     df["FollowStatus"] = df["FollowStatus"].apply(lambda x: x if x in FOLLOW_STATUS_OPTIONS else "미착수")
     df["IsDeleted"] = df["IsDeleted"].apply(lambda x: "Y" if safe_str(x).upper() == "Y" else "")
+    df["PresidentAttend"] = df["PresidentAttend"].apply(lambda x: "Y" if safe_str(x).upper() == "Y" else "")
 
     df["Date"] = df["Date"].apply(lambda x: to_date_safe(x).strftime("%Y-%m-%d") if to_date_safe(x) else "")
     df["Time"] = df["Time"].apply(lambda x: parse_time_safe(x).strftime("%H:%M") if safe_str(x) else "")
@@ -760,6 +800,7 @@ def get_filtered_df(df, selected_cat="카테고리", search_text="", status_filt
             | temp["Memo"].fillna("").str.contains(q, case=False, na=False)
             | temp["FollowProgressMemo"].fillna("").str.contains(q, case=False, na=False)
             | temp["UpdatedBy"].fillna("").str.contains(q, case=False, na=False)
+            | temp["Staff"].fillna("").str.contains(q, case=False, na=False)
         )
         temp = temp[mask]
 
@@ -781,6 +822,7 @@ def save_record(record: dict, is_edit=False):
     record["Updated"] = now_kst_str()
     record["UpdatedBy"] = safe_str(record.get("UpdatedBy", ""))
     record["IsDeleted"] = ""
+    record["PresidentAttend"] = "Y" if safe_str(record.get("PresidentAttend", "")).upper() == "Y" else ""
 
     try:
         if has_gsheet_config():
@@ -882,6 +924,7 @@ def render_legend():
             f'<span class="legend-pill" style="background:{c["soft"]}; color:{c["text"]}; border-color:{c["line"]};">{cat}</span>'
         )
     st.markdown("".join(parts), unsafe_allow_html=True)
+    st.markdown('<div class="segment-note">👑 표시가 있으면 회장 직접 참석 일정입니다.</div>', unsafe_allow_html=True)
 
 def render_metric_chips(day_count, confirmed_count, pending_count, cancel_count):
     html_text = f"""
@@ -893,17 +936,11 @@ def render_metric_chips(day_count, confirmed_count, pending_count, cancel_count)
     st.markdown(html_text, unsafe_allow_html=True)
 
 def format_subject_html(row):
-    subject = esc(row["Subject"])
+    subject = esc(safe_str(attend_prefix(row)) + safe_str(row["Subject"]))
+    attend_badge = '<span class="attend-pill">회장 참석</span>' if is_president_attend(row) else ""
     if safe_str(row["Status"]) == "취소":
-        return f'<span class="canceled-title">{subject}</span><span class="cancel-pill">취소</span>'
-    return subject
-
-def format_subject_md(row):
-    subject = safe_str(row["Subject"])
-    time_text = safe_str(row["Time"])
-    if safe_str(row["Status"]) == "취소":
-        return f"{time_text} · ~~{subject}~~" if time_text else f"~~{subject}~~"
-    return f"{time_text} · {subject}" if time_text else subject
+        return f'<span class="canceled-title">{subject}</span>{attend_badge}<span class="cancel-pill">취소</span>'
+    return f'{subject}{attend_badge}'
 
 def weekday_class_by_index(idx: int):
     if idx == 0:
@@ -971,6 +1008,16 @@ def to_display_dataframe(df: pd.DataFrame) -> pd.DataFrame:
     display_df = display_df.drop(columns=["DateParsed"], errors="ignore")
     return display_df
 
+def open_event_detail(row, target_view=None):
+    event_date = to_date_safe(row.get("Date"))
+    if event_date:
+        st.session_state.selected_date = event_date
+    st.session_state.selected_event_id = row["ID"]
+    st.session_state.main_menu = "📅 일정 보기"
+    if target_view:
+        st.session_state.view_mode = target_view
+    st.rerun()
+
 # =========================================================
 # 5. 상태 초기화
 # =========================================================
@@ -987,9 +1034,13 @@ if "app_today" not in st.session_state:
 if st.session_state.app_today != today:
     st.session_state.app_today = today
     st.session_state.selected_date = today
+    st.session_state.view_mode = "일별 보기"
 
 if "main_menu" not in st.session_state:
     st.session_state.main_menu = "📅 일정 보기"
+
+if "view_mode" not in st.session_state:
+    st.session_state.view_mode = "일별 보기"
 
 if "selected_date" not in st.session_state:
     st.session_state.selected_date = today
@@ -1008,6 +1059,9 @@ if "search_text" not in st.session_state:
 
 if "edit_id" not in st.session_state:
     st.session_state.edit_id = None
+
+if "selected_event_id" not in st.session_state:
+    st.session_state.selected_event_id = None
 
 if "flash_message" not in st.session_state:
     st.session_state.flash_message = None
@@ -1064,6 +1118,7 @@ def render_followup_section(row):
 
 def render_summary_header(row):
     c = get_color(row["Category"])
+    attend_badge = '<span class="tag-pill">👑 회장 직접 참석</span>' if is_president_attend(row) else '<span class="tag-pill">대참 가능 일정</span>'
     st.markdown(f"""
     <div class="summary-card" style="background:{c['bg']};">
         <div class="summary-inner">
@@ -1075,6 +1130,7 @@ def render_summary_header(row):
                     <span class="tag-pill">{esc(row["Status"])}</span>
                     <span class="tag-pill">우선순위 {esc(row["Priority"])}</span>
                     <span class="tag-pill">팔로우업 {esc(row["FollowStatus"])}</span>
+                    {attend_badge}
                 </div>
                 <div class="summary-title">{format_subject_html(row)}</div>
             </div>
@@ -1121,8 +1177,8 @@ def render_detail_blocks(row):
         """, unsafe_allow_html=True)
         st.markdown(f"""
         <div class="info-box">
-            <div class="info-label">최종 수정</div>
-            <div class="info-value">🕒 {esc(row["Updated"])} / {esc(row["UpdatedBy"])}</div>
+            <div class="info-label">참석 구분 / 최종 수정</div>
+            <div class="info-value">👑 {esc(attend_label(row))}<br>🕒 {esc(row["Updated"])} / {esc(row["UpdatedBy"])}</div>
         </div>
         """, unsafe_allow_html=True)
 
@@ -1141,6 +1197,8 @@ def render_action_buttons(row, prefix=""):
 
     if c1.button("수정", key=f"{prefix}_edit_{row['ID']}", use_container_width=True):
         st.session_state.edit_id = row["ID"]
+        st.session_state.view_mode = "일별 보기"
+        st.session_state.selected_date = to_date_safe(row["Date"]) or st.session_state.selected_date
         st.rerun()
 
     toggle_label = "일정 취소" if row["Status"] != "취소" else "취소 해제"
@@ -1163,6 +1221,8 @@ def render_action_buttons(row, prefix=""):
         ok, err = soft_delete_record(row["ID"])
         if st.session_state.edit_id == row["ID"]:
             st.session_state.edit_id = None
+        if st.session_state.selected_event_id == row["ID"]:
+            st.session_state.selected_event_id = None
         st.session_state.flash_message = "일정이 삭제되었습니다." if ok else f"삭제 실패: {err}"
         st.rerun()
 
@@ -1178,38 +1238,8 @@ def render_action_buttons(row, prefix=""):
 
     st.markdown('</div>', unsafe_allow_html=True)
 
-def render_day_expander(row, prefix="", expanded=False):
-    label = format_subject_md(row)
-    with st.expander(label, expanded=expanded):
-        render_summary_header(row)
-        render_detail_blocks(row)
-        render_action_buttons(row, prefix=prefix)
-
-def render_week_month_card(row):
+def render_compact_event(row, prefix="", selected_view="일별 보기"):
     c = get_color(row["Category"])
-    subject_html = format_subject_html(row)
-
-    meta_parts = []
-    if safe_str(row["Time"]):
-        meta_parts.append(f"⏰ {esc(row['Time'])}")
-    if safe_str(row["Category"]):
-        meta_parts.append(f"분류: {esc(row['Category'])}")
-    if safe_str(row["FollowStatus"]):
-        meta_parts.append(f"팔로우업: {esc(row['FollowStatus'])}")
-
-    meta_text = " · ".join(meta_parts) if meta_parts else "-"
-
-    detail_parts = []
-    if safe_str(row["OrgName"]):
-        detail_parts.append(f"기관: {esc(row['OrgName'])}")
-    if safe_str(row["DetailPlace"]):
-        detail_parts.append(f"장소: {esc(row['DetailPlace'])}")
-    if safe_str(row["FollowOwner"]):
-        detail_parts.append(f"담당: {esc(row['FollowOwner'])}")
-    if safe_str(row["FollowDue"]):
-        detail_parts.append(f"기한: {esc(row['FollowDue'])}")
-
-    detail_text = "<br>".join(detail_parts) if detail_parts else "세부 정보 없음"
 
     st.markdown(
         f"""
@@ -1219,39 +1249,36 @@ def render_week_month_card(row):
             border-left:6px solid {c['line']};
             border-radius:12px;
             padding:8px 10px;
-            margin-bottom:8px;
+            margin-bottom:6px;
         ">
             <div style="
-                font-size:0.75rem;
+                font-size:0.84rem;
                 font-weight:800;
                 color:{c['text']};
-                margin-bottom:4px;
                 line-height:1.35;
-            ">
-                {meta_text}
-            </div>
-            <div style="
-                font-size:0.86rem;
-                font-weight:800;
-                color:#1F2937;
-                line-height:1.35;
-                margin-bottom:6px;
                 word-break:break-word;
             ">
-                {subject_html}
-            </div>
-            <div style="
-                font-size:0.76rem;
-                color:#475467;
-                line-height:1.45;
-                word-break:break-word;
-            ">
-                {detail_text}
+                {html.escape(compact_line_text(row))}
             </div>
         </div>
         """,
         unsafe_allow_html=True
     )
+
+    open_label = "세부 접기" if st.session_state.selected_event_id == row["ID"] else "세부 보기"
+    if st.button(open_label, key=f"{prefix}_open_{row['ID']}", use_container_width=True):
+        if st.session_state.selected_event_id == row["ID"]:
+            st.session_state.selected_event_id = None
+            st.session_state.selected_date = to_date_safe(row["Date"]) or st.session_state.selected_date
+            st.session_state.view_mode = selected_view
+            st.rerun()
+        else:
+            open_event_detail(row, target_view=selected_view)
+
+    if st.session_state.selected_event_id == row["ID"]:
+        render_summary_header(row)
+        render_detail_blocks(row)
+        render_action_buttons(row, prefix=prefix)
 
 def render_form(mode="new", row_data=None):
     if row_data is None:
@@ -1261,6 +1288,7 @@ def render_form(mode="new", row_data=None):
             "Time": "09:00",
             "Category": CATEGORIES[0],
             "Subject": "",
+            "PresidentAttend": "Y",
             "OrgName": "",
             "DetailPlace": "",
             "TargetDept": "",
@@ -1298,7 +1326,7 @@ def render_form(mode="new", row_data=None):
             index=CATEGORIES.index(row_data["Category"]) if row_data["Category"] in CATEGORIES else 0
         )
 
-        r2c1, r2c2, r2c3, r2c4 = st.columns([2, 1, 1, 1.2])
+        r2c1, r2c2, r2c3, r2c4, r2c5 = st.columns([2.1, 1.0, 1.0, 1.2, 1.1])
         input_subject = r2c1.text_input("회의명", value=safe_str(row_data["Subject"]))
         input_status = r2c2.selectbox(
             "일정 현황",
@@ -1314,6 +1342,10 @@ def render_form(mode="new", row_data=None):
             "작성자/수정자 이름",
             value=safe_str(row_data["UpdatedBy"]),
             placeholder="예: 홍길동"
+        )
+        input_president_attend = r2c5.checkbox(
+            "회장 직접 참석",
+            value=is_president_attend(row_data)
         )
 
         r3c1, r3c2 = st.columns(2)
@@ -1373,6 +1405,7 @@ def render_form(mode="new", row_data=None):
                         "Time": input_time.strftime("%H:%M"),
                         "Category": input_category,
                         "Subject": safe_str(input_subject),
+                        "PresidentAttend": "Y" if input_president_attend else "",
                         "OrgName": safe_str(input_org),
                         "DetailPlace": safe_str(input_detail_place),
                         "TargetDept": safe_str(input_target_dept),
@@ -1399,9 +1432,11 @@ def render_form(mode="new", row_data=None):
 
                     ok, err = save_record(record, is_edit=False)
                     st.session_state.selected_date = input_date
+                    st.session_state.selected_event_id = record["ID"]
                     st.session_state.edit_id = None
                     st.session_state.flash_message = "신규 일정이 저장되었습니다." if ok else f"저장 실패: {err}"
                     st.session_state.main_menu = "📅 일정 보기" if submit_view else "✍️ 신규 일정 등록"
+                    st.session_state.view_mode = "일별 보기"
                     st.rerun()
         else:
             b1, b2 = st.columns(2)
@@ -1420,6 +1455,7 @@ def render_form(mode="new", row_data=None):
                         "Time": input_time.strftime("%H:%M"),
                         "Category": input_category,
                         "Subject": safe_str(input_subject),
+                        "PresidentAttend": "Y" if input_president_attend else "",
                         "OrgName": safe_str(input_org),
                         "DetailPlace": safe_str(input_detail_place),
                         "TargetDept": safe_str(input_target_dept),
@@ -1446,7 +1482,9 @@ def render_form(mode="new", row_data=None):
 
                     ok, err = save_record(record, is_edit=True)
                     st.session_state.edit_id = None
+                    st.session_state.selected_event_id = row_data["ID"]
                     st.session_state.selected_date = input_date
+                    st.session_state.view_mode = "일별 보기"
                     st.session_state.flash_message = "일정이 수정되었습니다." if ok else f"수정 실패: {err}"
                     st.rerun()
 
@@ -1462,12 +1500,15 @@ st.sidebar.markdown("# 🏢 KVMA 비서실")
 st.sidebar.markdown('<div class="menu-btn-wrap">', unsafe_allow_html=True)
 if st.sidebar.button("📅 일정 보기", use_container_width=True):
     st.session_state.main_menu = "📅 일정 보기"
+    st.session_state.view_mode = "일별 보기"
+    st.session_state.edit_id = None
     st.rerun()
 st.sidebar.markdown('</div>', unsafe_allow_html=True)
 
 st.sidebar.markdown('<div class="menu-btn-wrap">', unsafe_allow_html=True)
 if st.sidebar.button("✍️ 신규 일정 등록", use_container_width=True):
     st.session_state.main_menu = "✍️ 신규 일정 등록"
+    st.session_state.edit_id = None
     st.rerun()
 st.sidebar.markdown('</div>', unsafe_allow_html=True)
 
@@ -1495,8 +1536,8 @@ with st.sidebar.expander(f"📊 선택일 일정 미리보기 ({st.session_state
             st.markdown(
                 f"""
                 <div class="sidebar-day-item" style="border-color:{c["line"]}; background:{c["bg"]};">
-                    <div class="sidebar-day-time">{esc(row["Time"])} · {esc(row["Category"])} · {esc(row["FollowStatus"])}</div>
-                    <div class="sidebar-day-title">{format_subject_html(row)}</div>
+                    <div class="sidebar-day-time">{html.escape(safe_str(row["Time"]))} · {html.escape(safe_str(row["Category"]))} · {html.escape(safe_str(row["FollowStatus"]))}</div>
+                    <div class="sidebar-day-title">{html.escape(compact_subject_text(row))}</div>
                 </div>
                 """,
                 unsafe_allow_html=True
@@ -1601,7 +1642,9 @@ else:
         st.session_state.selected_status = "일정 현황"
         st.session_state.selected_follow_status = "팔로우업 상태"
         st.session_state.selected_date = today
+        st.session_state.selected_event_id = None
         st.session_state.table_page_num_value = 1
+        st.session_state.view_mode = "일별 보기"
         st.rerun()
 
     render_legend()
@@ -1625,9 +1668,17 @@ else:
 
     render_metric_chips(len(day_df), confirmed_count, pending_count, cancel_count)
 
-    tabs = st.tabs(["일별 보기", "주간 보기", "월별 보기", "전체 일정표"])
+    view_mode = st.radio(
+        "보기 방식",
+        ["일별 보기", "주간 보기", "월별 보기", "전체 일정표"],
+        horizontal=True,
+        key="view_mode"
+    )
 
-    with tabs[0]:
+    # -----------------------------------------------------
+    # 일별 보기
+    # -----------------------------------------------------
+    if view_mode == "일별 보기":
         st.markdown(
             f'<div class="section-title">📍 {st.session_state.selected_date.strftime("%Y년 %m월 %d일")} 일정</div>',
             unsafe_allow_html=True
@@ -1647,9 +1698,12 @@ else:
                 st.caption("선택한 날짜의 일정이 없습니다.")
             else:
                 for idx, (_, row) in enumerate(day_df.iterrows()):
-                    render_day_expander(row, prefix=f"day_{idx}", expanded=False)
+                    render_compact_event(row, prefix=f"day_{idx}", selected_view="일별 보기")
 
-    with tabs[1]:
+    # -----------------------------------------------------
+    # 주간 보기
+    # -----------------------------------------------------
+    elif view_mode == "주간 보기":
         st.markdown('<div class="section-title">📅 주간 일정</div>', unsafe_allow_html=True)
 
         wc1, wc2 = st.columns([1.3, 4.7])
@@ -1661,10 +1715,10 @@ else:
         )
         if wc2.button("이 날짜가 포함된 주 보기", key="apply_week_anchor"):
             st.session_state.selected_date = week_anchor
+            st.session_state.selected_event_id = None
             st.rerun()
 
         week_days = week_dates_from_any_day(st.session_state.selected_date)
-
         week_df = filtered_df.copy()
         week_df = week_df[week_df["DateParsed"].isin(week_days)].copy()
 
@@ -1688,10 +1742,13 @@ else:
                 if daily.empty:
                     st.caption("일정 없음")
                 else:
-                    for _, row in daily.iterrows():
-                        render_week_month_card(row)
+                    for r_idx, (_, row) in enumerate(daily.iterrows()):
+                        render_compact_event(row, prefix=f"week_{idx}_{r_idx}", selected_view="주간 보기")
 
-    with tabs[2]:
+    # -----------------------------------------------------
+    # 월별 보기
+    # -----------------------------------------------------
+    elif view_mode == "월별 보기":
         st.markdown('<div class="section-title">🗓️ 월별 일정</div>', unsafe_allow_html=True)
 
         mc1, mc2, mc3 = st.columns([1, 1, 2])
@@ -1755,8 +1812,8 @@ else:
                             if daily.empty:
                                 st.caption("일정 없음")
                             else:
-                                for _, row in daily.iterrows():
-                                    render_week_month_card(row)
+                                for r_idx, (_, row) in enumerate(daily.iterrows()):
+                                    render_compact_event(row, prefix=f"month_{didx}_{day_obj}_{r_idx}", selected_view="월별 보기")
         else:
             st.caption("화면 폭이 좁을 때는 목록형이 더 보기 편합니다.")
             month_list = sort_oldest_first(month_df.copy())
@@ -1775,10 +1832,13 @@ else:
                 if daily.empty:
                     st.caption("일정 없음")
                 else:
-                    for _, row in daily.iterrows():
-                        render_week_month_card(row)
+                    for r_idx, (_, row) in enumerate(daily.iterrows()):
+                        render_compact_event(row, prefix=f"month_list_{d}_{r_idx}", selected_view="월별 보기")
 
-    with tabs[3]:
+    # -----------------------------------------------------
+    # 전체 일정표
+    # -----------------------------------------------------
+    else:
         st.markdown('<div class="section-title">📋 전체 일정표</div>', unsafe_allow_html=True)
 
         tc1, tc2, tc3, tc4 = st.columns([1.25, 1.3, 1.4, 2.8])
