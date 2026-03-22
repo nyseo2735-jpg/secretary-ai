@@ -1480,8 +1480,6 @@ if "gcp_service_account" not in st.secrets:
 
 show_flash()
 
-sheet_name_debug, worksheet_name_debug = get_sheet_config()
-st.caption(f"DEBUG | sheet='{sheet_name_debug}' / worksheet='{worksheet_name_debug}'")
 
 # =========================================================
 # 9. 신규 등록
