@@ -1,6 +1,6 @@
 import streamlit as st
 import pandas as pd
-from datetime import datetime, date, timedelta
+from datetime import datetime, date, timedelta, time
 import calendar
 import html
 from io import BytesIO
@@ -494,16 +494,62 @@ div[data-testid="stForm"] {
 # =========================================================
 # 4. 유틸
 # =========================================================
+def safe_str(v):
+    if v is None:
+        return ""
+    try:
+        if pd.isna(v):
+            return ""
+    except Exception:
+        pass
+    return str(v).strip()
+
+
+def normalize_cell(v):
+    if v is None:
+        return ""
+    try:
+        if pd.isna(v):
+            return ""
+    except Exception:
+        pass
+
+    if isinstance(v, pd.Timestamp):
+        if pd.isna(v):
+            return ""
+        return v.strftime("%Y-%m-%d %H:%M:%S")
+
+    if isinstance(v, datetime):
+        return v.strftime("%Y-%m-%d %H:%M:%S")
+
+    if isinstance(v, date):
+        return v.strftime("%Y-%m-%d")
+
+    if isinstance(v, time):
+        return v.strftime("%H:%M")
+
+    if isinstance(v, (list, dict, tuple, set)):
+        return str(v)
+
+    return str(v).strip()
+
+
 def ensure_columns(df: pd.DataFrame) -> pd.DataFrame:
     if df is None or not isinstance(df, pd.DataFrame):
         return pd.DataFrame(columns=DATA_COLUMNS)
 
     df = df.copy()
+
     for col in DATA_COLUMNS:
         if col not in df.columns:
             df[col] = ""
 
-    return df[DATA_COLUMNS].copy().fillna("")
+    df = df[DATA_COLUMNS].copy()
+
+    for col in DATA_COLUMNS:
+        df[col] = df[col].apply(normalize_cell)
+
+    return df
 
 
 def empty_df():
@@ -515,22 +561,30 @@ def get_color(cat: str):
 
 
 def to_date_safe(v):
-    if pd.isna(v) or v == "":
+    text = safe_str(v)
+    if not text:
         return None
-    parsed = pd.to_datetime(v, errors="coerce")
+    parsed = pd.to_datetime(text, errors="coerce")
     if pd.isna(parsed):
         return None
     return parsed.date()
 
 
-def safe_str(v):
-    if pd.isna(v):
-        return ""
-    return str(v).strip()
+def parse_time_safe(v, default_str="09:00"):
+    text = safe_str(v)
+    if not text:
+        text = default_str
+    for fmt in ["%H:%M", "%H:%M:%S"]:
+        try:
+            return datetime.strptime(text, fmt).time()
+        except Exception:
+            continue
+    return datetime.strptime(default_str, "%H:%M").time()
 
 
 def esc(v):
-    return html.escape(safe_str(v) if safe_str(v) else "-")
+    value = safe_str(v)
+    return html.escape(value if value else "-")
 
 
 def excel_download_bytes(df: pd.DataFrame) -> bytes:
@@ -543,11 +597,9 @@ def excel_download_bytes(df: pd.DataFrame) -> bytes:
 
 
 def get_secret_value(key: str, default=""):
-    # 1순위: 루트에서 찾기
     if key in st.secrets:
         return str(st.secrets.get(key, default)).strip()
 
-    # 2순위: app_config 블록 안에서 찾기
     if "app_config" in st.secrets and key in st.secrets["app_config"]:
         return str(st.secrets["app_config"].get(key, default)).strip()
 
@@ -558,7 +610,7 @@ def get_sheet_config():
     sheet_name = get_secret_value("google_sheet_name", "")
     worksheet_name = get_secret_value("google_worksheet_name", "")
     return sheet_name, worksheet_name
-    
+
 
 @st.cache_resource
 def get_gspread_client():
@@ -580,19 +632,73 @@ def get_worksheet():
         raise ValueError("google_worksheet_name 이 설정되지 않았습니다.")
 
     sh = gc.open(sheet_name)
+
     try:
         ws = sh.worksheet(worksheet_name)
     except gspread.WorksheetNotFound:
-        ws = sh.add_worksheet(title=worksheet_name, rows=1000, cols=len(DATA_COLUMNS) + 8)
-        ws.append_row(DATA_COLUMNS)
+        ws = sh.add_worksheet(title=worksheet_name, rows=5000, cols=max(len(DATA_COLUMNS) + 8, 40))
+        ws.update("A1:Y1", [DATA_COLUMNS])
+
     return ws
 
 
 def ensure_sheet_header(ws):
     values = ws.get_all_values()
+
     if not values:
-        ws.append_row(DATA_COLUMNS)
+        ws.update("A1:Y1", [DATA_COLUMNS])
         return
+
+    first_row = values[0] if values else []
+    first_row_trimmed = first_row[:len(DATA_COLUMNS)]
+
+    if first_row_trimmed != DATA_COLUMNS:
+        all_values = values[1:] if values else []
+        new_values = [DATA_COLUMNS]
+        for row in all_values:
+            row = row[:len(DATA_COLUMNS)] + [""] * max(0, len(DATA_COLUMNS) - len(row))
+            new_values.append(row[:len(DATA_COLUMNS)])
+        ws.clear()
+        ws.update(f"A1:Y{len(new_values)}", new_values)
+
+
+def clean_records_df(df: pd.DataFrame) -> pd.DataFrame:
+    df = ensure_columns(df)
+
+    if df.empty:
+        return df
+
+    # 완전 빈 행 제거
+    non_id_cols = [c for c in DATA_COLUMNS if c != "ID"]
+    mask_not_empty = df[non_id_cols].apply(
+        lambda row: any(safe_str(v) for v in row), axis=1
+    )
+    df = df[mask_not_empty].copy()
+
+    # ID 없으면 생성
+    missing_id_mask = df["ID"].apply(lambda x: safe_str(x) == "")
+    if missing_id_mask.any():
+        for idx in df[missing_id_mask].index:
+            df.at[idx, "ID"] = next_id()
+
+    # 기본값 보정
+    df["Category"] = df["Category"].apply(lambda x: x if x in CATEGORIES else "기타")
+    df["Status"] = df["Status"].apply(lambda x: x if x in STATUS_OPTIONS else "확정")
+    df["Priority"] = df["Priority"].apply(lambda x: x if x in PRIORITY_OPTIONS else "보통")
+    df["FollowStatus"] = df["FollowStatus"].apply(lambda x: x if x in FOLLOW_STATUS_OPTIONS else "미착수")
+
+    # 날짜/시간 정규화
+    df["Date"] = df["Date"].apply(lambda x: to_date_safe(x).strftime("%Y-%m-%d") if to_date_safe(x) else "")
+    df["Time"] = df["Time"].apply(lambda x: parse_time_safe(x).strftime("%H:%M") if safe_str(x) else "")
+    df["FollowDue"] = df["FollowDue"].apply(lambda x: to_date_safe(x).strftime("%Y-%m-%d") if to_date_safe(x) else "")
+
+    for col in ["FollowUpdated", "Updated"]:
+        df[col] = df[col].apply(lambda x: safe_str(x))
+
+    # ID 기준 중복 제거: 마지막 값 우선
+    df = df.drop_duplicates(subset=["ID"], keep="last").reset_index(drop=True)
+
+    return ensure_columns(df)
 
 
 def load_data_from_gsheet():
@@ -609,12 +715,13 @@ def load_data_from_gsheet():
 
         ws = get_worksheet()
         ensure_sheet_header(ws)
-        records = ws.get_all_records()
+        records = ws.get_all_records(default_blank="")
 
         if not records:
             return empty_df()
 
-        return ensure_columns(pd.DataFrame(records))
+        df = pd.DataFrame(records)
+        return clean_records_df(df)
 
     except Exception as e:
         st.warning(f"구글 시트 데이터를 불러오지 못했습니다: {e}")
@@ -623,15 +730,16 @@ def load_data_from_gsheet():
 
 def save_all_to_gsheet(df: pd.DataFrame):
     ws = get_worksheet()
-    df = ensure_columns(df)
-    values = [DATA_COLUMNS] + df.astype(str).fillna("").values.tolist()
+    df = clean_records_df(df)
+    values = [DATA_COLUMNS] + df[DATA_COLUMNS].values.tolist()
     ws.clear()
-    ws.update(values)
+    ws.update(f"A1:Y{len(values)}", values)
 
 
 def get_filtered_df(df, selected_cat="카테고리", search_text="", status_filter="일정 현황", follow_status_filter="팔로우업 상태"):
-    temp = ensure_columns(df)
-    temp["Date"] = pd.to_datetime(temp["Date"], errors="coerce").dt.date
+    temp = clean_records_df(df)
+
+    temp["DateParsed"] = pd.to_datetime(temp["Date"], errors="coerce").dt.date
 
     if selected_cat not in ["전체", "카테고리"]:
         temp = temp[temp["Category"] == selected_cat]
@@ -658,6 +766,7 @@ def get_filtered_df(df, selected_cat="카테고리", search_text="", status_filt
         )
         temp = temp[mask]
 
+    temp = temp.drop(columns=["DateParsed"], errors="ignore")
     return ensure_columns(temp)
 
 
@@ -677,8 +786,9 @@ def next_id():
 
 def persist_data():
     try:
-        sheet_name, worksheet_name = get_sheet_config()
+        st.session_state.data = clean_records_df(st.session_state.data)
 
+        sheet_name, worksheet_name = get_sheet_config()
         if "gcp_service_account" in st.secrets and sheet_name and worksheet_name:
             save_all_to_gsheet(st.session_state.data)
         return True, None
@@ -687,31 +797,34 @@ def persist_data():
 
 
 def save_record(record: dict, is_edit=False):
+    record = {col: normalize_cell(record.get(col, "")) for col in DATA_COLUMNS}
     record["Updated"] = datetime.now().strftime("%Y-%m-%d %H:%M")
 
-    current = ensure_columns(st.session_state.data)
+    current = clean_records_df(st.session_state.data)
 
     if is_edit:
         mask = current["ID"].astype(str) == str(record["ID"])
         if mask.any():
-            current.loc[mask, DATA_COLUMNS[1:]] = [record[col] for col in DATA_COLUMNS[1:]]
+            for col in DATA_COLUMNS:
+                current.loc[mask, col] = record[col]
         else:
             current = pd.concat([current, pd.DataFrame([record])], ignore_index=True)
     else:
         current = pd.concat([current, pd.DataFrame([record])], ignore_index=True)
 
-    st.session_state.data = ensure_columns(current)
+    st.session_state.data = clean_records_df(current)
     ok, err = persist_data()
     return ok, err
 
 
 def update_follow_status(record_id: str, new_status: str):
-    current = ensure_columns(st.session_state.data)
+    current = clean_records_df(st.session_state.data)
     mask = current["ID"].astype(str) == str(record_id)
     if mask.any():
         current.loc[mask, "FollowStatus"] = new_status
         current.loc[mask, "FollowUpdated"] = datetime.now().strftime("%Y-%m-%d %H:%M")
-        st.session_state.data = ensure_columns(current)
+        current.loc[mask, "Updated"] = datetime.now().strftime("%Y-%m-%d %H:%M")
+        st.session_state.data = clean_records_df(current)
         persist_data()
 
 
@@ -765,9 +878,10 @@ def format_subject_html(row):
 
 def format_subject_md(row):
     subject = safe_str(row["Subject"])
+    time_text = safe_str(row["Time"])
     if safe_str(row["Status"]) == "취소":
-        return f"{safe_str(row['Time'])} · ~~{subject}~~"
-    return f"{safe_str(row['Time'])} · {subject}"
+        return f"{time_text} · ~~{subject}~~" if time_text else f"~~{subject}~~"
+    return f"{time_text} · {subject}" if time_text else subject
 
 
 def weekday_class_by_index(idx: int):
@@ -797,25 +911,39 @@ def day_header_html(day_obj: date, text: str, dim: bool = False):
 
 
 def sort_latest_first(df: pd.DataFrame):
-    df = ensure_columns(df).copy()
+    df = clean_records_df(df).copy()
     if df.empty:
         return df
     df["DateSort"] = pd.to_datetime(df["Date"], errors="coerce")
     df["TimeSort"] = pd.to_datetime(df["Time"], format="%H:%M", errors="coerce")
     df["UpdatedSort"] = pd.to_datetime(df["Updated"], errors="coerce")
-    df = df.sort_values(by=["DateSort", "TimeSort", "UpdatedSort"], ascending=[False, False, False])
+    df = df.sort_values(by=["DateSort", "TimeSort", "UpdatedSort"], ascending=[False, False, False], na_position="last")
     return df.drop(columns=["DateSort", "TimeSort", "UpdatedSort"], errors="ignore")
 
 
 def sort_oldest_first(df: pd.DataFrame):
-    df = ensure_columns(df).copy()
+    df = clean_records_df(df).copy()
     if df.empty:
         return df
     df["DateSort"] = pd.to_datetime(df["Date"], errors="coerce")
     df["TimeSort"] = pd.to_datetime(df["Time"], format="%H:%M", errors="coerce")
     df["UpdatedSort"] = pd.to_datetime(df["Updated"], errors="coerce")
-    df = df.sort_values(by=["DateSort", "TimeSort", "UpdatedSort"], ascending=[True, True, False])
+    df = df.sort_values(by=["DateSort", "TimeSort", "UpdatedSort"], ascending=[True, True, False], na_position="last")
     return df.drop(columns=["DateSort", "TimeSort", "UpdatedSort"], errors="ignore")
+
+
+def to_display_dataframe(df: pd.DataFrame) -> pd.DataFrame:
+    display_df = clean_records_df(df).copy()
+
+    if display_df.empty:
+        return display_df
+
+    for col in display_df.columns:
+        display_df[col] = display_df[col].apply(normalize_cell)
+
+    display_df = display_df.fillna("")
+    return display_df
+
 
 # =========================================================
 # 5. 상태 초기화
@@ -825,7 +953,7 @@ today = datetime.now().date()
 if "data" not in st.session_state:
     st.session_state.data = load_data_from_gsheet()
 else:
-    st.session_state.data = ensure_columns(st.session_state.data)
+    st.session_state.data = clean_records_df(st.session_state.data)
 
 if "app_today" not in st.session_state:
     st.session_state.app_today = today
@@ -996,20 +1124,19 @@ def render_action_buttons(row, prefix=""):
     toggle_next = "취소" if row["Status"] != "취소" else "확정"
 
     if c2.button(toggle_label, key=f"{prefix}_cancel_{row['ID']}", use_container_width=True):
-        current = ensure_columns(st.session_state.data)
+        current = clean_records_df(st.session_state.data)
         mask = current["ID"].astype(str) == str(row["ID"])
-        current.loc[mask, ["Status", "Updated"]] = [
-            toggle_next, datetime.now().strftime("%Y-%m-%d %H:%M")
-        ]
-        st.session_state.data = ensure_columns(current)
+        current.loc[mask, "Status"] = toggle_next
+        current.loc[mask, "Updated"] = datetime.now().strftime("%Y-%m-%d %H:%M")
+        st.session_state.data = clean_records_df(current)
         persist_data()
         st.session_state.flash_message = "상태가 변경되었습니다."
         st.rerun()
 
     if c3.button("삭제", key=f"{prefix}_delete_{row['ID']}", use_container_width=True):
-        current = ensure_columns(st.session_state.data)
+        current = clean_records_df(st.session_state.data)
         current = current[current["ID"].astype(str) != str(row["ID"])].reset_index(drop=True)
-        st.session_state.data = ensure_columns(current)
+        st.session_state.data = clean_records_df(current)
 
         if st.session_state.edit_id == row["ID"]:
             st.session_state.edit_id = None
@@ -1102,13 +1229,7 @@ def render_form(mode="new", row_data=None):
     with st.form(f"form_{mode}", clear_on_submit=False):
         r1c1, r1c2, r1c3 = st.columns(3)
         input_date = r1c1.date_input("일정 날짜", value=to_date_safe(row_data["Date"]) or datetime.now().date())
-
-        try:
-            default_time = datetime.strptime(safe_str(row_data["Time"]) or "09:00", "%H:%M").time()
-        except Exception:
-            default_time = datetime.strptime("09:00", "%H:%M").time()
-
-        input_time = r1c2.time_input("일정 시간", value=default_time)
+        input_time = r1c2.time_input("일정 시간", value=parse_time_safe(row_data["Time"]))
         input_category = r1c3.selectbox(
             "카테고리",
             CATEGORIES,
@@ -1147,10 +1268,21 @@ def render_form(mode="new", row_data=None):
 
         r6c1, r6c2, r6c3 = st.columns(3)
         input_follow_owner = r6c1.text_input("주 담당자", value=safe_str(row_data["FollowOwner"]))
+
+        existing_follow_due = to_date_safe(row_data["FollowDue"])
+        input_follow_due_enabled = r6c2.checkbox(
+            "준비 완료기한 입력",
+            value=True if existing_follow_due else False,
+            key=f"follow_due_enabled_{mode}_{safe_str(row_data['ID']) or 'new'}"
+        )
+
         input_follow_due = r6c2.date_input(
             "준비 완료기한",
-            value=to_date_safe(row_data["FollowDue"]) or input_date
+            value=existing_follow_due or input_date,
+            disabled=not input_follow_due_enabled,
+            key=f"follow_due_date_{mode}_{safe_str(row_data['ID']) or 'new'}"
         )
+
         input_follow_status = r6c3.selectbox(
             "팔로우업 상태",
             FOLLOW_STATUS_OPTIONS,
@@ -1162,6 +1294,8 @@ def render_form(mode="new", row_data=None):
         input_follow_progress = st.text_area("진행 메모", value=safe_str(row_data["FollowProgressMemo"]), height=80)
         input_shared_note = st.text_area("공유 메모", value=safe_str(row_data["SharedNote"]), height=90)
         input_memo = st.text_area("일반 Memo", value=safe_str(row_data["Memo"]), height=80)
+
+        follow_due_value = str(input_follow_due) if input_follow_due_enabled else ""
 
         if mode == "new":
             b1, b2 = st.columns(2)
@@ -1175,27 +1309,27 @@ def render_form(mode="new", row_data=None):
                     record = {
                         "ID": next_id(),
                         "Date": str(input_date),
-                        "Time": str(input_time)[:5],
+                        "Time": input_time.strftime("%H:%M"),
                         "Category": input_category,
-                        "Subject": input_subject,
-                        "OrgName": input_org,
-                        "DetailPlace": input_detail_place,
-                        "TargetDept": input_target_dept,
-                        "TargetName": input_target_name,
-                        "TargetContact": input_target_contact,
-                        "Companion": input_companion,
-                        "Staff": input_staff,
-                        "Purpose": input_purpose,
-                        "ActionPlan": input_action,
-                        "Memo": input_memo,
+                        "Subject": safe_str(input_subject),
+                        "OrgName": safe_str(input_org),
+                        "DetailPlace": safe_str(input_detail_place),
+                        "TargetDept": safe_str(input_target_dept),
+                        "TargetName": safe_str(input_target_name),
+                        "TargetContact": safe_str(input_target_contact),
+                        "Companion": safe_str(input_companion),
+                        "Staff": safe_str(input_staff),
+                        "Purpose": safe_str(input_purpose),
+                        "ActionPlan": safe_str(input_action),
+                        "Memo": safe_str(input_memo),
                         "Status": input_status,
                         "Priority": input_priority,
-                        "FollowOwner": input_follow_owner,
-                        "FollowTask": input_follow_task,
-                        "FollowDue": str(input_follow_due),
-                        "SharedNote": input_shared_note,
+                        "FollowOwner": safe_str(input_follow_owner),
+                        "FollowTask": safe_str(input_follow_task),
+                        "FollowDue": follow_due_value,
+                        "SharedNote": safe_str(input_shared_note),
                         "FollowStatus": input_follow_status,
-                        "FollowProgressMemo": input_follow_progress,
+                        "FollowProgressMemo": safe_str(input_follow_progress),
                         "FollowUpdated": datetime.now().strftime("%Y-%m-%d %H:%M"),
                         "Updated": "",
                     }
@@ -1208,12 +1342,9 @@ def render_form(mode="new", row_data=None):
                     else:
                         st.session_state.flash_message = f"화면에는 저장되었지만 구글 시트 저장은 실패했습니다: {err}"
 
-                    if submit_view:
-                        st.session_state.main_menu = "📅 일정 보기"
-                    else:
-                        st.session_state.main_menu = "✍️ 신규 일정 등록"
-
+                    st.session_state.main_menu = "📅 일정 보기" if submit_view else "✍️ 신규 일정 등록"
                     st.rerun()
+
         else:
             b1, b2 = st.columns(2)
             save_btn = b1.form_submit_button("수정 저장", use_container_width=True)
@@ -1226,27 +1357,27 @@ def render_form(mode="new", row_data=None):
                     record = {
                         "ID": row_data["ID"],
                         "Date": str(input_date),
-                        "Time": str(input_time)[:5],
+                        "Time": input_time.strftime("%H:%M"),
                         "Category": input_category,
-                        "Subject": input_subject,
-                        "OrgName": input_org,
-                        "DetailPlace": input_detail_place,
-                        "TargetDept": input_target_dept,
-                        "TargetName": input_target_name,
-                        "TargetContact": input_target_contact,
-                        "Companion": input_companion,
-                        "Staff": input_staff,
-                        "Purpose": input_purpose,
-                        "ActionPlan": input_action,
-                        "Memo": input_memo,
+                        "Subject": safe_str(input_subject),
+                        "OrgName": safe_str(input_org),
+                        "DetailPlace": safe_str(input_detail_place),
+                        "TargetDept": safe_str(input_target_dept),
+                        "TargetName": safe_str(input_target_name),
+                        "TargetContact": safe_str(input_target_contact),
+                        "Companion": safe_str(input_companion),
+                        "Staff": safe_str(input_staff),
+                        "Purpose": safe_str(input_purpose),
+                        "ActionPlan": safe_str(input_action),
+                        "Memo": safe_str(input_memo),
                         "Status": input_status,
                         "Priority": input_priority,
-                        "FollowOwner": input_follow_owner,
-                        "FollowTask": input_follow_task,
-                        "FollowDue": str(input_follow_due),
-                        "SharedNote": input_shared_note,
+                        "FollowOwner": safe_str(input_follow_owner),
+                        "FollowTask": safe_str(input_follow_task),
+                        "FollowDue": follow_due_value,
+                        "SharedNote": safe_str(input_shared_note),
                         "FollowStatus": input_follow_status,
-                        "FollowProgressMemo": input_follow_progress,
+                        "FollowProgressMemo": safe_str(input_follow_progress),
                         "FollowUpdated": datetime.now().strftime("%Y-%m-%d %H:%M"),
                         "Updated": "",
                     }
@@ -1263,6 +1394,7 @@ def render_form(mode="new", row_data=None):
             if cancel_btn:
                 st.session_state.edit_id = None
                 st.rerun()
+
 
 # =========================================================
 # 7. 사이드바
@@ -1290,7 +1422,7 @@ st.sidebar.download_button(
     use_container_width=True
 )
 
-selected_day_sidebar = ensure_columns(st.session_state.data).copy()
+selected_day_sidebar = clean_records_df(st.session_state.data).copy()
 selected_day_sidebar["Date"] = pd.to_datetime(selected_day_sidebar["Date"], errors="coerce").dt.date
 selected_day_sidebar = selected_day_sidebar[selected_day_sidebar["Date"] == st.session_state.selected_date]
 selected_day_sidebar = sort_oldest_first(selected_day_sidebar)
@@ -1345,7 +1477,6 @@ st.markdown(
 
 if "gcp_service_account" not in st.secrets:
     st.info("현재는 임시 세션 상태입니다. 새로고침 후에도 일정이 계속 유지되려면 구글 시트 연결이 필요합니다.")
-
 
 show_flash()
 
@@ -1415,6 +1546,7 @@ else:
         st.session_state.selected_status = "일정 현황"
         st.session_state.selected_follow_status = "팔로우업 상태"
         st.session_state.selected_date = today
+        st.session_state.table_page_num_value = 1
         st.rerun()
 
     render_legend()
@@ -1448,12 +1580,14 @@ else:
         )
 
         if st.session_state.edit_id:
-            current = ensure_columns(st.session_state.data)
+            current = clean_records_df(st.session_state.data)
             edit_target = current[current["ID"].astype(str) == str(st.session_state.edit_id)]
             edit_target = ensure_columns(edit_target)
 
             if not edit_target.empty:
                 render_form(mode="edit", row_data=edit_target.iloc[0].to_dict())
+            else:
+                st.caption("수정할 일정이 존재하지 않습니다.")
         else:
             if day_df.empty:
                 st.caption("선택한 날짜의 일정이 없습니다.")
@@ -1508,13 +1642,16 @@ else:
         st.markdown('<div class="section-title">🗓️ 월별 일정</div>', unsafe_allow_html=True)
 
         mc1, mc2, mc3 = st.columns([1, 1, 2])
-        year_options = list(range(2025, 2041))
+
+        current_year = st.session_state.selected_date.year
+        year_start = min(2025, current_year - 3)
+        year_end = max(2040, current_year + 10)
+        year_options = list(range(year_start, year_end + 1))
 
         month_year = mc1.selectbox(
             "년도",
             year_options,
-            index=year_options.index(st.session_state.selected_date.year)
-            if st.session_state.selected_date.year in year_options else 0,
+            index=year_options.index(current_year),
             key="month_year_select"
         )
         month_month = mc2.selectbox(
@@ -1556,16 +1693,10 @@ else:
                 for didx, day_obj in enumerate(week):
                     with week_cols[didx]:
                         if day_obj.month != month_month:
-                            st.markdown(
-                                day_header_html(day_obj, f"{day_obj.day}일", dim=True),
-                                unsafe_allow_html=True
-                            )
+                            st.markdown(day_header_html(day_obj, f"{day_obj.day}일", dim=True), unsafe_allow_html=True)
                             st.caption(" ")
                         else:
-                            st.markdown(
-                                day_header_html(day_obj, f"{day_obj.day}일", dim=False),
-                                unsafe_allow_html=True
-                            )
+                            st.markdown(day_header_html(day_obj, f"{day_obj.day}일", dim=False), unsafe_allow_html=True)
 
                             daily = month_df.loc[month_df["Date"] == day_obj].copy()
                             daily = sort_oldest_first(daily)
@@ -1627,24 +1758,30 @@ else:
 
             total_rows = len(table_df)
             total_pages = max(1, math.ceil(total_rows / table_page_size))
+
+            current_page = min(max(int(st.session_state.get("table_page_num_value", 1)), 1), total_pages)
+
             page_num = st.number_input(
                 "페이지",
                 min_value=1,
                 max_value=total_pages,
-                value=min(st.session_state.get("table_page_num_value", 1), total_pages),
+                value=current_page,
                 step=1,
                 key="table_page_num"
             )
-            st.session_state.table_page_num_value = page_num
 
-            start_idx = (page_num - 1) * table_page_size
+            st.session_state.table_page_num_value = int(page_num)
+
+            start_idx = (int(page_num) - 1) * table_page_size
             end_idx = start_idx + table_page_size
             page_df = table_df.iloc[start_idx:end_idx].copy()
 
             st.caption(f"총 {total_rows}건 중 {start_idx + 1} ~ {min(end_idx, total_rows)}건 표시")
 
+            display_df = to_display_dataframe(page_df)
+
             st.dataframe(
-                page_df,
+                display_df,
                 use_container_width=True,
                 hide_index=True,
                 height=560
