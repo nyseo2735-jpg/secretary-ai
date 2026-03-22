@@ -824,7 +824,7 @@ def soft_delete_record_in_gsheet(record_id: str):
     temp = {col: row_values[idx] if idx < len(row_values) else "" for idx, col in enumerate(DATA_COLUMNS)}
     temp["IsDeleted"] = "Y"
     temp["Updated"] = now_kst_str()
-    temp["UpdatedBy"] = safe_str(st.session_state.get("editor_name", ""))
+    temp["UpdatedBy"] = safe_str(temp.get("UpdatedBy", ""))
 
     ws.update(
         range_name=f"A{row_num}:{LAST_COL_LETTER}{row_num}",
@@ -946,7 +946,7 @@ def soft_delete_record(record_id: str):
         if mask.any():
             current.loc[mask, "IsDeleted"] = "Y"
             current.loc[mask, "Updated"] = now_kst_str()
-            current.loc[mask, "UpdatedBy"] = safe_str(st.session_state.get("editor_name", ""))
+            current.loc[mask, "UpdatedBy"] = current.loc[mask, "UpdatedBy"]
         st.session_state.data = clean_records_df(current)
         return True, None
 
@@ -966,7 +966,7 @@ def update_follow_status(record_id: str, new_status: str):
         row["FollowStatus"] = new_status
         row["FollowUpdated"] = now_kst_str()
         row["Updated"] = now_kst_str()
-        row["UpdatedBy"] = safe_str(st.session_state.get("editor_name", ""))
+        row["UpdatedBy"] = safe_str(row.get("UpdatedBy", ""))
 
         if has_gsheet_config():
             update_record_in_gsheet(row)
@@ -1288,7 +1288,7 @@ def render_action_buttons(row, prefix=""):
             new_row = target.iloc[0].to_dict()
             new_row["Status"] = toggle_next
             new_row["Updated"] = now_kst_str()
-            new_row["UpdatedBy"] = safe_str(st.session_state.get("editor_name", ""))
+            new_row["UpdatedBy"] = safe_str(row["UpdatedBy"])
 
             ok, err = save_record(new_row, is_edit=True)
             if ok:
