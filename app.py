@@ -316,12 +316,8 @@ h1, h2, h3 {
     font-size: 0.84rem !important;
 }
 
-.compact-wrap {
-    margin-bottom: 8px;
-}
-
 div[data-testid="stButton"] > button {
-    border-radius: 10px !important;
+    border-radius: 12px !important;
     font-weight: 700 !important;
 }
 
@@ -439,6 +435,15 @@ div[data-testid="stForm"] {
     font-size: 0.84rem;
     color: #667085;
     margin-bottom: 10px;
+}
+
+.event-row-wrap {
+    margin-bottom: 8px;
+}
+
+.event-detail-wrap {
+    margin-top: 10px;
+    margin-bottom: 18px;
 }
 
 @media (max-width: 1000px) {
@@ -1008,14 +1013,16 @@ def to_display_dataframe(df: pd.DataFrame) -> pd.DataFrame:
     display_df = display_df.drop(columns=["DateParsed"], errors="ignore")
     return display_df
 
-def open_event_detail(row, target_view=None):
+def toggle_selected_event(row):
     event_date = to_date_safe(row.get("Date"))
     if event_date:
         st.session_state.selected_date = event_date
-    st.session_state.selected_event_id = row["ID"]
-    st.session_state.main_menu = "📅 일정 보기"
-    if target_view:
-        st.session_state.view_mode = target_view
+
+    if st.session_state.selected_event_id == row["ID"]:
+        st.session_state.selected_event_id = None
+    else:
+        st.session_state.selected_event_id = row["ID"]
+
     st.rerun()
 
 # =========================================================
@@ -1034,13 +1041,9 @@ if "app_today" not in st.session_state:
 if st.session_state.app_today != today:
     st.session_state.app_today = today
     st.session_state.selected_date = today
-    st.session_state.view_mode = "일별 보기"
 
 if "main_menu" not in st.session_state:
     st.session_state.main_menu = "📅 일정 보기"
-
-if "view_mode" not in st.session_state:
-    st.session_state.view_mode = "일별 보기"
 
 if "selected_date" not in st.session_state:
     st.session_state.selected_date = today
@@ -1197,8 +1200,6 @@ def render_action_buttons(row, prefix=""):
 
     if c1.button("수정", key=f"{prefix}_edit_{row['ID']}", use_container_width=True):
         st.session_state.edit_id = row["ID"]
-        st.session_state.view_mode = "일별 보기"
-        st.session_state.selected_date = to_date_safe(row["Date"]) or st.session_state.selected_date
         st.rerun()
 
     toggle_label = "일정 취소" if row["Status"] != "취소" else "취소 해제"
@@ -1238,47 +1239,22 @@ def render_action_buttons(row, prefix=""):
 
     st.markdown('</div>', unsafe_allow_html=True)
 
-def render_compact_event(row, prefix="", selected_view="일별 보기"):
+def render_compact_event(row, prefix=""):
     c = get_color(row["Category"])
+    is_open = st.session_state.selected_event_id == row["ID"]
 
-    st.markdown(
-        f"""
-        <div style="
-            background:{c['soft']};
-            border:1px solid {c['line']};
-            border-left:6px solid {c['line']};
-            border-radius:12px;
-            padding:8px 10px;
-            margin-bottom:6px;
-        ">
-            <div style="
-                font-size:0.84rem;
-                font-weight:800;
-                color:{c['text']};
-                line-height:1.35;
-                word-break:break-word;
-            ">
-                {html.escape(compact_line_text(row))}
-            </div>
-        </div>
-        """,
-        unsafe_allow_html=True
-    )
+    st.markdown('<div class="event-row-wrap">', unsafe_allow_html=True)
+    label = compact_line_text(row)
+    if st.button(label, key=f"{prefix}_toggle_{row['ID']}", use_container_width=True):
+        toggle_selected_event(row)
+    st.markdown('</div>', unsafe_allow_html=True)
 
-    open_label = "세부 접기" if st.session_state.selected_event_id == row["ID"] else "세부 보기"
-    if st.button(open_label, key=f"{prefix}_open_{row['ID']}", use_container_width=True):
-        if st.session_state.selected_event_id == row["ID"]:
-            st.session_state.selected_event_id = None
-            st.session_state.selected_date = to_date_safe(row["Date"]) or st.session_state.selected_date
-            st.session_state.view_mode = selected_view
-            st.rerun()
-        else:
-            open_event_detail(row, target_view=selected_view)
-
-    if st.session_state.selected_event_id == row["ID"]:
+    if is_open:
+        st.markdown('<div class="event-detail-wrap">', unsafe_allow_html=True)
         render_summary_header(row)
         render_detail_blocks(row)
         render_action_buttons(row, prefix=prefix)
+        st.markdown('</div>', unsafe_allow_html=True)
 
 def render_form(mode="new", row_data=None):
     if row_data is None:
@@ -1436,7 +1412,6 @@ def render_form(mode="new", row_data=None):
                     st.session_state.edit_id = None
                     st.session_state.flash_message = "신규 일정이 저장되었습니다." if ok else f"저장 실패: {err}"
                     st.session_state.main_menu = "📅 일정 보기" if submit_view else "✍️ 신규 일정 등록"
-                    st.session_state.view_mode = "일별 보기"
                     st.rerun()
         else:
             b1, b2 = st.columns(2)
@@ -1484,7 +1459,6 @@ def render_form(mode="new", row_data=None):
                     st.session_state.edit_id = None
                     st.session_state.selected_event_id = row_data["ID"]
                     st.session_state.selected_date = input_date
-                    st.session_state.view_mode = "일별 보기"
                     st.session_state.flash_message = "일정이 수정되었습니다." if ok else f"수정 실패: {err}"
                     st.rerun()
 
@@ -1500,7 +1474,8 @@ st.sidebar.markdown("# 🏢 KVMA 비서실")
 st.sidebar.markdown('<div class="menu-btn-wrap">', unsafe_allow_html=True)
 if st.sidebar.button("📅 일정 보기", use_container_width=True):
     st.session_state.main_menu = "📅 일정 보기"
-    st.session_state.view_mode = "일별 보기"
+    st.session_state.selected_date = today
+    st.session_state.selected_event_id = None
     st.session_state.edit_id = None
     st.rerun()
 st.sidebar.markdown('</div>', unsafe_allow_html=True)
@@ -1644,7 +1619,6 @@ else:
         st.session_state.selected_date = today
         st.session_state.selected_event_id = None
         st.session_state.table_page_num_value = 1
-        st.session_state.view_mode = "일별 보기"
         st.rerun()
 
     render_legend()
@@ -1668,17 +1642,12 @@ else:
 
     render_metric_chips(len(day_df), confirmed_count, pending_count, cancel_count)
 
-    view_mode = st.radio(
-        "보기 방식",
-        ["일별 보기", "주간 보기", "월별 보기", "전체 일정표"],
-        horizontal=True,
-        key="view_mode"
-    )
+    tabs = st.tabs(["일별 보기", "주간 보기", "월별 보기", "전체 일정표"])
 
     # -----------------------------------------------------
     # 일별 보기
     # -----------------------------------------------------
-    if view_mode == "일별 보기":
+    with tabs[0]:
         st.markdown(
             f'<div class="section-title">📍 {st.session_state.selected_date.strftime("%Y년 %m월 %d일")} 일정</div>',
             unsafe_allow_html=True
@@ -1698,12 +1667,12 @@ else:
                 st.caption("선택한 날짜의 일정이 없습니다.")
             else:
                 for idx, (_, row) in enumerate(day_df.iterrows()):
-                    render_compact_event(row, prefix=f"day_{idx}", selected_view="일별 보기")
+                    render_compact_event(row, prefix=f"day_{idx}")
 
     # -----------------------------------------------------
     # 주간 보기
     # -----------------------------------------------------
-    elif view_mode == "주간 보기":
+    with tabs[1]:
         st.markdown('<div class="section-title">📅 주간 일정</div>', unsafe_allow_html=True)
 
         wc1, wc2 = st.columns([1.3, 4.7])
@@ -1743,12 +1712,12 @@ else:
                     st.caption("일정 없음")
                 else:
                     for r_idx, (_, row) in enumerate(daily.iterrows()):
-                        render_compact_event(row, prefix=f"week_{idx}_{r_idx}", selected_view="주간 보기")
+                        render_compact_event(row, prefix=f"week_{idx}_{r_idx}")
 
     # -----------------------------------------------------
     # 월별 보기
     # -----------------------------------------------------
-    elif view_mode == "월별 보기":
+    with tabs[2]:
         st.markdown('<div class="section-title">🗓️ 월별 일정</div>', unsafe_allow_html=True)
 
         mc1, mc2, mc3 = st.columns([1, 1, 2])
@@ -1813,7 +1782,7 @@ else:
                                 st.caption("일정 없음")
                             else:
                                 for r_idx, (_, row) in enumerate(daily.iterrows()):
-                                    render_compact_event(row, prefix=f"month_{didx}_{day_obj}_{r_idx}", selected_view="월별 보기")
+                                    render_compact_event(row, prefix=f"month_{didx}_{day_obj}_{r_idx}")
         else:
             st.caption("화면 폭이 좁을 때는 목록형이 더 보기 편합니다.")
             month_list = sort_oldest_first(month_df.copy())
@@ -1833,12 +1802,12 @@ else:
                     st.caption("일정 없음")
                 else:
                     for r_idx, (_, row) in enumerate(daily.iterrows()):
-                        render_compact_event(row, prefix=f"month_list_{d}_{r_idx}", selected_view="월별 보기")
+                        render_compact_event(row, prefix=f"month_list_{d}_{r_idx}")
 
     # -----------------------------------------------------
     # 전체 일정표
     # -----------------------------------------------------
-    else:
+    with tabs[3]:
         st.markdown('<div class="section-title">📋 전체 일정표</div>', unsafe_allow_html=True)
 
         tc1, tc2, tc3, tc4 = st.columns([1.25, 1.3, 1.4, 2.8])
