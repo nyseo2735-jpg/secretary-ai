@@ -657,8 +657,9 @@ def persist_data():
     try:
         if "gcp_service_account" in st.secrets and "google_sheet_name" in st.secrets:
             save_all_to_gsheet(st.session_state.data)
+        return True, None
     except Exception as e:
-        st.session_state.flash_message = f"화면에는 저장되었지만 구글 시트 저장은 실패했습니다: {e}"
+        return False, str(e)
 
 
 def save_record(record: dict, is_edit=False):
@@ -676,7 +677,8 @@ def save_record(record: dict, is_edit=False):
         current = pd.concat([current, pd.DataFrame([record])], ignore_index=True)
 
     st.session_state.data = ensure_columns(current)
-    persist_data()
+    ok, err = persist_data()
+    return ok, err
 
 
 def update_follow_status(record_id: str, new_status: str):
@@ -1173,10 +1175,14 @@ def render_form(mode="new", row_data=None):
                         "FollowUpdated": datetime.now().strftime("%Y-%m-%d %H:%M"),
                         "Updated": "",
                     }
-                    save_record(record, is_edit=False)
+                    ok, err = save_record(record, is_edit=False)
                     st.session_state.selected_date = input_date
                     st.session_state.edit_id = None
-                    st.session_state.flash_message = "신규 일정이 저장되었습니다."
+
+                    if ok:
+                        st.session_state.flash_message = "신규 일정이 저장되었습니다."
+                    else:
+                        st.session_state.flash_message = f"화면에는 저장되었지만 구글 시트 저장은 실패했습니다: {err}"
 
                     if submit_view:
                         st.session_state.main_menu = "📅 일정 보기"
@@ -1220,10 +1226,14 @@ def render_form(mode="new", row_data=None):
                         "FollowUpdated": datetime.now().strftime("%Y-%m-%d %H:%M"),
                         "Updated": "",
                     }
-                    save_record(record, is_edit=True)
+                    ok, err = save_record(record, is_edit=True)
                     st.session_state.edit_id = None
                     st.session_state.selected_date = input_date
-                    st.session_state.flash_message = "일정이 수정되었습니다."
+
+                    if ok:
+                        st.session_state.flash_message = "일정이 수정되었습니다."
+                    else:
+                        st.session_state.flash_message = f"화면에는 수정되었지만 구글 시트 저장은 실패했습니다: {err}"
                     st.rerun()
 
             if cancel_btn:
