@@ -422,10 +422,6 @@ div[data-testid="stForm"] {
     margin-bottom: 8px;
 }
 
-.week-month-item {
-    margin-bottom: 8px;
-}
-
 @media (max-width: 1000px) {
     .main-title {
         font-size: 2.1rem;
@@ -955,7 +951,6 @@ def sort_oldest_first(df: pd.DataFrame):
 
 def to_display_dataframe(df: pd.DataFrame) -> pd.DataFrame:
     display_df = ensure_columns(df).copy()
-
     if display_df.empty:
         return display_df.drop(columns=["IsDeleted"], errors="ignore")
 
@@ -966,59 +961,6 @@ def to_display_dataframe(df: pd.DataFrame) -> pd.DataFrame:
     display_df = display_df.drop(columns=["IsDeleted"], errors="ignore")
     return display_df
 
-# =========================================================
-# 5. 상태 초기화
-# =========================================================
-today = now_kst().date()
-
-if "data" not in st.session_state:
-    st.session_state.data = load_data_from_gsheet()
-else:
-    st.session_state.data = clean_records_df(st.session_state.data)
-
-if "app_today" not in st.session_state:
-    st.session_state.app_today = today
-
-if st.session_state.app_today != today:
-    st.session_state.app_today = today
-    st.session_state.selected_date = today
-
-if "main_menu" not in st.session_state:
-    st.session_state.main_menu = "📅 일정 보기"
-
-if "selected_date" not in st.session_state:
-    st.session_state.selected_date = today
-
-if "selected_cat" not in st.session_state:
-    st.session_state.selected_cat = "카테고리"
-
-if "selected_status" not in st.session_state:
-    st.session_state.selected_status = "일정 현황"
-
-if "selected_follow_status" not in st.session_state:
-    st.session_state.selected_follow_status = "팔로우업 상태"
-
-if "search_text" not in st.session_state:
-    st.session_state.search_text = ""
-
-if "edit_id" not in st.session_state:
-    st.session_state.edit_id = None
-
-if "flash_message" not in st.session_state:
-    st.session_state.flash_message = None
-
-if "reload_password_input" not in st.session_state:
-    st.session_state.reload_password_input = ""
-
-if "show_reload_password" not in st.session_state:
-    st.session_state.show_reload_password = False
-
-if "table_page_num_value" not in st.session_state:
-    st.session_state.table_page_num_value = 1
-
-# =========================================================
-# 6. 렌더 함수
-# =========================================================
 def render_followup_section(row):
     st.markdown(f"""
     <div class="follow-wrap">
@@ -1150,17 +1092,14 @@ def render_action_buttons(row, prefix=""):
             new_row["Status"] = toggle_next
             new_row["Updated"] = now_kst_str()
             new_row["UpdatedBy"] = safe_str(row["UpdatedBy"])
-
             ok, err = save_record(new_row, is_edit=True)
             st.session_state.flash_message = "상태가 변경되었습니다." if ok else f"상태 변경 실패: {err}"
             st.rerun()
 
     if c3.button("삭제", key=f"{prefix}_delete_{row['ID']}", use_container_width=True):
         ok, err = soft_delete_record(row["ID"])
-
         if st.session_state.edit_id == row["ID"]:
             st.session_state.edit_id = None
-
         st.session_state.flash_message = "일정이 삭제되었습니다." if ok else f"삭제 실패: {err}"
         st.rerun()
 
@@ -1183,62 +1122,73 @@ def render_day_expander(row, prefix="", expanded=False):
         render_detail_blocks(row)
         render_action_buttons(row, prefix=prefix)
 
-def render_week_month_item(row, prefix=""):
-    label = format_subject_md(row)
-    with st.expander(label, expanded=False):
-        c1, c2 = st.columns(2)
+def render_week_month_card(row):
+    c = get_color(row["Category"])
+    subject_html = format_subject_html(row)
 
-        with c1:
-            st.markdown(f"""
-            <div class="info-box">
-                <div class="info-label">방문기관명</div>
-                <div class="info-value">{esc(row["OrgName"])}</div>
-            </div>
-            """, unsafe_allow_html=True)
-            st.markdown(f"""
-            <div class="info-box">
-                <div class="info-label">장소</div>
-                <div class="info-value">{esc(row["DetailPlace"])}</div>
-            </div>
-            """, unsafe_allow_html=True)
-            st.markdown(f"""
-            <div class="info-box">
-                <div class="info-label">회의 목적</div>
-                <div class="info-value">{esc(row["Purpose"])}</div>
-            </div>
-            """, unsafe_allow_html=True)
-            st.markdown(f"""
-            <div class="info-box">
-                <div class="info-label">후속/준비사항</div>
-                <div class="info-value">{esc(row["FollowTask"])}</div>
-            </div>
-            """, unsafe_allow_html=True)
+    meta_parts = []
+    if safe_str(row["Time"]):
+        meta_parts.append(f"⏰ {esc(row['Time'])}")
+    if safe_str(row["Category"]):
+        meta_parts.append(f"분류: {esc(row['Category'])}")
+    if safe_str(row["FollowStatus"]):
+        meta_parts.append(f"팔로우업: {esc(row['FollowStatus'])}")
 
-        with c2:
-            st.markdown(f"""
-            <div class="info-box">
-                <div class="info-label">팔로우업 상태</div>
-                <div class="info-value">{esc(row["FollowStatus"])}</div>
+    meta_text = " · ".join(meta_parts) if meta_parts else "-"
+
+    detail_parts = []
+    if safe_str(row["OrgName"]):
+        detail_parts.append(f"기관: {esc(row['OrgName'])}")
+    if safe_str(row["DetailPlace"]):
+        detail_parts.append(f"장소: {esc(row['DetailPlace'])}")
+    if safe_str(row["FollowOwner"]):
+        detail_parts.append(f"담당: {esc(row['FollowOwner'])}")
+    if safe_str(row["FollowDue"]):
+        detail_parts.append(f"기한: {esc(row['FollowDue'])}")
+
+    detail_text = "<br>".join(detail_parts) if detail_parts else "세부 정보 없음"
+
+    st.markdown(
+        f"""
+        <div style="
+            background:{c['soft']};
+            border:1px solid {c['line']};
+            border-left:6px solid {c['line']};
+            border-radius:12px;
+            padding:8px 10px;
+            margin-bottom:8px;
+        ">
+            <div style="
+                font-size:0.75rem;
+                font-weight:800;
+                color:{c['text']};
+                margin-bottom:4px;
+                line-height:1.35;
+            ">
+                {meta_text}
             </div>
-            """, unsafe_allow_html=True)
-            st.markdown(f"""
-            <div class="info-box">
-                <div class="info-label">주 담당자</div>
-                <div class="info-value">{esc(row["FollowOwner"])}</div>
+            <div style="
+                font-size:0.86rem;
+                font-weight:800;
+                color:#1F2937;
+                line-height:1.35;
+                margin-bottom:6px;
+                word-break:break-word;
+            ">
+                {subject_html}
             </div>
-            """, unsafe_allow_html=True)
-            st.markdown(f"""
-            <div class="info-box">
-                <div class="info-label">진행 메모</div>
-                <div class="info-value">{esc(row["FollowProgressMemo"])}</div>
+            <div style="
+                font-size:0.76rem;
+                color:#475467;
+                line-height:1.45;
+                word-break:break-word;
+            ">
+                {detail_text}
             </div>
-            """, unsafe_allow_html=True)
-            st.markdown(f"""
-            <div class="info-box">
-                <div class="info-label">준비 완료기한</div>
-                <div class="info-value">{esc(row["FollowDue"])}</div>
-            </div>
-            """, unsafe_allow_html=True)
+        </div>
+        """,
+        unsafe_allow_html=True
+    )
 
 def render_form(mode="new", row_data=None):
     if row_data is None:
@@ -1390,7 +1340,6 @@ def render_form(mode="new", row_data=None):
                     st.session_state.flash_message = "신규 일정이 저장되었습니다." if ok else f"저장 실패: {err}"
                     st.session_state.main_menu = "📅 일정 보기" if submit_view else "✍️ 신규 일정 등록"
                     st.rerun()
-
         else:
             b1, b2 = st.columns(2)
             save_btn = b1.form_submit_button("수정 저장", use_container_width=True)
@@ -1445,7 +1394,7 @@ def render_form(mode="new", row_data=None):
 # =========================================================
 # 7. 사이드바
 # =========================================================
-st.sidebar.markdown("# 🏢 KVMA 비서실")
+st.sidebar.markdown("# 🏢 KVMA Secretary")
 
 st.sidebar.markdown('<div class="menu-btn-wrap">', unsafe_allow_html=True)
 if st.sidebar.button("📅 일정 보기", use_container_width=True):
@@ -1515,7 +1464,7 @@ if st.session_state.show_reload_password:
 # =========================================================
 # 8. 상단
 # =========================================================
-st.markdown('<div class="main-title">📒 KVMA 회장님 일정</div>', unsafe_allow_html=True)
+st.markdown('<div class="main-title">📒 KVMA President Schedule</div>', unsafe_allow_html=True)
 st.markdown(
     '<div class="sub-text">회장님 일정 등록 · 조회 · 수정 · 취소 · 삭제와 함께, 직원들이 후속 준비사항을 공유할 수 있는 스케줄러입니다.</div>',
     unsafe_allow_html=True
@@ -1678,8 +1627,8 @@ else:
                 if daily.empty:
                     st.caption("일정 없음")
                 else:
-                    for i, (_, row) in enumerate(daily.iterrows()):
-                        render_week_month_item(row, prefix=f"week_{day_obj}_{i}")
+                    for _, row in daily.iterrows():
+                        render_week_month_card(row)
 
     with tabs[2]:
         st.markdown('<div class="section-title">🗓️ 월별 일정</div>', unsafe_allow_html=True)
@@ -1747,8 +1696,8 @@ else:
                             if daily.empty:
                                 st.caption("일정 없음")
                             else:
-                                for i, (_, row) in enumerate(daily.iterrows()):
-                                    render_week_month_item(row, prefix=f"monthcal_{day_obj}_{i}")
+                                for _, row in daily.iterrows():
+                                    render_week_month_card(row)
         else:
             st.caption("화면 폭이 좁을 때는 목록형이 더 보기 편합니다.")
             month_list = sort_oldest_first(month_df)
@@ -1767,8 +1716,8 @@ else:
                 if daily.empty:
                     st.caption("일정 없음")
                 else:
-                    for i, (_, row) in enumerate(daily.iterrows()):
-                        render_week_month_item(row, prefix=f"monthlist_{d}_{i}")
+                    for _, row in daily.iterrows():
+                        render_week_month_card(row)
 
     with tabs[3]:
         st.markdown('<div class="section-title">📋 전체 일정표</div>', unsafe_allow_html=True)
