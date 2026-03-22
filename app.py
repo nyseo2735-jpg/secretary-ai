@@ -345,64 +345,6 @@ div[data-testid="stForm"] {
     font-size: 1rem !important;
 }
 
-.wm-detail {
-    margin-bottom: 8px;
-    border-radius: 12px;
-}
-
-.wm-summary {
-    list-style: none;
-    cursor: pointer;
-    border-radius: 12px;
-    padding: 7px 9px;
-    font-size: 0.78rem;
-    line-height: 1.35;
-    border: 1px solid;
-    font-weight: 700;
-    word-break: break-word;
-}
-
-.wm-summary::-webkit-details-marker {
-    display: none;
-}
-
-.wm-content {
-    margin-top: 8px;
-    padding: 10px;
-    border: 1px solid #ECEEF3;
-    border-radius: 14px;
-    background: #ffffff;
-}
-
-.wm-grid {
-    display: grid;
-    grid-template-columns: 1fr;
-    gap: 8px;
-}
-
-.wm-box {
-    border: 1px solid #ECEEF3;
-    border-radius: 12px;
-    padding: 8px 10px;
-    background: #ffffff;
-}
-
-.wm-label {
-    font-size: 0.74rem;
-    font-weight: 800;
-    color: #6B7280;
-    margin-bottom: 4px;
-}
-
-.wm-value {
-    font-size: 0.88rem;
-    font-weight: 600;
-    color: #232634;
-    line-height: 1.45;
-    word-break: break-word;
-    white-space: pre-wrap;
-}
-
 .day-head {
     font-size: 1rem;
     font-weight: 800;
@@ -480,6 +422,10 @@ div[data-testid="stForm"] {
     margin-bottom: 8px;
 }
 
+.weekmonth-expander {
+    margin-bottom: 8px;
+}
+
 @media (max-width: 1000px) {
     .main-title {
         font-size: 2.1rem;
@@ -551,16 +497,13 @@ def ensure_columns(df: pd.DataFrame) -> pd.DataFrame:
         return pd.DataFrame(columns=DATA_COLUMNS)
 
     df = df.copy()
-
     for col in DATA_COLUMNS:
         if col not in df.columns:
             df[col] = ""
 
     df = df[DATA_COLUMNS].copy()
-
     for col in DATA_COLUMNS:
         df[col] = df[col].apply(normalize_cell)
-
     return df
 
 
@@ -601,9 +544,7 @@ def esc(v):
 
 def excel_download_bytes(df: pd.DataFrame) -> bytes:
     export_df = get_active_df(df).copy()
-    export_df = ensure_columns(export_df)
-    if "IsDeleted" in export_df.columns:
-        export_df = export_df.drop(columns=["IsDeleted"], errors="ignore")
+    export_df = ensure_columns(export_df).drop(columns=["IsDeleted"], errors="ignore")
 
     output = BytesIO()
     with pd.ExcelWriter(output, engine="openpyxl") as writer:
@@ -615,10 +556,8 @@ def excel_download_bytes(df: pd.DataFrame) -> bytes:
 def get_secret_value(key: str, default=""):
     if key in st.secrets:
         return str(st.secrets.get(key, default)).strip()
-
     if "app_config" in st.secrets and key in st.secrets["app_config"]:
         return str(st.secrets["app_config"].get(key, default)).strip()
-
     return default
 
 
@@ -659,18 +598,15 @@ def get_worksheet():
 
     if not sheet_name:
         raise ValueError("google_sheet_name 이 설정되지 않았습니다.")
-
     if not worksheet_name:
         raise ValueError("google_worksheet_name 이 설정되지 않았습니다.")
 
     sh = gc.open(sheet_name)
-
     try:
         ws = sh.worksheet(worksheet_name)
     except gspread.WorksheetNotFound:
         ws = sh.add_worksheet(title=worksheet_name, rows=10000, cols=max(len(DATA_COLUMNS) + 8, 40))
         ws.update(range_name=f"A1:{LAST_COL_LETTER}1", values=[DATA_COLUMNS])
-
     return ws
 
 
@@ -688,10 +624,7 @@ def ensure_sheet_header(ws):
         return
 
     data_rows = values[1:] if len(values) > 1 else []
-
-    old_header_index = {}
-    for idx, col in enumerate(first_row):
-        old_header_index[col] = idx
+    old_header_index = {col: idx for idx, col in enumerate(first_row)}
 
     rebuilt_rows = []
     for row in data_rows:
@@ -715,9 +648,7 @@ def clean_records_df(df: pd.DataFrame) -> pd.DataFrame:
         return df
 
     non_id_cols = [c for c in DATA_COLUMNS if c != "ID"]
-    mask_not_empty = df[non_id_cols].apply(
-        lambda row: any(safe_str(v) for v in row), axis=1
-    )
+    mask_not_empty = df[non_id_cols].apply(lambda row: any(safe_str(v) for v in row), axis=1)
     df = df[mask_not_empty].copy()
 
     if df.empty:
@@ -733,7 +664,6 @@ def clean_records_df(df: pd.DataFrame) -> pd.DataFrame:
     df["Priority"] = df["Priority"].apply(lambda x: x if x in PRIORITY_OPTIONS else "보통")
     df["FollowStatus"] = df["FollowStatus"].apply(lambda x: x if x in FOLLOW_STATUS_OPTIONS else "미착수")
     df["IsDeleted"] = df["IsDeleted"].apply(lambda x: "Y" if safe_str(x).upper() == "Y" else "")
-
     df["Date"] = df["Date"].apply(lambda x: to_date_safe(x).strftime("%Y-%m-%d") if to_date_safe(x) else "")
     df["Time"] = df["Time"].apply(lambda x: parse_time_safe(x).strftime("%H:%M") if safe_str(x) else "")
     df["FollowDue"] = df["FollowDue"].apply(lambda x: to_date_safe(x).strftime("%Y-%m-%d") if to_date_safe(x) else "")
@@ -742,7 +672,6 @@ def clean_records_df(df: pd.DataFrame) -> pd.DataFrame:
         df[col] = df[col].apply(lambda x: safe_str(x))
 
     df = df.drop_duplicates(subset=["ID"], keep="last").reset_index(drop=True)
-
     return ensure_columns(df)
 
 
@@ -780,7 +709,6 @@ def load_data_from_gsheet():
 def find_row_number_by_id(ws, record_id: str):
     id_col_num = DATA_COLUMNS.index("ID") + 1
     id_values = ws.col_values(id_col_num)
-
     for row_num in range(2, len(id_values) + 1):
         if safe_str(id_values[row_num - 1]) == safe_str(record_id):
             return row_num
@@ -797,17 +725,13 @@ def append_record_to_gsheet(record: dict):
 def update_record_in_gsheet(record: dict):
     ws = get_worksheet()
     ensure_sheet_header(ws)
-
     row_num = find_row_number_by_id(ws, record["ID"])
     row_values = [normalize_cell(record.get(col, "")) for col in DATA_COLUMNS]
 
     if row_num is None:
         ws.append_row(row_values, value_input_option="USER_ENTERED")
     else:
-        ws.update(
-            range_name=f"A{row_num}:{LAST_COL_LETTER}{row_num}",
-            values=[row_values]
-        )
+        ws.update(range_name=f"A{row_num}:{LAST_COL_LETTER}{row_num}", values=[row_values])
 
 
 def soft_delete_record_in_gsheet(record_id: str):
@@ -820,7 +744,6 @@ def soft_delete_record_in_gsheet(record_id: str):
 
     row_values = ws.row_values(row_num)
     row_values = row_values[:len(DATA_COLUMNS)] + [""] * max(0, len(DATA_COLUMNS) - len(row_values))
-
     temp = {col: row_values[idx] if idx < len(row_values) else "" for idx, col in enumerate(DATA_COLUMNS)}
     temp["IsDeleted"] = "Y"
     temp["Updated"] = now_kst_str()
@@ -832,17 +755,8 @@ def soft_delete_record_in_gsheet(record_id: str):
     )
 
 
-def save_all_to_gsheet(df: pd.DataFrame):
-    ws = get_worksheet()
-    df = clean_records_df(df)
-    values = [DATA_COLUMNS] + df[DATA_COLUMNS].values.tolist()
-    ws.clear()
-    ws.update(range_name=f"A1:{LAST_COL_LETTER}{len(values)}", values=values)
-
-
 def get_filtered_df(df, selected_cat="카테고리", search_text="", status_filter="일정 현황", follow_status_filter="팔로우업 상태"):
     temp = get_active_df(df)
-
     temp["DateParsed"] = pd.to_datetime(temp["Date"], errors="coerce").dt.date
 
     if selected_cat not in ["전체", "카테고리"]:
@@ -889,16 +803,6 @@ def next_id():
     return now_kst().strftime("%Y%m%d%H%M%S%f")
 
 
-def persist_data_full_sync():
-    try:
-        if has_gsheet_config():
-            save_all_to_gsheet(st.session_state.data)
-            st.session_state.data = load_data_from_gsheet()
-        return True, None
-    except Exception as e:
-        return False, str(e)
-
-
 def save_record(record: dict, is_edit=False):
     record = {col: normalize_cell(record.get(col, "")) for col in DATA_COLUMNS}
     record["Updated"] = now_kst_str()
@@ -911,7 +815,6 @@ def save_record(record: dict, is_edit=False):
                 update_record_in_gsheet(record)
             else:
                 append_record_to_gsheet(record)
-
             st.session_state.data = load_data_from_gsheet()
             return True, None
 
@@ -946,7 +849,6 @@ def soft_delete_record(record_id: str):
         if mask.any():
             current.loc[mask, "IsDeleted"] = "Y"
             current.loc[mask, "Updated"] = now_kst_str()
-            current.loc[mask, "UpdatedBy"] = current.loc[mask, "UpdatedBy"]
         st.session_state.data = clean_records_df(current)
         return True, None
 
@@ -1089,7 +991,6 @@ def sort_oldest_first(df: pd.DataFrame):
 
 def to_display_dataframe(df: pd.DataFrame) -> pd.DataFrame:
     display_df = ensure_columns(df).copy()
-
     if display_df.empty:
         return display_df.drop(columns=["IsDeleted"], errors="ignore")
 
@@ -1101,266 +1002,62 @@ def to_display_dataframe(df: pd.DataFrame) -> pd.DataFrame:
     return display_df
 
 
-# =========================================================
-# 5. 상태 초기화
-# =========================================================
-today = now_kst().date()
-
-if "data" not in st.session_state:
-    st.session_state.data = load_data_from_gsheet()
-else:
-    st.session_state.data = clean_records_df(st.session_state.data)
-
-if "app_today" not in st.session_state:
-    st.session_state.app_today = today
-
-if st.session_state.app_today != today:
-    st.session_state.app_today = today
-    st.session_state.selected_date = today
-
-if "main_menu" not in st.session_state:
-    st.session_state.main_menu = "📅 일정 보기"
-
-if "selected_date" not in st.session_state:
-    st.session_state.selected_date = today
-
-if "selected_cat" not in st.session_state:
-    st.session_state.selected_cat = "카테고리"
-
-if "selected_status" not in st.session_state:
-    st.session_state.selected_status = "일정 현황"
-
-if "selected_follow_status" not in st.session_state:
-    st.session_state.selected_follow_status = "팔로우업 상태"
-
-if "search_text" not in st.session_state:
-    st.session_state.search_text = ""
-
-if "edit_id" not in st.session_state:
-    st.session_state.edit_id = None
-
-if "flash_message" not in st.session_state:
-    st.session_state.flash_message = None
-
-if "reload_password_input" not in st.session_state:
-    st.session_state.reload_password_input = ""
-
-if "show_reload_password" not in st.session_state:
-    st.session_state.show_reload_password = False
-
-if "table_page_num_value" not in st.session_state:
-    st.session_state.table_page_num_value = 1
-
-
-# =========================================================
-# 6. 렌더 함수
-# =========================================================
-def render_followup_section(row):
-    st.markdown(f"""
-    <div class="follow-wrap">
-        <div class="follow-title">📌 사무처 팔로우업 핵심 영역</div>
-        <div style="margin-bottom:10px;">
-            <span class="follow-pill">팔로우업 상태: {esc(row["FollowStatus"])}</span>
-            <span class="follow-pill">주 담당자: {esc(row["FollowOwner"])}</span>
-            <span class="follow-pill">준비기한: {esc(row["FollowDue"])}</span>
-        </div>
-        <div class="follow-grid">
-            <div class="follow-box">
-                <div class="follow-label">회의 목적</div>
-                <div class="follow-value">{esc(row["Purpose"])}</div>
-            </div>
-            <div class="follow-box">
-                <div class="follow-label">대응 방향</div>
-                <div class="follow-value">{esc(row["ActionPlan"])}</div>
-            </div>
-            <div class="follow-box">
-                <div class="follow-label">후속/준비사항</div>
-                <div class="follow-value">{esc(row["FollowTask"])}</div>
-            </div>
-            <div class="follow-box">
-                <div class="follow-label">진행 메모</div>
-                <div class="follow-value">{esc(row["FollowProgressMemo"])}</div>
-            </div>
-            <div class="follow-box">
-                <div class="follow-label">공유 메모</div>
-                <div class="follow-value">{esc(row["SharedNote"])}</div>
-            </div>
-            <div class="follow-box">
-                <div class="follow-label">최종 추적일</div>
-                <div class="follow-value">{esc(row["FollowUpdated"])}</div>
-            </div>
-        </div>
-    </div>
-    """, unsafe_allow_html=True)
-
-
-def render_summary_header(row):
-    c = get_color(row["Category"])
-    st.markdown(f"""
-    <div class="summary-card" style="background:{c['bg']};">
-        <div class="summary-inner">
-            <div class="summary-accent" style="background:{c['line']};"></div>
-            <div class="summary-body">
-                <div class="summary-meta" style="color:{c['text']};">
-                    ⏰ {esc(row["Time"])}
-                    <span class="tag-pill" style="background:{c["soft"]}; color:{c["text"]}; border-color:{c["line"]};">{esc(row["Category"])}</span>
-                    <span class="tag-pill">{esc(row["Status"])}</span>
-                    <span class="tag-pill">우선순위 {esc(row["Priority"])}</span>
-                    <span class="tag-pill">팔로우업 {esc(row["FollowStatus"])}</span>
-                </div>
-                <div class="summary-title">{format_subject_html(row)}</div>
-            </div>
-        </div>
-    </div>
-    """, unsafe_allow_html=True)
-
-
-def render_detail_blocks(row):
-    c1, c2, c3 = st.columns(3)
-    with c1:
-        st.markdown(f"""
-        <div class="info-box">
-            <div class="info-label">방문기관명</div>
-            <div class="info-value">🏢 {esc(row["OrgName"])}</div>
-        </div>
-        """, unsafe_allow_html=True)
-        st.markdown(f"""
-        <div class="info-box">
-            <div class="info-label">회의장소(세부)</div>
-            <div class="info-value">📍 {esc(row["DetailPlace"])}</div>
-        </div>
-        """, unsafe_allow_html=True)
-
-    with c2:
-        st.markdown(f"""
-        <div class="info-box">
-            <div class="info-label">보좌관/비서/담당자 정보</div>
-            <div class="info-value">👤 {html.escape(contact_text(row))}</div>
-        </div>
-        """, unsafe_allow_html=True)
-        st.markdown(f"""
-        <div class="info-box">
-            <div class="info-label">회장님 외 동행인</div>
-            <div class="info-value">👥 {esc(row["Companion"])}</div>
-        </div>
-        """, unsafe_allow_html=True)
-
-    with c3:
-        st.markdown(f"""
-        <div class="info-box">
-            <div class="info-label">사무처 수행직원</div>
-            <div class="info-value">🧾 {esc(row["Staff"])}</div>
-        </div>
-        """, unsafe_allow_html=True)
-        st.markdown(f"""
-        <div class="info-box">
-            <div class="info-label">최종 수정</div>
-            <div class="info-value">🕒 {esc(row["Updated"])} / {esc(row["UpdatedBy"])}</div>
-        </div>
-        """, unsafe_allow_html=True)
-
-    render_followup_section(row)
-
-    st.markdown(f"""
-    <div class="memo-box">
-        <div class="memo-title">📌 일반 메모</div>
-        <div class="memo-text">{esc(row["Memo"])}</div>
-    </div>
-    """, unsafe_allow_html=True)
-
-
-def render_action_buttons(row, prefix=""):
-    st.markdown('<div class="small-action">', unsafe_allow_html=True)
-    c1, c2, c3, c4, c5 = st.columns([0.8, 0.9, 0.8, 1.0, 1.0])
-
-    if c1.button("수정", key=f"{prefix}_edit_{row['ID']}", use_container_width=True):
-        st.session_state.edit_id = row["ID"]
-        st.rerun()
-
-    toggle_label = "일정 취소" if row["Status"] != "취소" else "취소 해제"
-    toggle_next = "취소" if row["Status"] != "취소" else "확정"
-
-    if c2.button(toggle_label, key=f"{prefix}_cancel_{row['ID']}", use_container_width=True):
-        current = clean_records_df(st.session_state.data)
-        target = current[current["ID"].astype(str) == str(row["ID"])]
-
-        if not target.empty:
-            new_row = target.iloc[0].to_dict()
-            new_row["Status"] = toggle_next
-            new_row["Updated"] = now_kst_str()
-            new_row["UpdatedBy"] = safe_str(row["UpdatedBy"])
-
-            ok, err = save_record(new_row, is_edit=True)
-            if ok:
-                st.session_state.flash_message = "상태가 변경되었습니다."
-            else:
-                st.session_state.flash_message = f"상태 변경 실패: {err}"
-            st.rerun()
-
-    if c3.button("삭제", key=f"{prefix}_delete_{row['ID']}", use_container_width=True):
-        ok, err = soft_delete_record(row["ID"])
-
-        if st.session_state.edit_id == row["ID"]:
-            st.session_state.edit_id = None
-
-        if ok:
-            st.session_state.flash_message = "일정이 삭제되었습니다."
-        else:
-            st.session_state.flash_message = f"삭제 실패: {err}"
-        st.rerun()
-
-    if c4.button("진행중", key=f"{prefix}_follow_inprogress_{row['ID']}", use_container_width=True):
-        ok, err = update_follow_status(row["ID"], "진행중")
-        if ok:
-            st.session_state.flash_message = "팔로우업 상태를 진행중으로 변경했습니다."
-        else:
-            st.session_state.flash_message = f"팔로우업 상태 변경 실패: {err}"
-        st.rerun()
-
-    if c5.button("완료", key=f"{prefix}_follow_done_{row['ID']}", use_container_width=True):
-        ok, err = update_follow_status(row["ID"], "완료")
-        if ok:
-            st.session_state.flash_message = "팔로우업 상태를 완료로 변경했습니다."
-        else:
-            st.session_state.flash_message = f"팔로우업 상태 변경 실패: {err}"
-        st.rerun()
-
-    st.markdown('</div>', unsafe_allow_html=True)
-
-
-def render_day_expander(row, prefix="", expanded=False):
+def render_week_month_item(row, prefix=""):
     label = format_subject_md(row)
-    with st.expander(label, expanded=expanded):
-        render_summary_header(row)
-        render_detail_blocks(row)
-        render_action_buttons(row, prefix=prefix)
+    with st.expander(label, expanded=False):
+        c1, c2 = st.columns(2)
 
-
-def render_week_month_details_html(row):
-    c = get_color(row["Category"])
-    summary_text = f'{html.escape(safe_str(row["Time"]))} [{html.escape(safe_str(row["Category"]))}] {html.escape(safe_str(row["Subject"]))}'
-    if safe_str(row["Status"]) == "취소":
-        summary_text = f'{html.escape(safe_str(row["Time"]))} [{html.escape(safe_str(row["Category"]))}] <span class="canceled-title">{html.escape(safe_str(row["Subject"]))}</span><span class="cancel-pill">취소</span>'
-
-    return f"""
-    <details class="wm-detail">
-        <summary class="wm-summary" style="color:{c["text"]}; border-color:{c["line"]}; background:{c["soft"]};">
-            {summary_text}
-        </summary>
-        <div class="wm-content">
-            <div class="wm-grid">
-                <div class="wm-box"><div class="wm-label">방문기관명</div><div class="wm-value">{esc(row["OrgName"])}</div></div>
-                <div class="wm-box"><div class="wm-label">장소</div><div class="wm-value">{esc(row["DetailPlace"])}</div></div>
-                <div class="wm-box"><div class="wm-label">팔로우업 상태</div><div class="wm-value">{esc(row["FollowStatus"])}</div></div>
-                <div class="wm-box"><div class="wm-label">주 담당자</div><div class="wm-value">{esc(row["FollowOwner"])}</div></div>
-                <div class="wm-box"><div class="wm-label">회의 목적</div><div class="wm-value">{esc(row["Purpose"])}</div></div>
-                <div class="wm-box"><div class="wm-label">후속/준비사항</div><div class="wm-value">{esc(row["FollowTask"])}</div></div>
-                <div class="wm-box"><div class="wm-label">진행 메모</div><div class="wm-value">{esc(row["FollowProgressMemo"])}</div></div>
-                <div class="wm-box"><div class="wm-label">준비 완료기한</div><div class="wm-value">{esc(row["FollowDue"])}</div></div>
+        with c1:
+            st.markdown(f"""
+            <div class="info-box">
+                <div class="info-label">방문기관명</div>
+                <div class="info-value">{esc(row["OrgName"])}</div>
             </div>
-        </div>
-    </details>
-    """
+            """, unsafe_allow_html=True)
+            st.markdown(f"""
+            <div class="info-box">
+                <div class="info-label">장소</div>
+                <div class="info-value">{esc(row["DetailPlace"])}</div>
+            </div>
+            """, unsafe_allow_html=True)
+            st.markdown(f"""
+            <div class="info-box">
+                <div class="info-label">회의 목적</div>
+                <div class="info-value">{esc(row["Purpose"])}</div>
+            </div>
+            """, unsafe_allow_html=True)
+            st.markdown(f"""
+            <div class="info-box">
+                <div class="info-label">후속/준비사항</div>
+                <div class="info-value">{esc(row["FollowTask"])}</div>
+            </div>
+            """, unsafe_allow_html=True)
+
+        with c2:
+            st.markdown(f"""
+            <div class="info-box">
+                <div class="info-label">팔로우업 상태</div>
+                <div class="info-value">{esc(row["FollowStatus"])}</div>
+            </div>
+            """, unsafe_allow_html=True)
+            st.markdown(f"""
+            <div class="info-box">
+                <div class="info-label">주 담당자</div>
+                <div class="info-value">{esc(row["FollowOwner"])}</div>
+            </div>
+            """, unsafe_allow_html=True)
+            st.markdown(f"""
+            <div class="info-box">
+                <div class="info-label">진행 메모</div>
+                <div class="info-value">{esc(row["FollowProgressMemo"])}</div>
+            </div>
+            """, unsafe_allow_html=True)
+            st.markdown(f"""
+            <div class="info-box">
+                <div class="info-label">준비 완료기한</div>
+                <div class="info-value">{esc(row["FollowDue"])}</div>
+            </div>
+            """, unsafe_allow_html=True)
 
 
 def render_form(mode="new", row_data=None):
@@ -1445,20 +1142,16 @@ def render_form(mode="new", row_data=None):
 
         r6c1, r6c2, r6c3 = st.columns(3)
         input_follow_owner = r6c1.text_input("주 담당자", value=safe_str(row_data["FollowOwner"]))
-
         existing_follow_due = to_date_safe(row_data["FollowDue"])
-
         input_follow_due = r6c2.date_input(
             "준비 완료기한",
             value=existing_follow_due or input_date,
             key=f"follow_due_date_{mode}_{safe_str(row_data['ID']) or 'new'}"
         )
-
         input_follow_status = r6c3.selectbox(
             "팔로우업 상태",
             FOLLOW_STATUS_OPTIONS,
-            index=FOLLOW_STATUS_OPTIONS.index(row_data["FollowStatus"])
-            if row_data["FollowStatus"] in FOLLOW_STATUS_OPTIONS else 0
+            index=FOLLOW_STATUS_OPTIONS.index(row_data["FollowStatus"]) if row_data["FollowStatus"] in FOLLOW_STATUS_OPTIONS else 0
         )
 
         input_follow_task = st.text_area("후속/준비사항", value=safe_str(row_data["FollowTask"]), height=100)
@@ -1512,12 +1205,7 @@ def render_form(mode="new", row_data=None):
                     ok, err = save_record(record, is_edit=False)
                     st.session_state.selected_date = input_date
                     st.session_state.edit_id = None
-
-                    if ok:
-                        st.session_state.flash_message = "신규 일정이 저장되었습니다."
-                    else:
-                        st.session_state.flash_message = f"저장 실패: {err}"
-
+                    st.session_state.flash_message = "신규 일정이 저장되었습니다." if ok else f"저장 실패: {err}"
                     st.session_state.main_menu = "📅 일정 보기" if submit_view else "✍️ 신규 일정 등록"
                     st.rerun()
 
@@ -1565,16 +1253,62 @@ def render_form(mode="new", row_data=None):
                     ok, err = save_record(record, is_edit=True)
                     st.session_state.edit_id = None
                     st.session_state.selected_date = input_date
-
-                    if ok:
-                        st.session_state.flash_message = "일정이 수정되었습니다."
-                    else:
-                        st.session_state.flash_message = f"수정 실패: {err}"
+                    st.session_state.flash_message = "일정이 수정되었습니다." if ok else f"수정 실패: {err}"
                     st.rerun()
 
             if cancel_btn:
                 st.session_state.edit_id = None
                 st.rerun()
+
+# =========================================================
+# 5. 상태 초기화
+# =========================================================
+today = now_kst().date()
+
+if "data" not in st.session_state:
+    st.session_state.data = load_data_from_gsheet()
+else:
+    st.session_state.data = clean_records_df(st.session_state.data)
+
+if "app_today" not in st.session_state:
+    st.session_state.app_today = today
+
+if st.session_state.app_today != today:
+    st.session_state.app_today = today
+    st.session_state.selected_date = today
+
+if "main_menu" not in st.session_state:
+    st.session_state.main_menu = "📅 일정 보기"
+
+if "selected_date" not in st.session_state:
+    st.session_state.selected_date = today
+
+if "selected_cat" not in st.session_state:
+    st.session_state.selected_cat = "카테고리"
+
+if "selected_status" not in st.session_state:
+    st.session_state.selected_status = "일정 현황"
+
+if "selected_follow_status" not in st.session_state:
+    st.session_state.selected_follow_status = "팔로우업 상태"
+
+if "search_text" not in st.session_state:
+    st.session_state.search_text = ""
+
+if "edit_id" not in st.session_state:
+    st.session_state.edit_id = None
+
+if "flash_message" not in st.session_state:
+    st.session_state.flash_message = None
+
+if "reload_password_input" not in st.session_state:
+    st.session_state.reload_password_input = ""
+
+if "show_reload_password" not in st.session_state:
+    st.session_state.show_reload_password = False
+
+if "table_page_num_value" not in st.session_state:
+    st.session_state.table_page_num_value = 1
 
 # =========================================================
 # 7. 사이드바
@@ -1592,7 +1326,6 @@ if st.sidebar.button("✍️ 신규 일정 등록", use_container_width=True):
     st.session_state.main_menu = "✍️ 신규 일정 등록"
     st.rerun()
 st.sidebar.markdown('</div>', unsafe_allow_html=True)
-
 
 xlsx_bytes = excel_download_bytes(st.session_state.data)
 st.sidebar.download_button(
@@ -1813,8 +1546,8 @@ else:
                 if daily.empty:
                     st.caption("일정 없음")
                 else:
-                    for _, row in daily.iterrows():
-                        st.markdown(render_week_month_details_html(row), unsafe_allow_html=True)
+                    for i, (_, row) in enumerate(daily.iterrows()):
+                        render_week_month_item(row, prefix=f"week_{day_obj}_{i}")
 
     with tabs[2]:
         st.markdown('<div class="section-title">🗓️ 월별 일정</div>', unsafe_allow_html=True)
@@ -1882,8 +1615,8 @@ else:
                             if daily.empty:
                                 st.caption("일정 없음")
                             else:
-                                for _, row in daily.iterrows():
-                                    st.markdown(render_week_month_details_html(row), unsafe_allow_html=True)
+                                for i, (_, row) in enumerate(daily.iterrows()):
+                                    render_week_month_item(row, prefix=f"monthcal_{day_obj}_{i}")
         else:
             st.caption("화면 폭이 좁을 때는 목록형이 더 보기 편합니다.")
             month_list = sort_oldest_first(month_df)
@@ -1902,8 +1635,8 @@ else:
                 if daily.empty:
                     st.caption("일정 없음")
                 else:
-                    for _, row in daily.iterrows():
-                        st.markdown(render_week_month_details_html(row), unsafe_allow_html=True)
+                    for i, (_, row) in enumerate(daily.iterrows()):
+                        render_week_month_item(row, prefix=f"monthlist_{d}_{i}")
 
     with tabs[3]:
         st.markdown('<div class="section-title">📋 전체 일정표</div>', unsafe_allow_html=True)
@@ -1936,7 +1669,6 @@ else:
 
             total_rows = len(table_df)
             total_pages = max(1, math.ceil(total_rows / table_page_size))
-
             current_page = min(max(int(st.session_state.get("table_page_num_value", 1)), 1), total_pages)
 
             page_num = st.number_input(
