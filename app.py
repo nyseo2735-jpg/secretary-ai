@@ -1285,16 +1285,16 @@ if st.sidebar.button("🔒 구글 시트 다시 불러오기 열기", use_contai
     st.session_state.show_reload_password = not st.session_state.show_reload_password
 
 if st.session_state.show_reload_password:
-    st.sidebar.text_input(
+    password_input = st.sidebar.text_input(
         "관리자 비밀번호",
         type="password",
         key="reload_password_input"
     )
+
     if st.sidebar.button("🔄 구글 시트에서 다시 불러오기 실행", use_container_width=True):
-        if st.session_state.reload_password_input == ADMIN_RELOAD_PASSWORD:
+        if password_input == ADMIN_RELOAD_PASSWORD:
             st.session_state.data = load_data_from_gsheet()
             st.session_state.flash_message = "구글 시트의 최신 내용을 화면으로 다시 불러왔습니다."
-            st.session_state.reload_password_input = ""
             st.session_state.show_reload_password = False
             st.rerun()
         else:
