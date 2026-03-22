@@ -734,7 +734,7 @@ def soft_delete_record_in_gsheet(record_id: str):
     )
 
 def get_filtered_df(df, selected_cat="카테고리", search_text="", status_filter="일정 현황", follow_status_filter="팔로우업 상태"):
-    temp = get_active_df(df)
+    temp = get_active_df(df).copy()
     temp["DateParsed"] = pd.to_datetime(temp["Date"], errors="coerce").dt.date
 
     if selected_cat not in ["전체", "카테고리"]:
@@ -763,8 +763,7 @@ def get_filtered_df(df, selected_cat="카테고리", search_text="", status_filt
         )
         temp = temp[mask]
 
-    temp = temp.drop(columns=["DateParsed"], errors="ignore")
-    return ensure_columns(temp)
+    return temp
 
 def week_dates_from_any_day(any_day: date):
     start = any_day - timedelta(days=(any_day.weekday() + 1) % 7)
@@ -930,23 +929,33 @@ def day_header_html(day_obj: date, text: str, dim: bool = False):
     return f"<div class='{classes}'>{text}</div>"
 
 def sort_latest_first(df: pd.DataFrame):
-    df = ensure_columns(df).copy()
-    if df.empty:
+    if df is None or len(df) == 0:
         return df
+
+    df = df.copy()
     df["DateSort"] = pd.to_datetime(df["Date"], errors="coerce")
     df["TimeSort"] = pd.to_datetime(df["Time"], format="%H:%M", errors="coerce")
     df["UpdatedSort"] = pd.to_datetime(df["Updated"], errors="coerce")
-    df = df.sort_values(by=["DateSort", "TimeSort", "UpdatedSort"], ascending=[False, False, False], na_position="last")
+    df = df.sort_values(
+        by=["DateSort", "TimeSort", "UpdatedSort"],
+        ascending=[False, False, False],
+        na_position="last"
+    )
     return df.drop(columns=["DateSort", "TimeSort", "UpdatedSort"], errors="ignore")
 
 def sort_oldest_first(df: pd.DataFrame):
-    df = ensure_columns(df).copy()
-    if df.empty:
+    if df is None or len(df) == 0:
         return df
+
+    df = df.copy()
     df["DateSort"] = pd.to_datetime(df["Date"], errors="coerce")
     df["TimeSort"] = pd.to_datetime(df["Time"], format="%H:%M", errors="coerce")
     df["UpdatedSort"] = pd.to_datetime(df["Updated"], errors="coerce")
-    df = df.sort_values(by=["DateSort", "TimeSort", "UpdatedSort"], ascending=[True, True, False], na_position="last")
+    df = df.sort_values(
+        by=["DateSort", "TimeSort", "UpdatedSort"],
+        ascending=[True, True, False],
+        na_position="last"
+    )
     return df.drop(columns=["DateSort", "TimeSort", "UpdatedSort"], errors="ignore")
 
 def to_display_dataframe(df: pd.DataFrame) -> pd.DataFrame:
@@ -959,6 +968,7 @@ def to_display_dataframe(df: pd.DataFrame) -> pd.DataFrame:
 
     display_df = display_df.fillna("")
     display_df = display_df.drop(columns=["IsDeleted"], errors="ignore")
+    display_df = display_df.drop(columns=["DateParsed"], errors="ignore")
     return display_df
 
 # =========================================================
@@ -1471,8 +1481,8 @@ st.sidebar.download_button(
 )
 
 selected_day_sidebar = get_active_df(st.session_state.data).copy()
-selected_day_sidebar["Date"] = pd.to_datetime(selected_day_sidebar["Date"], errors="coerce").dt.date
-selected_day_sidebar = selected_day_sidebar[selected_day_sidebar["Date"] == st.session_state.selected_date]
+selected_day_sidebar["DateParsed"] = pd.to_datetime(selected_day_sidebar["Date"], errors="coerce").dt.date
+selected_day_sidebar = selected_day_sidebar[selected_day_sidebar["DateParsed"] == st.session_state.selected_date]
 selected_day_sidebar = sort_oldest_first(selected_day_sidebar)
 
 with st.sidebar.expander(f"📊 선택일 일정 미리보기 ({st.session_state.selected_date})", expanded=False):
@@ -1597,17 +1607,16 @@ else:
     render_legend()
     st.markdown('</div>', unsafe_allow_html=True)
 
-    filtered_df = ensure_columns(get_filtered_df(
+    filtered_df = get_filtered_df(
         st.session_state.data,
         selected_cat=st.session_state.selected_cat,
         search_text=st.session_state.search_text,
         status_filter=st.session_state.selected_status,
         follow_status_filter=st.session_state.selected_follow_status
-    ))
+    )
 
-    day_df = ensure_columns(filtered_df.copy())
-    day_df["Date"] = pd.to_datetime(day_df["Date"], errors="coerce").dt.date
-    day_df = day_df[day_df["Date"] == st.session_state.selected_date]
+    day_df = filtered_df.copy()
+    day_df = day_df[day_df["DateParsed"] == st.session_state.selected_date].copy()
     day_df = sort_oldest_first(day_df)
 
     confirmed_count = 0 if filtered_df.empty else len(filtered_df[filtered_df["Status"] == "확정"])
@@ -1655,10 +1664,9 @@ else:
             st.rerun()
 
         week_days = week_dates_from_any_day(st.session_state.selected_date)
-        week_df = ensure_columns(filtered_df.copy())
-        week_df["Date"] = pd.to_datetime(week_df["Date"], errors="coerce").dt.date
-        week_df = week_df[week_df["Date"].isin(week_days)]
-        week_df = ensure_columns(week_df)
+
+        week_df = filtered_df.copy()
+        week_df = week_df[week_df["DateParsed"].isin(week_days)].copy()
 
         day_names = ["일", "월", "화", "수", "목", "금", "토"]
         cols = st.columns(7)
@@ -1674,7 +1682,7 @@ else:
                     unsafe_allow_html=True
                 )
 
-                daily = week_df.loc[week_df["Date"] == day_obj].copy()
+                daily = week_df.loc[week_df["DateParsed"] == day_obj].copy()
                 daily = sort_oldest_first(daily)
 
                 if daily.empty:
@@ -1712,14 +1720,12 @@ else:
             key="month_view_mode"
         )
 
-        month_df = ensure_columns(filtered_df.copy())
-        month_df["Date"] = pd.to_datetime(month_df["Date"], errors="coerce").dt.date
+        month_df = filtered_df.copy()
         month_df = month_df[
-            month_df["Date"].apply(
+            month_df["DateParsed"].apply(
                 lambda d: d.year == month_year and d.month == month_month if pd.notna(d) else False
             )
-        ]
-        month_df = ensure_columns(month_df)
+        ].copy()
 
         if month_view_mode == "캘린더형":
             weeks = month_calendar_weeks(month_year, month_month)
@@ -1743,7 +1749,7 @@ else:
                         else:
                             st.markdown(day_header_html(day_obj, f"{day_obj.day}일", dim=False), unsafe_allow_html=True)
 
-                            daily = month_df.loc[month_df["Date"] == day_obj].copy()
+                            daily = month_df.loc[month_df["DateParsed"] == day_obj].copy()
                             daily = sort_oldest_first(daily)
 
                             if daily.empty:
@@ -1753,7 +1759,7 @@ else:
                                     render_week_month_card(row)
         else:
             st.caption("화면 폭이 좁을 때는 목록형이 더 보기 편합니다.")
-            month_list = sort_oldest_first(month_df)
+            month_list = sort_oldest_first(month_df.copy())
             all_days = month_calendar_weeks(month_year, month_month)
             flat_days = [d for week in all_days for d in week if d.month == month_month]
             seen = set()
@@ -1765,7 +1771,7 @@ else:
 
             for d in ordered_days:
                 st.markdown(day_header_html(d, f"{d.month}월 {d.day}일", dim=False), unsafe_allow_html=True)
-                daily = month_list.loc[month_list["Date"] == d].copy()
+                daily = month_list.loc[month_list["DateParsed"] == d].copy()
                 if daily.empty:
                     st.caption("일정 없음")
                 else:
@@ -1783,15 +1789,13 @@ else:
 
         st.caption("‘한 페이지 행 수’는 한 번에 보여줄 일정 데이터 행 개수입니다.")
 
-        table_df = ensure_columns(filtered_df.copy())
+        table_df = filtered_df.copy()
 
         if table_follow_filter != "전체":
             table_df = table_df[table_df["FollowStatus"] == table_follow_filter]
 
         if only_open_follow:
             table_df = table_df[table_df["FollowStatus"].isin(["미착수", "진행중", "보류"])]
-
-        table_df = ensure_columns(table_df)
 
         if table_df.empty:
             st.caption("표시할 일정이 없습니다.")
