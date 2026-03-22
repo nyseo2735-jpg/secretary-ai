@@ -558,24 +558,6 @@ def get_sheet_config():
     sheet_name = get_secret_value("google_sheet_name", "")
     worksheet_name = get_secret_value("google_worksheet_name", "")
     return sheet_name, worksheet_name
-
-
-def get_secret_value(key: str, default=""):
-    # 1순위: 루트에서 찾기
-    if key in st.secrets:
-        return str(st.secrets.get(key, default)).strip()
-
-    # 2순위: app_config 블록 안에서 찾기
-    if "app_config" in st.secrets and key in st.secrets["app_config"]:
-        return str(st.secrets["app_config"].get(key, default)).strip()
-
-    return default
-
-
-def get_sheet_config():
-    sheet_name = get_secret_value("google_sheet_name", "")
-    worksheet_name = get_secret_value("google_worksheet_name", "")
-    return sheet_name, worksheet_name
     
 
 @st.cache_resource
@@ -1367,6 +1349,9 @@ if "gcp_service_account" not in st.secrets:
 
 show_flash()
 
+sheet_name_debug, worksheet_name_debug = get_sheet_config()
+st.caption(f"DEBUG | sheet='{sheet_name_debug}' / worksheet='{worksheet_name_debug}'")
+
 # =========================================================
 # 9. 신규 등록
 # =========================================================
@@ -1664,20 +1649,3 @@ else:
                 hide_index=True,
                 height=560
             )
-
-def get_secret_value(key: str, default=""):
-    # 1순위: 루트에서 찾기
-    if key in st.secrets:
-        return str(st.secrets.get(key, default)).strip()
-
-    # 2순위: app_config 블록 안에서 찾기
-    if "app_config" in st.secrets and key in st.secrets["app_config"]:
-        return str(st.secrets["app_config"].get(key, default)).strip()
-
-    return default
-
-
-def get_sheet_config():
-    sheet_name = get_secret_value("google_sheet_name", "")
-    worksheet_name = get_secret_value("google_worksheet_name", "")
-    return sheet_name, worksheet_name
