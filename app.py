@@ -346,15 +346,43 @@ div[data-testid="stForm"] {
     background: #ffffff;
 }
 
+/* ===== 사이드바 버튼 간격 대폭 축소 ===== */
+.menu-btn-wrap {
+    margin-bottom: 0px !important;
+}
+
+section[data-testid="stSidebar"] div[data-testid="stButton"] {
+    margin-bottom: 2px !important;
+}
+
+section[data-testid="stSidebar"] div[data-testid="stDownloadButton"] {
+    margin-bottom: 2px !important;
+}
+
+.sidebar-day-item {
+    border: 1px solid #ECEEF3;
+    border-radius: 12px;
+    padding: 8px 10px;
+    margin-bottom: 2px !important;
+    background: #ffffff;
+}
+
+/* ===== 일정 바 간격/높이 추가 축소 ===== */
 .streamlit-expanderHeader {
     font-weight: 800 !important;
     font-size: 0.94rem !important;
-    line-height: 1.42 !important;
+    line-height: 1.35 !important;
     text-align: left !important;
 }
 
 div[data-testid="stExpander"] {
-    margin-bottom: 1px !important;
+    margin-top: 0px !important;
+    margin-bottom: 0px !important;
+}
+
+div[data-testid="stVerticalBlock"] > div:has(> div[data-testid="stExpander"]) {
+    margin-bottom: 0px !important;
+    padding-bottom: 0px !important;
 }
 
 div[data-testid="stExpander"] details {
@@ -366,10 +394,11 @@ div[data-testid="stExpander"] details {
 }
 
 div[data-testid="stExpander"] summary {
-    padding-top: 0.22rem !important;
-    padding-bottom: 0.22rem !important;
-    padding-left: 0.75rem !important;
-    padding-right: 0.75rem !important;
+    padding-top: 0.10rem !important;
+    padding-bottom: 0.10rem !important;
+    padding-left: 0.78rem !important;
+    padding-right: 0.78rem !important;
+    min-height: 0 !important;
 }
 
 div[data-testid="stExpander"] summary:hover {
@@ -377,10 +406,11 @@ div[data-testid="stExpander"] summary:hover {
 }
 
 div[data-testid="stExpanderDetails"] {
-    padding-top: 0.08rem !important;
-    padding-bottom: 0.12rem !important;
+    padding-top: 0.02rem !important;
+    padding-bottom: 0.02rem !important;
 }
 
+/* ===== 나머지 ===== */
 .canceled-title {
     text-decoration: line-through;
     opacity: 0.65;
@@ -412,36 +442,10 @@ div[data-testid="stExpanderDetails"] {
     vertical-align: middle;
 }
 
-.sidebar-day-item {
-    border: 1px solid #ECEEF3;
-    border-radius: 12px;
-    padding: 8px 10px;
-    margin-bottom: 6px;
-    background: #ffffff;
-}
-
-.sidebar-day-time {
-    font-size: 0.78rem;
-    font-weight: 800;
-    color: #475467;
-    margin-bottom: 4px;
-}
-
-.sidebar-day-title {
-    font-size: 0.86rem;
-    font-weight: 700;
-    color: #1F2937;
-    line-height: 1.35;
-}
-
 .helper-note {
     font-size: 0.82rem;
     color: #667085;
     line-height: 1.45;
-}
-
-.menu-btn-wrap {
-    margin-bottom: 2px !important;
 }
 
 .segment-note {
@@ -475,6 +479,20 @@ div[data-testid="stExpanderDetails"] {
 
 .day-head.dim {
     color: #B5BBC8;
+}
+
+.sidebar-day-time {
+    font-size: 0.78rem;
+    font-weight: 800;
+    color: #475467;
+    margin-bottom: 4px;
+}
+
+.sidebar-day-title {
+    font-size: 0.86rem;
+    font-weight: 700;
+    color: #1F2937;
+    line-height: 1.35;
 }
 
 @media (max-width: 1000px) {
