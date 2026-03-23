@@ -394,11 +394,11 @@ div[data-testid="stExpander"] details {
 }
 
 div[data-testid="stExpander"] summary {
-    padding-top: 0.10rem !important;
-    padding-bottom: 0.10rem !important;
+    padding-top: 0.20rem !important;
+    padding-bottom: 0.20rem !important;
     padding-left: 0.78rem !important;
     padding-right: 0.78rem !important;
-    min-height: 0 !important;
+    min-height: 1 !important;
 }
 
 div[data-testid="stExpander"] summary:hover {
