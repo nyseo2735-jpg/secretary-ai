@@ -22,15 +22,15 @@ st.set_page_config(
 # 2. 상수
 # =========================================================
 COLOR_MAP = {
-    "국회": {"bg": "#FFF5F6", "soft": "#FDECEF", "line": "#D84C57", "text": "#B4232C", "dot": "🔴"},
-    "정부기관": {"bg": "#F4F9FF", "soft": "#EAF4FF", "line": "#3B82F6", "text": "#1D4ED8", "dot": "🔵"},
-    "대한수의사회": {"bg": "#F4FBF5", "soft": "#EAF8EC", "line": "#2E9F5B", "text": "#207547", "dot": "🟢"},
-    "수의과대학": {"bg": "#FBF6FD", "soft": "#F3EAFB", "line": "#A855F7", "text": "#7E22CE", "dot": "🟣"},
-    "언론사": {"bg": "#FFF8F1", "soft": "#FFF0DE", "line": "#F59E0B", "text": "#C56A00", "dot": "🟠"},
-    "기업": {"bg": "#F8FAFC", "soft": "#EEF2F6", "line": "#64748B", "text": "#334155", "dot": "⚫"},
-    "유관단체": {"bg": "#F2FCFD", "soft": "#E3F7F9", "line": "#14B8A6", "text": "#0F8F82", "dot": "🟦"},
-    "시도지부": {"bg": "#F7F5FF", "soft": "#EEE9FF", "line": "#7C3AED", "text": "#5B21B6", "dot": "🟪"},
-    "기타": {"bg": "#FAFAFA", "soft": "#F2F2F2", "line": "#9CA3AF", "text": "#4B5563", "dot": "⚪"},
+    "국회": {"bg": "#FFF8F8", "soft": "#FFF1F2", "line": "#E46A73", "text": "#C93543"},
+    "정부기관": {"bg": "#F6FAFF", "soft": "#EDF5FF", "line": "#6AA7FF", "text": "#2563EB"},
+    "대한수의사회": {"bg": "#F6FCF7", "soft": "#EDF9EF", "line": "#6EC58C", "text": "#2E8B57"},
+    "수의과대학": {"bg": "#FAF7FF", "soft": "#F3EEFF", "line": "#B691FF", "text": "#7C3AED"},
+    "언론사": {"bg": "#FFF9F3", "soft": "#FFF3E6", "line": "#F3B36A", "text": "#C97316"},
+    "기업": {"bg": "#FBFBFC", "soft": "#F3F4F6", "line": "#A8B0BD", "text": "#475467"},
+    "유관단체": {"bg": "#F6FCFC", "soft": "#EAF9F8", "line": "#70C8BE", "text": "#0F8F82"},
+    "시도지부": {"bg": "#F8F7FF", "soft": "#F0EDFF", "line": "#9C8CF0", "text": "#5B21B6"},
+    "기타": {"bg": "#FAFAFA", "soft": "#F4F4F5", "line": "#C4C7CF", "text": "#4B5563"},
 }
 CATEGORIES = list(COLOR_MAP.keys())
 STATUS_OPTIONS = ["확정", "보류", "완료", "취소"]
@@ -153,55 +153,6 @@ h1, h2, h3 {
     color: #344054;
 }
 
-.tag-pill {
-    display: inline-block;
-    padding: 5px 10px;
-    border-radius: 999px;
-    font-size: 0.74rem;
-    font-weight: 800;
-    border: 1px solid #D1D5DB;
-    background: #ffffff;
-    color: #475467;
-    margin-left: 6px;
-    vertical-align: middle;
-}
-
-.follow-pill {
-    display: inline-block;
-    padding: 5px 10px;
-    border-radius: 999px;
-    font-size: 0.74rem;
-    font-weight: 800;
-    border: 1px solid #D1D5DB;
-    background: #F8FAFC;
-    color: #344054;
-    margin-right: 6px;
-    vertical-align: middle;
-}
-
-.memo-box {
-    background: #FFFBEA;
-    border: 1px solid #F8E3A3;
-    border-left: 8px solid #F5C84B;
-    border-radius: 16px;
-    padding: 12px 16px;
-    margin-top: 2px;
-}
-
-.memo-title {
-    font-size: 0.90rem;
-    font-weight: 800;
-    color: #7A5A00;
-    margin-bottom: 6px;
-}
-
-.memo-text {
-    font-size: 0.94rem;
-    color: #4B5563;
-    line-height: 1.55;
-    white-space: pre-wrap;
-}
-
 .small-action button {
     min-height: 34px !important;
     height: 34px !important;
@@ -235,7 +186,7 @@ div[data-testid="stForm"] {
     background: #ffffff;
 }
 
-/* ===== 일정 박스: 라운드 사각형 스타일 ===== */
+/* expander 공통 모양 */
 .streamlit-expanderHeader {
     font-weight: 800 !important;
     font-size: 0.92rem !important;
@@ -245,11 +196,11 @@ div[data-testid="stForm"] {
 }
 
 div[data-testid="stExpander"] {
-    margin-bottom: 8px !important;
+    margin-bottom: 10px !important;
 }
 
 div[data-testid="stExpander"] details {
-    border-radius: 14px !important;
+    border-radius: 16px !important;
     border: 1.5px solid #E5E7EB !important;
     background: #ffffff !important;
     overflow: hidden !important;
@@ -257,10 +208,10 @@ div[data-testid="stExpander"] details {
 }
 
 div[data-testid="stExpander"] summary {
-    padding-top: 0.34rem !important;
-    padding-bottom: 0.34rem !important;
-    padding-left: 0.82rem !important;
-    padding-right: 0.82rem !important;
+    padding-top: 0.38rem !important;
+    padding-bottom: 0.38rem !important;
+    padding-left: 0.92rem !important;
+    padding-right: 0.92rem !important;
     min-height: auto !important;
 }
 
@@ -269,68 +220,17 @@ div[data-testid="stExpander"] summary:hover {
 }
 
 div[data-testid="stExpanderDetails"] {
-    padding-top: 0.2rem !important;
+    padding-top: 0.20rem !important;
     padding-bottom: 0.25rem !important;
 }
 
-/* 일정 헤더 바 */
-.event-pill-wrap {
-    width: 100%;
-}
-
-.event-pill {
-    display: block;
-    width: 100%;
-    box-sizing: border-box;
-    border-radius: 14px;
-    padding: 8px 12px;
-    font-size: 0.92rem;
-    font-weight: 800;
-    line-height: 1.4;
-    text-align: left;
-    background: #ffffff;
-}
-
-/* ===== 세부정보: 한 줄씩 ===== */
-.simple-detail-wrap {
+.detail-row-wrap {
     border: 1px solid #ECEEF3;
     border-radius: 14px;
     background: #ffffff;
-    padding: 4px 0;
-    margin-top: 4px;
+    margin-top: 6px;
     margin-bottom: 10px;
-}
-
-.simple-detail-row {
-    display: flex;
-    gap: 10px;
-    align-items: flex-start;
-    padding: 10px 14px;
-    border-bottom: 1px solid #F1F3F6;
-}
-
-.simple-detail-row:last-child {
-    border-bottom: none;
-}
-
-.simple-detail-label {
-    min-width: 118px;
-    max-width: 118px;
-    font-size: 0.82rem;
-    font-weight: 800;
-    color: #6B7280;
-    line-height: 1.45;
-    flex-shrink: 0;
-}
-
-.simple-detail-value {
-    flex: 1;
-    font-size: 0.93rem;
-    font-weight: 600;
-    color: #232634;
-    line-height: 1.5;
-    white-space: pre-wrap;
-    word-break: break-word;
+    overflow: hidden;
 }
 
 .day-head {
@@ -358,37 +258,6 @@ div[data-testid="stExpanderDetails"] {
 
 .day-head.dim {
     color: #B5BBC8;
-}
-
-.canceled-title {
-    text-decoration: line-through;
-    opacity: 0.65;
-}
-
-.cancel-pill {
-    display: inline-block;
-    margin-left: 6px;
-    padding: 4px 8px;
-    border-radius: 999px;
-    font-size: 0.72rem;
-    font-weight: 800;
-    background: #FEE2E2;
-    color: #B42318;
-    border: 1px solid #FECACA;
-    vertical-align: middle;
-}
-
-.attend-pill {
-    display: inline-block;
-    margin-left: 6px;
-    padding: 4px 8px;
-    border-radius: 999px;
-    font-size: 0.72rem;
-    font-weight: 800;
-    background: #FFF7D6;
-    color: #8A6500;
-    border: 1px solid #F2D675;
-    vertical-align: middle;
 }
 
 .sidebar-day-item {
@@ -429,26 +298,9 @@ div[data-testid="stExpanderDetails"] {
     margin-bottom: 10px;
 }
 
-.week-month-pill {
-    display: inline-block;
-    padding: 5px 10px;
-    border-radius: 999px;
-    font-size: 0.77rem;
-    font-weight: 800;
-    margin: 0 6px 6px 0;
-}
-
 @media (max-width: 1000px) {
     .main-title {
         font-size: 2.1rem;
-    }
-    .simple-detail-row {
-        flex-direction: column;
-        gap: 4px;
-    }
-    .simple-detail-label {
-        min-width: auto;
-        max-width: none;
     }
 }
 </style>
@@ -1054,39 +906,52 @@ if "table_page_num_value" not in st.session_state:
 # =========================================================
 # 6. 렌더 함수
 # =========================================================
+def render_detail_row(label, value, bg="#FFFFFF"):
+    c1, c2 = st.columns([1.1, 4.4])
+    with c1:
+        st.markdown(
+            f"<div style='font-size:0.82rem; font-weight:800; color:#6B7280; padding:8px 0 6px 2px;'>{html.escape(label)}</div>",
+            unsafe_allow_html=True
+        )
+    with c2:
+        st.markdown(
+            f"<div style='font-size:0.93rem; font-weight:600; color:#232634; line-height:1.5; padding:8px 0 6px 0; white-space:pre-wrap; word-break:break-word; background:{bg};'>{html.escape(value if value else '-')}</div>",
+            unsafe_allow_html=True
+        )
+
 def render_detail_blocks(row):
-    detail_rows = [
-        ("방문기관명", esc(row["OrgName"])),
-        ("회의장소(세부)", esc(row["DetailPlace"])),
-        ("보좌관/비서/담당자 정보", html.escape(contact_text(row))),
-        ("회장님 외 동행인", esc(row["Companion"])),
-        ("사무처 수행직원", esc(row["Staff"])),
-        ("참석 구분", esc(attend_label(row))),
-        ("최종 수정", f"{esc(row['Updated'])} / {esc(row['UpdatedBy'])}"),
-        ("회의 목적", esc(row["Purpose"])),
-        ("대응 방향", esc(row["ActionPlan"])),
-        ("후속/준비사항", esc(row["FollowTask"])),
-        ("주 담당자", esc(row["FollowOwner"])),
-        ("준비 완료기한", esc(row["FollowDue"])),
-        ("팔로우업 상태", esc(row["FollowStatus"])),
-        ("진행 메모", esc(row["FollowProgressMemo"])),
-        ("공유 메모", esc(row["SharedNote"])),
-        ("일반 Memo", esc(row["Memo"])),
-    ]
-
-    html_rows = []
-    for label, value in detail_rows:
-        html_rows.append(f"""
-        <div class="simple-detail-row">
-            <div class="simple-detail-label">{label}</div>
-            <div class="simple-detail-value">{value}</div>
-        </div>
-        """)
-
-    st.markdown(
-        f'<div class="simple-detail-wrap">{"".join(html_rows)}</div>',
-        unsafe_allow_html=True
-    )
+    with st.container(border=True):
+        render_detail_row("방문기관명", safe_str(row["OrgName"]))
+        st.divider()
+        render_detail_row("회의장소(세부)", safe_str(row["DetailPlace"]))
+        st.divider()
+        render_detail_row("보좌관/비서/담당자 정보", contact_text(row))
+        st.divider()
+        render_detail_row("회장님 외 동행인", safe_str(row["Companion"]))
+        st.divider()
+        render_detail_row("사무처 수행직원", safe_str(row["Staff"]))
+        st.divider()
+        render_detail_row("참석 구분", attend_label(row))
+        st.divider()
+        render_detail_row("최종 수정", f"{safe_str(row['Updated'])} / {safe_str(row['UpdatedBy'])}")
+        st.divider()
+        render_detail_row("회의 목적", safe_str(row["Purpose"]))
+        st.divider()
+        render_detail_row("대응 방향", safe_str(row["ActionPlan"]))
+        st.divider()
+        render_detail_row("후속/준비사항", safe_str(row["FollowTask"]))
+        st.divider()
+        render_detail_row("주 담당자", safe_str(row["FollowOwner"]))
+        st.divider()
+        render_detail_row("준비 완료기한", safe_str(row["FollowDue"]))
+        st.divider()
+        render_detail_row("팔로우업 상태", safe_str(row["FollowStatus"]))
+        st.divider()
+        render_detail_row("진행 메모", safe_str(row["FollowProgressMemo"]))
+        st.divider()
+        render_detail_row("공유 메모", safe_str(row["SharedNote"]))
+        st.divider()
+        render_detail_row("일반 Memo", safe_str(row["Memo"]))
 
 def render_action_buttons(row, prefix=""):
     st.markdown('<div class="small-action">', unsafe_allow_html=True)
@@ -1133,27 +998,30 @@ def render_action_buttons(row, prefix=""):
 
 def render_compact_event(row, prefix=""):
     c = get_color(row["Category"])
+    label = compact_line_text(row)
+
     st.markdown(
         f"""
         <style>
-        div[data-testid="stExpander"]:has(div#{prefix}_marker) details {{
-            border-color: {c['line']} !important;
+        div[data-testid="stExpander"]:has(div[id="{prefix}_marker"]) details {{
+            border: 1.6px solid {c['line']} !important;
             background: #ffffff !important;
+            border-radius: 16px !important;
         }}
-        div[data-testid="stExpander"]:has(div#{prefix}_marker) .streamlit-expanderHeader {{
+        div[data-testid="stExpander"]:has(div[id="{prefix}_marker"]) .streamlit-expanderHeader {{
             color: {c['text']} !important;
+            font-weight: 800 !important;
         }}
-        div[data-testid="stExpander"]:has(div#{prefix}_marker) summary:hover {{
+        div[data-testid="stExpander"]:has(div[id="{prefix}_marker"]) summary:hover {{
             background: {c['soft']} !important;
         }}
         </style>
-        <div id="{prefix}_marker"></div>
         """,
         unsafe_allow_html=True
     )
 
-    label = compact_line_text(row)
     with st.expander(label, expanded=False):
+        st.markdown(f'<div id="{prefix}_marker"></div>', unsafe_allow_html=True)
         render_detail_blocks(row)
         render_action_buttons(row, prefix=prefix)
 
