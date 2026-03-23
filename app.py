@@ -153,41 +153,6 @@ h1, h2, h3 {
     color: #344054;
 }
 
-.summary-card {
-    border-radius: 22px;
-    overflow: hidden;
-    border: 1px solid #E8EBF2;
-    margin-bottom: 10px;
-}
-
-.summary-inner {
-    display: flex;
-}
-
-.summary-accent {
-    width: 10px;
-    flex-shrink: 0;
-}
-
-.summary-body {
-    width: 100%;
-    padding: 14px 16px 12px 16px;
-}
-
-.summary-meta {
-    font-size: 0.92rem;
-    font-weight: 800;
-    margin-bottom: 6px;
-}
-
-.summary-title {
-    font-size: 1.22rem;
-    font-weight: 800;
-    color: #232634;
-    line-height: 1.28;
-    margin: 0;
-}
-
 .tag-pill {
     display: inline-block;
     padding: 5px 10px;
@@ -214,31 +179,6 @@ h1, h2, h3 {
     vertical-align: middle;
 }
 
-.info-box {
-    background: #ffffff;
-    border: 1px solid #ECEEF3;
-    border-radius: 16px;
-    padding: 12px 14px 10px 14px;
-    min-height: 72px;
-    margin-bottom: 10px;
-}
-
-.info-label {
-    font-size: 0.77rem;
-    font-weight: 800;
-    color: #6B7280;
-    margin-bottom: 6px;
-}
-
-.info-value {
-    font-size: 0.96rem;
-    font-weight: 600;
-    color: #232634;
-    line-height: 1.45;
-    white-space: pre-wrap;
-    word-break: break-word;
-}
-
 .memo-box {
     background: #FFFBEA;
     border: 1px solid #F8E3A3;
@@ -260,52 +200,6 @@ h1, h2, h3 {
     color: #4B5563;
     line-height: 1.55;
     white-space: pre-wrap;
-}
-
-.follow-wrap {
-    background: #F7FAFF;
-    border: 1px solid #D7E7FF;
-    border-left: 8px solid #3B82F6;
-    border-radius: 18px;
-    padding: 14px 16px;
-    margin-top: 12px;
-    margin-bottom: 10px;
-}
-
-.follow-title {
-    font-size: 1rem;
-    font-weight: 800;
-    color: #1D4ED8;
-    margin-bottom: 10px;
-}
-
-.follow-grid {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 10px;
-}
-
-.follow-box {
-    border: 1px solid #DDE6F4;
-    border-radius: 14px;
-    padding: 10px 12px;
-    background: #ffffff;
-}
-
-.follow-label {
-    font-size: 0.75rem;
-    font-weight: 800;
-    color: #6B7280;
-    margin-bottom: 4px;
-}
-
-.follow-value {
-    font-size: 0.92rem;
-    font-weight: 600;
-    color: #1F2937;
-    line-height: 1.45;
-    white-space: pre-wrap;
-    word-break: break-word;
 }
 
 .small-action button {
@@ -341,11 +235,13 @@ div[data-testid="stForm"] {
     background: #ffffff;
 }
 
+/* ===== 일정 박스: 라운드 사각형 스타일 ===== */
 .streamlit-expanderHeader {
     font-weight: 800 !important;
-    font-size: 0.95rem !important;
-    line-height: 1.4 !important;
+    font-size: 0.92rem !important;
+    line-height: 1.45 !important;
     text-align: left !important;
+    color: #344054 !important;
 }
 
 div[data-testid="stExpander"] {
@@ -353,31 +249,55 @@ div[data-testid="stExpander"] {
 }
 
 div[data-testid="stExpander"] details {
-    border-radius: 18px !important;
-    border: 1.6px solid #D8DEE8 !important;
+    border-radius: 14px !important;
+    border: 1.5px solid #E5E7EB !important;
     background: #ffffff !important;
     overflow: hidden !important;
     box-shadow: none !important;
 }
 
 div[data-testid="stExpander"] summary {
-    padding-top: 0.46rem !important;
-    padding-bottom: 0.46rem !important;
-    padding-left: 0.9rem !important;
-    padding-right: 0.9rem !important;
+    padding-top: 0.34rem !important;
+    padding-bottom: 0.34rem !important;
+    padding-left: 0.82rem !important;
+    padding-right: 0.82rem !important;
     min-height: auto !important;
 }
 
 div[data-testid="stExpander"] summary:hover {
-    background: #FAFBFC !important;
+    background: #FAFAFA !important;
 }
 
+div[data-testid="stExpanderDetails"] {
+    padding-top: 0.2rem !important;
+    padding-bottom: 0.25rem !important;
+}
+
+/* 일정 헤더 바 */
+.event-pill-wrap {
+    width: 100%;
+}
+
+.event-pill {
+    display: block;
+    width: 100%;
+    box-sizing: border-box;
+    border-radius: 14px;
+    padding: 8px 12px;
+    font-size: 0.92rem;
+    font-weight: 800;
+    line-height: 1.4;
+    text-align: left;
+    background: #ffffff;
+}
+
+/* ===== 세부정보: 한 줄씩 ===== */
 .simple-detail-wrap {
     border: 1px solid #ECEEF3;
-    border-radius: 16px;
+    border-radius: 14px;
     background: #ffffff;
-    padding: 6px 0;
-    margin-top: 6px;
+    padding: 4px 0;
+    margin-top: 4px;
     margin-bottom: 10px;
 }
 
@@ -386,7 +306,7 @@ div[data-testid="stExpander"] summary:hover {
     gap: 10px;
     align-items: flex-start;
     padding: 10px 14px;
-    border-bottom: 1px solid #F0F2F5;
+    border-bottom: 1px solid #F1F3F6;
 }
 
 .simple-detail-row:last-child {
@@ -394,9 +314,9 @@ div[data-testid="stExpander"] summary:hover {
 }
 
 .simple-detail-label {
-    min-width: 120px;
-    max-width: 120px;
-    font-size: 0.83rem;
+    min-width: 118px;
+    max-width: 118px;
+    font-size: 0.82rem;
     font-weight: 800;
     color: #6B7280;
     line-height: 1.45;
@@ -405,7 +325,7 @@ div[data-testid="stExpander"] summary:hover {
 
 .simple-detail-value {
     flex: 1;
-    font-size: 0.94rem;
+    font-size: 0.93rem;
     font-weight: 600;
     color: #232634;
     line-height: 1.5;
@@ -521,12 +441,6 @@ div[data-testid="stExpander"] summary:hover {
 @media (max-width: 1000px) {
     .main-title {
         font-size: 2.1rem;
-    }
-    .summary-title {
-        font-size: 1.10rem;
-    }
-    .follow-grid {
-        grid-template-columns: 1fr;
     }
     .simple-detail-row {
         flex-direction: column;
@@ -1021,13 +935,6 @@ def render_metric_chips(day_count, confirmed_count, pending_count, cancel_count)
     """
     st.markdown(html_text, unsafe_allow_html=True)
 
-def format_subject_html(row):
-    subject = esc(safe_str(attend_prefix(row)) + safe_str(row["Subject"]))
-    attend_badge = '<span class="attend-pill">회장 참석</span>' if is_president_attend(row) else ""
-    if safe_str(row["Status"]) == "취소":
-        return f'<span class="canceled-title">{subject}</span>{attend_badge}<span class="cancel-pill">취소</span>'
-    return f'{subject}{attend_badge}'
-
 def weekday_class_by_index(idx: int):
     if idx == 0:
         return "sun"
@@ -1147,66 +1054,6 @@ if "table_page_num_value" not in st.session_state:
 # =========================================================
 # 6. 렌더 함수
 # =========================================================
-def render_followup_section(row):
-    st.markdown(f"""
-    <div class="follow-wrap">
-        <div class="follow-title">📌 사무처 팔로우업 핵심 영역</div>
-        <div style="margin-bottom:10px;">
-            <span class="follow-pill">팔로우업 상태: {esc(row["FollowStatus"])}</span>
-            <span class="follow-pill">주 담당자: {esc(row["FollowOwner"])}</span>
-            <span class="follow-pill">준비기한: {esc(row["FollowDue"])}</span>
-        </div>
-        <div class="follow-grid">
-            <div class="follow-box">
-                <div class="follow-label">회의 목적</div>
-                <div class="follow-value">{esc(row["Purpose"])}</div>
-            </div>
-            <div class="follow-box">
-                <div class="follow-label">대응 방향</div>
-                <div class="follow-value">{esc(row["ActionPlan"])}</div>
-            </div>
-            <div class="follow-box">
-                <div class="follow-label">후속/준비사항</div>
-                <div class="follow-value">{esc(row["FollowTask"])}</div>
-            </div>
-            <div class="follow-box">
-                <div class="follow-label">진행 메모</div>
-                <div class="follow-value">{esc(row["FollowProgressMemo"])}</div>
-            </div>
-            <div class="follow-box">
-                <div class="follow-label">공유 메모</div>
-                <div class="follow-value">{esc(row["SharedNote"])}</div>
-            </div>
-            <div class="follow-box">
-                <div class="follow-label">최종 추적일</div>
-                <div class="follow-value">{esc(row["FollowUpdated"])}</div>
-            </div>
-        </div>
-    </div>
-    """, unsafe_allow_html=True)
-
-def render_summary_header(row):
-    c = get_color(row["Category"])
-    attend_badge = '<span class="tag-pill">👑 회장 직접 참석</span>' if is_president_attend(row) else '<span class="tag-pill">대참 가능 일정</span>'
-    st.markdown(f"""
-    <div class="summary-card" style="background:{c['bg']};">
-        <div class="summary-inner">
-            <div class="summary-accent" style="background:{c['line']};"></div>
-            <div class="summary-body">
-                <div class="summary-meta" style="color:{c['text']};">
-                    ⏰ {esc(row["Time"])}
-                    <span class="tag-pill" style="background:{c["soft"]}; color:{c["text"]}; border-color:{c["line"]};">{esc(row["Category"])}</span>
-                    <span class="tag-pill">{esc(row["Status"])}</span>
-                    <span class="tag-pill">우선순위 {esc(row["Priority"])}</span>
-                    <span class="tag-pill">팔로우업 {esc(row["FollowStatus"])}</span>
-                    {attend_badge}
-                </div>
-                <div class="summary-title">{format_subject_html(row)}</div>
-            </div>
-        </div>
-    </div>
-    """, unsafe_allow_html=True)
-
 def render_detail_blocks(row):
     detail_rows = [
         ("방문기관명", esc(row["OrgName"])),
@@ -1286,20 +1133,26 @@ def render_action_buttons(row, prefix=""):
 
 def render_compact_event(row, prefix=""):
     c = get_color(row["Category"])
-    label = f"""
-    <span style="
-        display:block;
-        width:100%;
-        border:1.6px solid {c['line']};
-        border-radius:14px;
-        padding:8px 12px;
-        background:#ffffff;
-        color:{c['text']};
-        font-weight:800;
-        line-height:1.35;
-        text-align:left;
-    ">{html.escape(compact_line_text(row))}</span>
-    """
+    st.markdown(
+        f"""
+        <style>
+        div[data-testid="stExpander"]:has(div#{prefix}_marker) details {{
+            border-color: {c['line']} !important;
+            background: #ffffff !important;
+        }}
+        div[data-testid="stExpander"]:has(div#{prefix}_marker) .streamlit-expanderHeader {{
+            color: {c['text']} !important;
+        }}
+        div[data-testid="stExpander"]:has(div#{prefix}_marker) summary:hover {{
+            background: {c['soft']} !important;
+        }}
+        </style>
+        <div id="{prefix}_marker"></div>
+        """,
+        unsafe_allow_html=True
+    )
+
+    label = compact_line_text(row)
     with st.expander(label, expanded=False):
         render_detail_blocks(row)
         render_action_buttons(row, prefix=prefix)
