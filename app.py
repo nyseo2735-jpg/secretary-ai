@@ -346,40 +346,24 @@ div[data-testid="stForm"] {
     background: #ffffff;
 }
 
-/* ===== 사이드바 간격 대폭 축소 ===== */
+/* ===== 사이드바 간격: 직전 버전보다 약 50% 축소 ===== */
 .menu-btn-wrap {
-    margin: 0px !important;
-    padding: 0px !important;
+    margin-bottom: 4px !important;
 }
 
-section[data-testid="stSidebar"] div[data-testid="stVerticalBlock"] {
-    gap: 0px !important;
+section[data-testid="stSidebar"] div[data-testid="stButton"] {
+    margin-bottom: 6px !important;
 }
 
-section[data-testid="stSidebar"] div[data-testid="stVerticalBlock"] > div {
-    margin: 0px !important;
-    padding: 0px !important;
-}
-
-section[data-testid="stSidebar"] div[data-testid="stButton"],
-section[data-testid="stSidebar"] div[data-testid="stDownloadButton"],
-section[data-testid="stSidebar"] div[data-testid="stExpander"] {
-    margin-top: 0px !important;
-    margin-bottom: 0px !important;
-}
-
-section[data-testid="stSidebar"] div[data-testid="stButton"] > button,
-section[data-testid="stSidebar"] div[data-testid="stDownloadButton"] > button {
-    margin-top: 0px !important;
-    margin-bottom: 0px !important;
-    min-height: 2.7rem !important;
+section[data-testid="stSidebar"] div[data-testid="stDownloadButton"] {
+    margin-bottom: 6px !important;
 }
 
 .sidebar-day-item {
     border: 1px solid #ECEEF3;
     border-radius: 12px;
     padding: 8px 10px;
-    margin-bottom: 0px !important;
+    margin-bottom: 4px !important;
     background: #ffffff;
 }
 
@@ -409,26 +393,17 @@ section[data-testid="stSidebar"] div[data-testid="stDownloadButton"] > button {
     margin-bottom: 8px;
 }
 
-/* ===== 메인/주간/월별 일정 바 간격 대폭 축소 ===== */
-div[data-testid="stVerticalBlock"] {
-    gap: 0px !important;
-}
-
-div[data-testid="stVerticalBlock"] > div {
-    margin-top: 0px !important;
-    margin-bottom: 0px !important;
-    padding-top: 0px !important;
-    padding-bottom: 0px !important;
-}
-
-div[data-testid="stVerticalBlock"] > div:has(> div[data-testid="stExpander"]) {
-    margin: 0px !important;
-    padding: 0px !important;
+/* ===== 일정 바 공통: 일별/주간/월별 동일 밀도 ===== */
+.streamlit-expanderHeader {
+    font-weight: 800 !important;
+    font-size: 0.94rem !important;
+    line-height: 1.3 !important;
+    text-align: left !important;
 }
 
 div[data-testid="stExpander"] {
     margin-top: 0px !important;
-    margin-bottom: 0px !important;
+    margin-bottom: 4px !important;
 }
 
 div[data-testid="stExpander"] details {
@@ -437,24 +412,14 @@ div[data-testid="stExpander"] details {
     background: #ffffff !important;
     overflow: hidden !important;
     box-shadow: none !important;
-    margin: 0px !important;
-}
-
-/* 일정 바 자체 높이 더 축소 */
-.streamlit-expanderHeader {
-    font-weight: 800 !important;
-    font-size: 0.94rem !important;
-    line-height: 1.2 !important;
-    text-align: left !important;
 }
 
 div[data-testid="stExpander"] summary {
-    padding-top: 0.02rem !important;
-    padding-bottom: 0.02rem !important;
-    padding-left: 0.72rem !important;
-    padding-right: 0.72rem !important;
-    min-height: 0 !important;
-    line-height: 1.2 !important;
+    padding-top: 0.18rem !important;
+    padding-bottom: 0.18rem !important;
+    padding-left: 0.80rem !important;
+    padding-right: 0.80rem !important;
+    min-height: auto !important;
 }
 
 div[data-testid="stExpander"] summary:hover {
@@ -462,11 +427,17 @@ div[data-testid="stExpander"] summary:hover {
 }
 
 div[data-testid="stExpanderDetails"] {
-    padding-top: 0px !important;
+    padding-top: 0.12rem !important;
+    padding-bottom: 0.12rem !important;
+}
+
+/* expander를 감싸는 블록 간격도 동일하게 */
+div[data-testid="stVerticalBlock"] > div:has(> div[data-testid="stExpander"]) {
+    margin-bottom: 4px !important;
     padding-bottom: 0px !important;
 }
 
-/* 탭 아래쪽과 섹션 사이 여백도 과하지 않게 */
+/* tabs 아래 과한 여백 방지 */
 div[data-testid="stTabs"] {
     margin-bottom: 0px !important;
 }
@@ -544,6 +515,15 @@ div[data-testid="stTabs"] {
     }
     .info-box {
         min-height: auto;
+    }
+    div[data-testid="stExpander"] {
+        margin-bottom: 4px !important;
+    }
+    div[data-testid="stExpander"] summary {
+        padding-top: 0.18rem !important;
+        padding-bottom: 0.18rem !important;
+        padding-left: 0.72rem !important;
+        padding-right: 0.72rem !important;
     }
 }
 </style>
