@@ -354,7 +354,7 @@ div[data-testid="stForm"] {
 }
 
 div[data-testid="stExpander"] {
-    margin-bottom: 5px !important;
+    margin-bottom: 3px !important;
 }
 
 div[data-testid="stExpander"] details {
@@ -366,11 +366,10 @@ div[data-testid="stExpander"] details {
 }
 
 div[data-testid="stExpander"] summary {
-    padding-top: 0.34rem !important;
-    padding-bottom: 0.34rem !important;
-    padding-left: 0.85rem !important;
-    padding-right: 0.85rem !important;
-    min-height: auto !important;
+    padding-top: 0.22rem !important;
+    padding-bottom: 0.22rem !important;
+    padding-left: 0.75rem !important;
+    padding-right: 0.75rem !important;
 }
 
 div[data-testid="stExpander"] summary:hover {
@@ -442,7 +441,7 @@ div[data-testid="stExpanderDetails"] {
 }
 
 .menu-btn-wrap {
-    margin-bottom: 2px;
+    margin-bottom: 2px !important;
 }
 
 .segment-note {
