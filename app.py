@@ -349,21 +349,68 @@ div[data-testid="stForm"] {
 }
 
 div[data-testid="stExpander"] {
-    margin-bottom: 6px !important;
+    margin-bottom: 8px !important;
 }
 
 div[data-testid="stExpander"] details {
-    border-radius: 14px !important;
-    border: 1px solid #D8DEE8 !important;
+    border-radius: 18px !important;
+    border: 1.6px solid #D8DEE8 !important;
     background: #ffffff !important;
     overflow: hidden !important;
+    box-shadow: none !important;
 }
 
 div[data-testid="stExpander"] summary {
-    padding-top: 0.5rem !important;
-    padding-bottom: 0.5rem !important;
+    padding-top: 0.46rem !important;
+    padding-bottom: 0.46rem !important;
     padding-left: 0.9rem !important;
     padding-right: 0.9rem !important;
+    min-height: auto !important;
+}
+
+div[data-testid="stExpander"] summary:hover {
+    background: #FAFBFC !important;
+}
+
+.simple-detail-wrap {
+    border: 1px solid #ECEEF3;
+    border-radius: 16px;
+    background: #ffffff;
+    padding: 6px 0;
+    margin-top: 6px;
+    margin-bottom: 10px;
+}
+
+.simple-detail-row {
+    display: flex;
+    gap: 10px;
+    align-items: flex-start;
+    padding: 10px 14px;
+    border-bottom: 1px solid #F0F2F5;
+}
+
+.simple-detail-row:last-child {
+    border-bottom: none;
+}
+
+.simple-detail-label {
+    min-width: 120px;
+    max-width: 120px;
+    font-size: 0.83rem;
+    font-weight: 800;
+    color: #6B7280;
+    line-height: 1.45;
+    flex-shrink: 0;
+}
+
+.simple-detail-value {
+    flex: 1;
+    font-size: 0.94rem;
+    font-weight: 600;
+    color: #232634;
+    line-height: 1.5;
+    white-space: pre-wrap;
+    word-break: break-word;
 }
 
 .day-head {
@@ -481,6 +528,14 @@ div[data-testid="stExpander"] summary {
     .follow-grid {
         grid-template-columns: 1fr;
     }
+    .simple-detail-row {
+        flex-direction: column;
+        gap: 4px;
+    }
+    .simple-detail-label {
+        min-width: auto;
+        max-width: none;
+    }
 }
 </style>
 """, unsafe_allow_html=True)
@@ -594,10 +649,10 @@ def compact_subject_text(row):
     return subject
 
 def compact_line_text(row):
-    c = get_color(row.get("Category", "기타"))
     time_text = safe_str(row.get("Time")) or "-"
     cat_text = safe_str(row.get("Category")) or "-"
-    return f"{c['dot']} {time_text} · [{cat_text}] · {compact_subject_text(row)}"
+    subject_text = compact_subject_text(row)
+    return f"{time_text} [{cat_text}] {subject_text}"
 
 def excel_download_bytes(df: pd.DataFrame) -> bytes:
     export_df = get_active_df(df).copy()
@@ -1153,57 +1208,38 @@ def render_summary_header(row):
     """, unsafe_allow_html=True)
 
 def render_detail_blocks(row):
-    c1, c2, c3 = st.columns(3)
-    with c1:
-        st.markdown(f"""
-        <div class="info-box">
-            <div class="info-label">방문기관명</div>
-            <div class="info-value">🏢 {esc(row["OrgName"])}</div>
-        </div>
-        """, unsafe_allow_html=True)
-        st.markdown(f"""
-        <div class="info-box">
-            <div class="info-label">회의장소(세부)</div>
-            <div class="info-value">📍 {esc(row["DetailPlace"])}</div>
-        </div>
-        """, unsafe_allow_html=True)
+    detail_rows = [
+        ("방문기관명", esc(row["OrgName"])),
+        ("회의장소(세부)", esc(row["DetailPlace"])),
+        ("보좌관/비서/담당자 정보", html.escape(contact_text(row))),
+        ("회장님 외 동행인", esc(row["Companion"])),
+        ("사무처 수행직원", esc(row["Staff"])),
+        ("참석 구분", esc(attend_label(row))),
+        ("최종 수정", f"{esc(row['Updated'])} / {esc(row['UpdatedBy'])}"),
+        ("회의 목적", esc(row["Purpose"])),
+        ("대응 방향", esc(row["ActionPlan"])),
+        ("후속/준비사항", esc(row["FollowTask"])),
+        ("주 담당자", esc(row["FollowOwner"])),
+        ("준비 완료기한", esc(row["FollowDue"])),
+        ("팔로우업 상태", esc(row["FollowStatus"])),
+        ("진행 메모", esc(row["FollowProgressMemo"])),
+        ("공유 메모", esc(row["SharedNote"])),
+        ("일반 Memo", esc(row["Memo"])),
+    ]
 
-    with c2:
-        st.markdown(f"""
-        <div class="info-box">
-            <div class="info-label">보좌관/비서/담당자 정보</div>
-            <div class="info-value">👤 {html.escape(contact_text(row))}</div>
+    html_rows = []
+    for label, value in detail_rows:
+        html_rows.append(f"""
+        <div class="simple-detail-row">
+            <div class="simple-detail-label">{label}</div>
+            <div class="simple-detail-value">{value}</div>
         </div>
-        """, unsafe_allow_html=True)
-        st.markdown(f"""
-        <div class="info-box">
-            <div class="info-label">회장님 외 동행인</div>
-            <div class="info-value">👥 {esc(row["Companion"])}</div>
-        </div>
-        """, unsafe_allow_html=True)
+        """)
 
-    with c3:
-        st.markdown(f"""
-        <div class="info-box">
-            <div class="info-label">사무처 수행직원</div>
-            <div class="info-value">🧾 {esc(row["Staff"])}</div>
-        </div>
-        """, unsafe_allow_html=True)
-        st.markdown(f"""
-        <div class="info-box">
-            <div class="info-label">참석 구분 / 최종 수정</div>
-            <div class="info-value">👑 {esc(attend_label(row))}<br>🕒 {esc(row["Updated"])} / {esc(row["UpdatedBy"])}</div>
-        </div>
-        """, unsafe_allow_html=True)
-
-    render_followup_section(row)
-
-    st.markdown(f"""
-    <div class="memo-box">
-        <div class="memo-title">📌 일반 메모</div>
-        <div class="memo-text">{esc(row["Memo"])}</div>
-    </div>
-    """, unsafe_allow_html=True)
+    st.markdown(
+        f'<div class="simple-detail-wrap">{"".join(html_rows)}</div>',
+        unsafe_allow_html=True
+    )
 
 def render_action_buttons(row, prefix=""):
     st.markdown('<div class="small-action">', unsafe_allow_html=True)
@@ -1249,8 +1285,22 @@ def render_action_buttons(row, prefix=""):
     st.markdown('</div>', unsafe_allow_html=True)
 
 def render_compact_event(row, prefix=""):
-    with st.expander(compact_line_text(row), expanded=False):
-        render_summary_header(row)
+    c = get_color(row["Category"])
+    label = f"""
+    <span style="
+        display:block;
+        width:100%;
+        border:1.6px solid {c['line']};
+        border-radius:14px;
+        padding:8px 12px;
+        background:#ffffff;
+        color:{c['text']};
+        font-weight:800;
+        line-height:1.35;
+        text-align:left;
+    ">{html.escape(compact_line_text(row))}</span>
+    """
+    with st.expander(label, expanded=False):
         render_detail_blocks(row)
         render_action_buttons(row, prefix=prefix)
 
