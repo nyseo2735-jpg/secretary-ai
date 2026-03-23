@@ -87,7 +87,7 @@ html, body, [class*="css"] {
 }
 
 .block-container {
-    padding-top: 2.6rem;
+    padding-top: 2.55rem;
     padding-bottom: 1.4rem;
     max-width: 1600px;
 }
@@ -346,7 +346,7 @@ div[data-testid="stForm"] {
     background: #ffffff;
 }
 
-/* ===== 사이드바 4개 버튼 박스 간격만 확실히 축소 ===== */
+/* ===== 사이드바 4개 버튼 간격/높이 ===== */
 .menu-btn-wrap {
     margin: 0 !important;
     padding: 0 !important;
@@ -356,7 +356,7 @@ section[data-testid="stSidebar"] div[data-testid="stVerticalBlock"] > div:has(> 
 section[data-testid="stSidebar"] div[data-testid="stVerticalBlock"] > div:has(> div[data-testid="stDownloadButton"]),
 section[data-testid="stSidebar"] div[data-testid="stVerticalBlock"] > div:has(> div[data-testid="stExpander"]) {
     margin-top: 0 !important;
-    margin-bottom: 2px !important;
+    margin-bottom: 1px !important;
     padding-top: 0 !important;
     padding-bottom: 0 !important;
 }
@@ -372,15 +372,17 @@ section[data-testid="stSidebar"] div[data-testid="stButton"] > button,
 section[data-testid="stSidebar"] div[data-testid="stDownloadButton"] > button {
     margin-top: 0 !important;
     margin-bottom: 0 !important;
-    min-height: 3rem !important;
+    min-height: 2.65rem !important;
+    padding-top: 0.35rem !important;
+    padding-bottom: 0.35rem !important;
 }
 
-/* 선택일 미리보기 카드 간격 */
+/* 선택일 미리보기 카드 */
 .sidebar-day-item {
     border: 1px solid #ECEEF3;
     border-radius: 12px;
     padding: 8px 10px;
-    margin-bottom: 2px !important;
+    margin-bottom: 1px !important;
     background: #ffffff;
 }
 
@@ -410,17 +412,17 @@ section[data-testid="stSidebar"] div[data-testid="stDownloadButton"] > button {
     margin-bottom: 8px;
 }
 
-/* ===== 일별/주간/월별 일정 박스 간격만 확실히 축소 ===== */
+/* ===== 일별/주간/월별 일정 박스 공통 ===== */
 .streamlit-expanderHeader {
     font-weight: 800 !important;
-    font-size: 0.94rem !important;
-    line-height: 1.3 !important;
+    font-size: 0.92rem !important;
+    line-height: 1.22 !important;
     text-align: left !important;
 }
 
 div[data-testid="stExpander"] {
     margin-top: 0 !important;
-    margin-bottom: 3px !important;
+    margin-bottom: 1px !important;
 }
 
 div[data-testid="stExpander"] details {
@@ -433,10 +435,10 @@ div[data-testid="stExpander"] details {
 }
 
 div[data-testid="stExpander"] summary {
-    padding-top: 0.30rem !important;
-    padding-bottom: 0.30rem !important;
-    padding-left: 0.84rem !important;
-    padding-right: 0.84rem !important;
+    padding-top: 0.18rem !important;
+    padding-bottom: 0.18rem !important;
+    padding-left: 0.80rem !important;
+    padding-right: 0.80rem !important;
     min-height: auto !important;
 }
 
@@ -449,15 +451,13 @@ div[data-testid="stExpanderDetails"] {
     padding-bottom: 0.12rem !important;
 }
 
-/* expander를 직접 감싸는 블록만 살짝 줄임 */
+/* expander만 감싸는 wrapper만 축소 */
 div[data-testid="stVerticalBlock"] > div:has(> div[data-testid="stExpander"]) {
-    margin-bottom: 3px !important;
+    margin-bottom: 1px !important;
     padding-bottom: 0 !important;
 }
 
-/* 전역 stVerticalBlock gap은 건드리지 않음 */
-/* 상단 검색/제목/주간 헤더 보호 */
-
+/* 전역 블록 간격은 건드리지 않음 */
 div[data-testid="stTabs"] {
     margin-bottom: 0 !important;
 }
@@ -520,9 +520,10 @@ div[data-testid="stTabs"] {
     vertical-align: middle;
 }
 
+/* 좁은 주간/월별 칸에서 너무 세로로 길어지는 것 완화 */
 @media (max-width: 1000px) {
     .block-container {
-        padding-top: 2rem;
+        padding-top: 2.1rem;
     }
 
     .main-title {
@@ -546,18 +547,23 @@ div[data-testid="stTabs"] {
     }
 
     section[data-testid="stSidebar"] div[data-testid="stButton"] {
-        margin-bottom: 3px !important;
+        margin-bottom: 1px !important;
     }
 
     div[data-testid="stExpander"] {
-        margin-bottom: 3px !important;
+        margin-bottom: 1px !important;
     }
 
     div[data-testid="stExpander"] summary {
-        padding-top: 0.30rem !important;
-        padding-bottom: 0.30rem !important;
-        padding-left: 0.72rem !important;
-        padding-right: 0.72rem !important;
+        padding-top: 0.16rem !important;
+        padding-bottom: 0.16rem !important;
+        padding-left: 0.68rem !important;
+        padding-right: 0.68rem !important;
+    }
+
+    .streamlit-expanderHeader {
+        font-size: 0.88rem !important;
+        line-height: 1.18 !important;
     }
 }
 </style>
