@@ -354,7 +354,7 @@ div[data-testid="stForm"] {
 }
 
 div[data-testid="stExpander"] {
-    margin-bottom: 3px !important;
+    margin-bottom: 1px !important;
 }
 
 div[data-testid="stExpander"] details {
