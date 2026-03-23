@@ -515,6 +515,20 @@ div[data-testid="stExpanderDetails"] {
 </style>
 """, unsafe_allow_html=True)
 
+div[data-testid="stVerticalBlock"] > div { gap: 0px !important; }
+
+div[data-testid="stVerticalBlock"] > div:has(> div[data-testid="stExpander"]) { 
+    margin: 0 !important; 
+}
+
+div[data-testid="stExpander"] { 
+    margin: 0 !important; 
+}
+
+div[data-testid="stExpander"] summary { 
+    padding: 0.06rem 0 !important; 
+}
+
 # =========================================================
 # 4. 유틸
 # =========================================================
