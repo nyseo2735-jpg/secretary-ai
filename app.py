@@ -22,15 +22,15 @@ st.set_page_config(
 # 2. 상수
 # =========================================================
 COLOR_MAP = {
-    "국회": {"bg": "#FFF5F6", "soft": "#FDECEF", "line": "#D84C57", "text": "#B4232C"},
-    "정부기관": {"bg": "#F4F9FF", "soft": "#EAF4FF", "line": "#3B82F6", "text": "#1D4ED8"},
-    "대한수의사회": {"bg": "#F4FBF5", "soft": "#EAF8EC", "line": "#2E9F5B", "text": "#207547"},
-    "수의과대학": {"bg": "#FBF6FD", "soft": "#F3EAFB", "line": "#A855F7", "text": "#7E22CE"},
-    "언론사": {"bg": "#FFF8F1", "soft": "#FFF0DE", "line": "#F59E0B", "text": "#C56A00"},
-    "기업": {"bg": "#F8FAFC", "soft": "#EEF2F6", "line": "#64748B", "text": "#334155"},
-    "유관단체": {"bg": "#F2FCFD", "soft": "#E3F7F9", "line": "#14B8A6", "text": "#0F8F82"},
-    "시도지부": {"bg": "#F7F5FF", "soft": "#EEE9FF", "line": "#7C3AED", "text": "#5B21B6"},
-    "기타": {"bg": "#FAFAFA", "soft": "#F2F2F2", "line": "#9CA3AF", "text": "#4B5563"},
+    "국회": {"bg": "#FFF5F6", "soft": "#FDECEF", "line": "#D84C57", "text": "#B4232C", "dot": "🔴"},
+    "정부기관": {"bg": "#F4F9FF", "soft": "#EAF4FF", "line": "#3B82F6", "text": "#1D4ED8", "dot": "🔵"},
+    "대한수의사회": {"bg": "#F4FBF5", "soft": "#EAF8EC", "line": "#2E9F5B", "text": "#207547", "dot": "🟢"},
+    "수의과대학": {"bg": "#FBF6FD", "soft": "#F3EAFB", "line": "#A855F7", "text": "#7E22CE", "dot": "🟣"},
+    "언론사": {"bg": "#FFF8F1", "soft": "#FFF0DE", "line": "#F59E0B", "text": "#C56A00", "dot": "🟠"},
+    "기업": {"bg": "#F8FAFC", "soft": "#EEF2F6", "line": "#64748B", "text": "#334155", "dot": "⚫"},
+    "유관단체": {"bg": "#F2FCFD", "soft": "#E3F7F9", "line": "#14B8A6", "text": "#0F8F82", "dot": "🟦"},
+    "시도지부": {"bg": "#F7F5FF", "soft": "#EEE9FF", "line": "#7C3AED", "text": "#5B21B6", "dot": "🟪"},
+    "기타": {"bg": "#FAFAFA", "soft": "#F2F2F2", "line": "#9CA3AF", "text": "#4B5563", "dot": "⚪"},
 }
 CATEGORIES = list(COLOR_MAP.keys())
 STATUS_OPTIONS = ["확정", "보류", "완료", "취소"]
@@ -322,7 +322,7 @@ div[data-testid="stButton"] > button {
 }
 
 div[data-testid="stDownloadButton"] > button {
-    border-radius: 10px !important;
+    border-radius: 12px !important;
     font-weight: 700 !important;
 }
 
@@ -339,6 +339,31 @@ div[data-testid="stForm"] {
     border-radius: 18px;
     padding: 16px 16px 10px 16px;
     background: #ffffff;
+}
+
+.streamlit-expanderHeader {
+    font-weight: 800 !important;
+    font-size: 0.95rem !important;
+    line-height: 1.4 !important;
+    text-align: left !important;
+}
+
+div[data-testid="stExpander"] {
+    margin-bottom: 6px !important;
+}
+
+div[data-testid="stExpander"] details {
+    border-radius: 14px !important;
+    border: 1px solid #D8DEE8 !important;
+    background: #ffffff !important;
+    overflow: hidden !important;
+}
+
+div[data-testid="stExpander"] summary {
+    padding-top: 0.5rem !important;
+    padding-bottom: 0.5rem !important;
+    padding-left: 0.9rem !important;
+    padding-right: 0.9rem !important;
 }
 
 .day-head {
@@ -428,7 +453,7 @@ div[data-testid="stForm"] {
 }
 
 .menu-btn-wrap {
-    margin-bottom: 8px;
+    margin-bottom: 6px;
 }
 
 .segment-note {
@@ -437,13 +462,13 @@ div[data-testid="stForm"] {
     margin-bottom: 10px;
 }
 
-.event-row-wrap {
-    margin-bottom: 8px;
-}
-
-.event-detail-wrap {
-    margin-top: 10px;
-    margin-bottom: 18px;
+.week-month-pill {
+    display: inline-block;
+    padding: 5px 10px;
+    border-radius: 999px;
+    font-size: 0.77rem;
+    font-weight: 800;
+    margin: 0 6px 6px 0;
 }
 
 @media (max-width: 1000px) {
@@ -569,9 +594,10 @@ def compact_subject_text(row):
     return subject
 
 def compact_line_text(row):
+    c = get_color(row.get("Category", "기타"))
     time_text = safe_str(row.get("Time")) or "-"
     cat_text = safe_str(row.get("Category")) or "-"
-    return f"{time_text} / [{cat_text}] / {compact_subject_text(row)}"
+    return f"{c['dot']} {time_text} · [{cat_text}] · {compact_subject_text(row)}"
 
 def excel_download_bytes(df: pd.DataFrame) -> bytes:
     export_df = get_active_df(df).copy()
@@ -1013,18 +1039,6 @@ def to_display_dataframe(df: pd.DataFrame) -> pd.DataFrame:
     display_df = display_df.drop(columns=["DateParsed"], errors="ignore")
     return display_df
 
-def toggle_selected_event(row):
-    event_date = to_date_safe(row.get("Date"))
-    if event_date:
-        st.session_state.selected_date = event_date
-
-    if st.session_state.selected_event_id == row["ID"]:
-        st.session_state.selected_event_id = None
-    else:
-        st.session_state.selected_event_id = row["ID"]
-
-    st.rerun()
-
 # =========================================================
 # 5. 상태 초기화
 # =========================================================
@@ -1062,9 +1076,6 @@ if "search_text" not in st.session_state:
 
 if "edit_id" not in st.session_state:
     st.session_state.edit_id = None
-
-if "selected_event_id" not in st.session_state:
-    st.session_state.selected_event_id = None
 
 if "flash_message" not in st.session_state:
     st.session_state.flash_message = None
@@ -1222,8 +1233,6 @@ def render_action_buttons(row, prefix=""):
         ok, err = soft_delete_record(row["ID"])
         if st.session_state.edit_id == row["ID"]:
             st.session_state.edit_id = None
-        if st.session_state.selected_event_id == row["ID"]:
-            st.session_state.selected_event_id = None
         st.session_state.flash_message = "일정이 삭제되었습니다." if ok else f"삭제 실패: {err}"
         st.rerun()
 
@@ -1240,21 +1249,10 @@ def render_action_buttons(row, prefix=""):
     st.markdown('</div>', unsafe_allow_html=True)
 
 def render_compact_event(row, prefix=""):
-    c = get_color(row["Category"])
-    is_open = st.session_state.selected_event_id == row["ID"]
-
-    st.markdown('<div class="event-row-wrap">', unsafe_allow_html=True)
-    label = compact_line_text(row)
-    if st.button(label, key=f"{prefix}_toggle_{row['ID']}", use_container_width=True):
-        toggle_selected_event(row)
-    st.markdown('</div>', unsafe_allow_html=True)
-
-    if is_open:
-        st.markdown('<div class="event-detail-wrap">', unsafe_allow_html=True)
+    with st.expander(compact_line_text(row), expanded=False):
         render_summary_header(row)
         render_detail_blocks(row)
         render_action_buttons(row, prefix=prefix)
-        st.markdown('</div>', unsafe_allow_html=True)
 
 def render_form(mode="new", row_data=None):
     if row_data is None:
@@ -1408,7 +1406,6 @@ def render_form(mode="new", row_data=None):
 
                     ok, err = save_record(record, is_edit=False)
                     st.session_state.selected_date = input_date
-                    st.session_state.selected_event_id = record["ID"]
                     st.session_state.edit_id = None
                     st.session_state.flash_message = "신규 일정이 저장되었습니다." if ok else f"저장 실패: {err}"
                     st.session_state.main_menu = "📅 일정 보기" if submit_view else "✍️ 신규 일정 등록"
@@ -1457,7 +1454,6 @@ def render_form(mode="new", row_data=None):
 
                     ok, err = save_record(record, is_edit=True)
                     st.session_state.edit_id = None
-                    st.session_state.selected_event_id = row_data["ID"]
                     st.session_state.selected_date = input_date
                     st.session_state.flash_message = "일정이 수정되었습니다." if ok else f"수정 실패: {err}"
                     st.rerun()
@@ -1475,7 +1471,6 @@ st.sidebar.markdown('<div class="menu-btn-wrap">', unsafe_allow_html=True)
 if st.sidebar.button("📅 일정 보기", use_container_width=True):
     st.session_state.main_menu = "📅 일정 보기"
     st.session_state.selected_date = today
-    st.session_state.selected_event_id = None
     st.session_state.edit_id = None
     st.rerun()
 st.sidebar.markdown('</div>', unsafe_allow_html=True)
@@ -1483,10 +1478,10 @@ st.sidebar.markdown('</div>', unsafe_allow_html=True)
 st.sidebar.markdown('<div class="menu-btn-wrap">', unsafe_allow_html=True)
 if st.sidebar.button("✍️ 신규 일정 등록", use_container_width=True):
     st.session_state.main_menu = "✍️ 신규 일정 등록"
-    st.session_state.edit_id = None
     st.rerun()
 st.sidebar.markdown('</div>', unsafe_allow_html=True)
 
+st.sidebar.markdown('<div class="menu-btn-wrap">', unsafe_allow_html=True)
 xlsx_bytes = excel_download_bytes(st.session_state.data)
 st.sidebar.download_button(
     "📥 일정 엑셀 다운로드",
@@ -1495,6 +1490,7 @@ st.sidebar.download_button(
     mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
     use_container_width=True
 )
+st.sidebar.markdown('</div>', unsafe_allow_html=True)
 
 selected_day_sidebar = get_active_df(st.session_state.data).copy()
 selected_day_sidebar["DateParsed"] = pd.to_datetime(selected_day_sidebar["Date"], errors="coerce").dt.date
@@ -1617,7 +1613,6 @@ else:
         st.session_state.selected_status = "일정 현황"
         st.session_state.selected_follow_status = "팔로우업 상태"
         st.session_state.selected_date = today
-        st.session_state.selected_event_id = None
         st.session_state.table_page_num_value = 1
         st.rerun()
 
@@ -1684,7 +1679,6 @@ else:
         )
         if wc2.button("이 날짜가 포함된 주 보기", key="apply_week_anchor"):
             st.session_state.selected_date = week_anchor
-            st.session_state.selected_event_id = None
             st.rerun()
 
         week_days = week_dates_from_any_day(st.session_state.selected_date)
