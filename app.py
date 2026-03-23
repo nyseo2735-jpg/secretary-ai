@@ -512,8 +512,6 @@ div[data-testid="stExpanderDetails"] {
         min-height: auto;
     }
 }
-</style>
-""", unsafe_allow_html=True)
 
 div[data-testid="stVerticalBlock"] > div { gap: 0px !important; }
 
@@ -528,6 +526,10 @@ div[data-testid="stExpander"] {
 div[data-testid="stExpander"] summary { 
     padding: 0.06rem 0 !important; 
 }
+
+</style>
+""", unsafe_allow_html=True)
+
 
 # =========================================================
 # 4. 유틸
