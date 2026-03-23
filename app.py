@@ -346,43 +346,89 @@ div[data-testid="stForm"] {
     background: #ffffff;
 }
 
-/* ===== 사이드바 버튼 간격 대폭 축소 ===== */
+/* ===== 사이드바 간격 대폭 축소 ===== */
 .menu-btn-wrap {
+    margin: 0px !important;
+    padding: 0px !important;
+}
+
+section[data-testid="stSidebar"] div[data-testid="stVerticalBlock"] {
+    gap: 0px !important;
+}
+
+section[data-testid="stSidebar"] div[data-testid="stVerticalBlock"] > div {
+    margin: 0px !important;
+    padding: 0px !important;
+}
+
+section[data-testid="stSidebar"] div[data-testid="stButton"],
+section[data-testid="stSidebar"] div[data-testid="stDownloadButton"],
+section[data-testid="stSidebar"] div[data-testid="stExpander"] {
+    margin-top: 0px !important;
     margin-bottom: 0px !important;
 }
 
-section[data-testid="stSidebar"] div[data-testid="stButton"] {
-    margin-bottom: 2px !important;
-}
-
-section[data-testid="stSidebar"] div[data-testid="stDownloadButton"] {
-    margin-bottom: 2px !important;
+section[data-testid="stSidebar"] div[data-testid="stButton"] > button,
+section[data-testid="stSidebar"] div[data-testid="stDownloadButton"] > button {
+    margin-top: 0px !important;
+    margin-bottom: 0px !important;
+    min-height: 2.7rem !important;
 }
 
 .sidebar-day-item {
     border: 1px solid #ECEEF3;
     border-radius: 12px;
     padding: 8px 10px;
-    margin-bottom: 2px !important;
+    margin-bottom: 0px !important;
     background: #ffffff;
 }
 
-/* ===== 일정 바 간격/높이 추가 축소 ===== */
-.streamlit-expanderHeader {
-    font-weight: 800 !important;
-    font-size: 0.94rem !important;
-    line-height: 1.35 !important;
-    text-align: left !important;
+.sidebar-day-time {
+    font-size: 0.78rem;
+    font-weight: 800;
+    color: #475467;
+    margin-bottom: 4px;
+}
+
+.sidebar-day-title {
+    font-size: 0.86rem;
+    font-weight: 700;
+    color: #1F2937;
+    line-height: 1.35;
+}
+
+.helper-note {
+    font-size: 0.82rem;
+    color: #667085;
+    line-height: 1.45;
+}
+
+.segment-note {
+    font-size: 0.84rem;
+    color: #667085;
+    margin-bottom: 8px;
+}
+
+/* ===== 메인/주간/월별 일정 바 간격 대폭 축소 ===== */
+div[data-testid="stVerticalBlock"] {
+    gap: 0px !important;
+}
+
+div[data-testid="stVerticalBlock"] > div {
+    margin-top: 0px !important;
+    margin-bottom: 0px !important;
+    padding-top: 0px !important;
+    padding-bottom: 0px !important;
+}
+
+div[data-testid="stVerticalBlock"] > div:has(> div[data-testid="stExpander"]) {
+    margin: 0px !important;
+    padding: 0px !important;
 }
 
 div[data-testid="stExpander"] {
     margin-top: 0px !important;
     margin-bottom: 0px !important;
-}
-
-div[data-testid="stVerticalBlock"] > div:has(> div[data-testid="stExpander"]) {
-    margin-bottom: 0px !important;
-    padding-bottom: 0px !important;
 }
 
 div[data-testid="stExpander"] details {
@@ -391,14 +437,24 @@ div[data-testid="stExpander"] details {
     background: #ffffff !important;
     overflow: hidden !important;
     box-shadow: none !important;
+    margin: 0px !important;
+}
+
+/* 일정 바 자체 높이 더 축소 */
+.streamlit-expanderHeader {
+    font-weight: 800 !important;
+    font-size: 0.94rem !important;
+    line-height: 1.2 !important;
+    text-align: left !important;
 }
 
 div[data-testid="stExpander"] summary {
-    padding-top: 0.20rem !important;
-    padding-bottom: 0.20rem !important;
-    padding-left: 0.78rem !important;
-    padding-right: 0.78rem !important;
-    min-height: 1 !important;
+    padding-top: 0.02rem !important;
+    padding-bottom: 0.02rem !important;
+    padding-left: 0.72rem !important;
+    padding-right: 0.72rem !important;
+    min-height: 0 !important;
+    line-height: 1.2 !important;
 }
 
 div[data-testid="stExpander"] summary:hover {
@@ -406,11 +462,42 @@ div[data-testid="stExpander"] summary:hover {
 }
 
 div[data-testid="stExpanderDetails"] {
-    padding-top: 0.02rem !important;
-    padding-bottom: 0.02rem !important;
+    padding-top: 0px !important;
+    padding-bottom: 0px !important;
 }
 
-/* ===== 나머지 ===== */
+/* 탭 아래쪽과 섹션 사이 여백도 과하지 않게 */
+div[data-testid="stTabs"] {
+    margin-bottom: 0px !important;
+}
+
+.day-head {
+    font-size: 1rem;
+    font-weight: 800;
+    color: #2F3142;
+    margin-bottom: 6px;
+}
+
+.day-head.sun {
+    color: #C1121F;
+}
+
+.day-head.sat {
+    color: #1D4ED8;
+}
+
+.day-head.dim.sun {
+    color: #F1A0A7;
+}
+
+.day-head.dim.sat {
+    color: #9BB8F5;
+}
+
+.day-head.dim {
+    color: #B5BBC8;
+}
+
 .canceled-title {
     text-decoration: line-through;
     opacity: 0.65;
@@ -442,59 +529,6 @@ div[data-testid="stExpanderDetails"] {
     vertical-align: middle;
 }
 
-.helper-note {
-    font-size: 0.82rem;
-    color: #667085;
-    line-height: 1.45;
-}
-
-.segment-note {
-    font-size: 0.84rem;
-    color: #667085;
-    margin-bottom: 8px;
-}
-
-.day-head {
-    font-size: 1rem;
-    font-weight: 800;
-    color: #2F3142;
-    margin-bottom: 6px;
-}
-
-.day-head.sun {
-    color: #C1121F;
-}
-
-.day-head.sat {
-    color: #1D4ED8;
-}
-
-.day-head.dim.sun {
-    color: #F1A0A7;
-}
-
-.day-head.dim.sat {
-    color: #9BB8F5;
-}
-
-.day-head.dim {
-    color: #B5BBC8;
-}
-
-.sidebar-day-time {
-    font-size: 0.78rem;
-    font-weight: 800;
-    color: #475467;
-    margin-bottom: 4px;
-}
-
-.sidebar-day-title {
-    font-size: 0.86rem;
-    font-weight: 700;
-    color: #1F2937;
-    line-height: 1.35;
-}
-
 @media (max-width: 1000px) {
     .main-title {
         font-size: 2.1rem;
@@ -512,21 +546,6 @@ div[data-testid="stExpanderDetails"] {
         min-height: auto;
     }
 }
-
-div[data-testid="stVerticalBlock"] > div { gap: 0px !important; }
-
-div[data-testid="stVerticalBlock"] > div:has(> div[data-testid="stExpander"]) { 
-    margin: 0 !important; 
-}
-
-div[data-testid="stExpander"] { 
-    margin: 0 !important; 
-}
-
-div[data-testid="stExpander"] summary { 
-    padding: 0.06rem 0 !important; 
-}
-
 </style>
 """, unsafe_allow_html=True)
 
