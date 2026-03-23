@@ -87,7 +87,7 @@ html, body, [class*="css"] {
 }
 
 .block-container {
-    padding-top: 2.1rem;
+    padding-top: 1.9rem;
     padding-bottom: 1.4rem;
     max-width: 1600px;
 }
@@ -100,7 +100,7 @@ h1, h2, h3 {
     font-size: 2.7rem;
     font-weight: 800;
     color: #2F3142;
-    margin-top: 0.35rem;
+    margin-top: 0.25rem;
     margin-bottom: 0.35rem;
     line-height: 1.2;
     word-break: keep-all;
@@ -346,98 +346,31 @@ div[data-testid="stForm"] {
     background: #ffffff;
 }
 
-/* ===== 사이드바 버튼 박스 간격: 확실히 축소 ===== */
+/* ===== 사이드바: 버튼 4개 간격만 축소 ===== */
 .menu-btn-wrap {
     margin-bottom: 0px !important;
     padding-bottom: 0px !important;
 }
 
-section[data-testid="stSidebar"] div[data-testid="stVerticalBlock"] {
-    gap: 0px !important;
+section[data-testid="stSidebar"] div[data-testid="stButton"] {
+    margin-bottom: 3px !important;
 }
 
-section[data-testid="stSidebar"] div[data-testid="stVerticalBlock"] > div {
-    margin-top: 0px !important;
-    margin-bottom: 0px !important;
-    padding-top: 0px !important;
-    padding-bottom: 0px !important;
-}
-
-section[data-testid="stSidebar"] div[data-testid="stButton"],
-section[data-testid="stSidebar"] div[data-testid="stDownloadButton"],
-section[data-testid="stSidebar"] div[data-testid="stExpander"] {
-    margin-top: 0px !important;
-    margin-bottom: 2px !important;
+section[data-testid="stSidebar"] div[data-testid="stDownloadButton"] {
+    margin-bottom: 3px !important;
 }
 
 section[data-testid="stSidebar"] div[data-testid="stButton"] > button,
 section[data-testid="stSidebar"] div[data-testid="stDownloadButton"] > button {
-    margin-top: 0px !important;
-    margin-bottom: 0px !important;
-    min-height: 2.85rem !important;
+    min-height: 2.9rem !important;
 }
 
-/* ===== 일정 박스 간격: 일별/주간/월별 공통으로 확실히 축소 ===== */
-div[data-testid="stExpander"] {
-    margin-top: 0px !important;
-    margin-bottom: 2px !important;
-}
-
-div[data-testid="stExpander"] details {
-    border-radius: 16px !important;
-    border: 1.6px solid #D8DEE8 !important;
-    background: #ffffff !important;
-    overflow: hidden !important;
-    box-shadow: none !important;
-}
-
-div[data-testid="stVerticalBlock"] > div:has(> div[data-testid="stExpander"]) {
-    margin-top: 0px !important;
-    margin-bottom: 2px !important;
-    padding-top: 0px !important;
-    padding-bottom: 0px !important;
-}
-
-/* 라운드 박스 내부 위아래 여백은 약간 확보 */
-.streamlit-expanderHeader {
-    font-weight: 800 !important;
-    font-size: 0.94rem !important;
-    line-height: 1.3 !important;
-    text-align: left !important;
-}
-
-div[data-testid="stExpander"] summary {
-    padding-top: 0.24rem !important;
-    padding-bottom: 0.24rem !important;
-    padding-left: 0.84rem !important;
-    padding-right: 0.84rem !important;
-    min-height: auto !important;
-}
-
-div[data-testid="stExpander"] summary:hover {
-    background: #FAFAFA !important;
-}
-
-div[data-testid="stExpanderDetails"] {
-    padding-top: 0.12rem !important;
-    padding-bottom: 0.12rem !important;
-}
-
-/* expander를 담는 상위 블록 gap 제거 */
-div[data-testid="stVerticalBlock"] {
-    gap: 0px !important;
-}
-
-/* 탭과 구역 사이 기본 여백은 유지 */
-div[data-testid="stTabs"] {
-    margin-bottom: 0px !important;
-}
-
+/* 선택일 미리보기 카드 간격 */
 .sidebar-day-item {
     border: 1px solid #ECEEF3;
     border-radius: 12px;
     padding: 8px 10px;
-    margin-bottom: 2px !important;
+    margin-bottom: 3px !important;
     background: #ffffff;
 }
 
@@ -465,6 +398,57 @@ div[data-testid="stTabs"] {
     font-size: 0.84rem;
     color: #667085;
     margin-bottom: 8px;
+}
+
+/* ===== 일정 바: 일별/주간/월별 expander만 간격 축소 ===== */
+.streamlit-expanderHeader {
+    font-weight: 800 !important;
+    font-size: 0.94rem !important;
+    line-height: 1.3 !important;
+    text-align: left !important;
+}
+
+div[data-testid="stExpander"] {
+    margin-top: 0px !important;
+    margin-bottom: 3px !important;
+}
+
+div[data-testid="stExpander"] details {
+    border-radius: 16px !important;
+    border: 1.6px solid #D8DEE8 !important;
+    background: #ffffff !important;
+    overflow: hidden !important;
+    box-shadow: none !important;
+}
+
+div[data-testid="stExpander"] summary {
+    padding-top: 0.28rem !important;
+    padding-bottom: 0.28rem !important;
+    padding-left: 0.84rem !important;
+    padding-right: 0.84rem !important;
+    min-height: auto !important;
+}
+
+div[data-testid="stExpander"] summary:hover {
+    background: #FAFAFA !important;
+}
+
+div[data-testid="stExpanderDetails"] {
+    padding-top: 0.12rem !important;
+    padding-bottom: 0.12rem !important;
+}
+
+/* expander를 직접 감싸는 블록만 살짝 줄임 */
+div[data-testid="stVerticalBlock"] > div:has(> div[data-testid="stExpander"]) {
+    margin-bottom: 3px !important;
+    padding-bottom: 0px !important;
+}
+
+/* 전역 stVerticalBlock gap은 건드리지 않음 */
+/* 상단 검색/제목/주간 헤더 보호 */
+
+div[data-testid="stTabs"] {
+    margin-bottom: 0px !important;
 }
 
 .day-head {
@@ -527,7 +511,7 @@ div[data-testid="stTabs"] {
 
 @media (max-width: 1000px) {
     .block-container {
-        padding-top: 1.6rem;
+        padding-top: 1.7rem;
     }
     .main-title {
         font-size: 2.1rem;
@@ -544,12 +528,18 @@ div[data-testid="stTabs"] {
     .info-box {
         min-height: auto;
     }
-    div[data-testid="stExpander"] {
-        margin-bottom: 2px !important;
+
+    section[data-testid="stSidebar"] div[data-testid="stButton"] {
+        margin-bottom: 3px !important;
     }
+
+    div[data-testid="stExpander"] {
+        margin-bottom: 3px !important;
+    }
+
     div[data-testid="stExpander"] summary {
-        padding-top: 0.24rem !important;
-        padding-bottom: 0.24rem !important;
+        padding-top: 0.28rem !important;
+        padding-bottom: 0.28rem !important;
         padding-left: 0.72rem !important;
         padding-right: 0.72rem !important;
     }
