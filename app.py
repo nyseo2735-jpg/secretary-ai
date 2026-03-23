@@ -22,15 +22,15 @@ st.set_page_config(
 # 2. 상수
 # =========================================================
 COLOR_MAP = {
-    "국회": {"bg": "#FFF8F8", "soft": "#FFF1F2", "line": "#E46A73", "text": "#C93543"},
-    "정부기관": {"bg": "#F6FAFF", "soft": "#EDF5FF", "line": "#6AA7FF", "text": "#2563EB"},
-    "대한수의사회": {"bg": "#F6FCF7", "soft": "#EDF9EF", "line": "#6EC58C", "text": "#2E8B57"},
-    "수의과대학": {"bg": "#FAF7FF", "soft": "#F3EEFF", "line": "#B691FF", "text": "#7C3AED"},
-    "언론사": {"bg": "#FFF9F3", "soft": "#FFF3E6", "line": "#F3B36A", "text": "#C97316"},
-    "기업": {"bg": "#FBFBFC", "soft": "#F3F4F6", "line": "#A8B0BD", "text": "#475467"},
-    "유관단체": {"bg": "#F6FCFC", "soft": "#EAF9F8", "line": "#70C8BE", "text": "#0F8F82"},
-    "시도지부": {"bg": "#F8F7FF", "soft": "#F0EDFF", "line": "#9C8CF0", "text": "#5B21B6"},
-    "기타": {"bg": "#FAFAFA", "soft": "#F4F4F5", "line": "#C4C7CF", "text": "#4B5563"},
+    "국회": {"bg": "#FFF5F6", "soft": "#FDECEF", "line": "#D84C57", "text": "#B4232C", "dot": "🔴"},
+    "정부기관": {"bg": "#F4F9FF", "soft": "#EAF4FF", "line": "#3B82F6", "text": "#1D4ED8", "dot": "🔵"},
+    "대한수의사회": {"bg": "#F4FBF5", "soft": "#EAF8EC", "line": "#2E9F5B", "text": "#207547", "dot": "🟢"},
+    "수의과대학": {"bg": "#FBF6FD", "soft": "#F3EAFB", "line": "#A855F7", "text": "#7E22CE", "dot": "🟣"},
+    "언론사": {"bg": "#FFF8F1", "soft": "#FFF0DE", "line": "#F59E0B", "text": "#C56A00", "dot": "🟠"},
+    "기업": {"bg": "#F8FAFC", "soft": "#EEF2F6", "line": "#64748B", "text": "#334155", "dot": "⚫"},
+    "유관단체": {"bg": "#F2FCFD", "soft": "#E3F7F9", "line": "#14B8A6", "text": "#0F8F82", "dot": "🟦"},
+    "시도지부": {"bg": "#F7F5FF", "soft": "#EEE9FF", "line": "#7C3AED", "text": "#5B21B6", "dot": "🟪"},
+    "기타": {"bg": "#FAFAFA", "soft": "#F2F2F2", "line": "#9CA3AF", "text": "#4B5563", "dot": "⚪"},
 }
 CATEGORIES = list(COLOR_MAP.keys())
 STATUS_OPTIONS = ["확정", "보류", "완료", "취소"]
@@ -87,8 +87,8 @@ html, body, [class*="css"] {
 }
 
 .block-container {
-    padding-top: 2rem;
-    padding-bottom: 1.8rem;
+    padding-top: 1.5rem;
+    padding-bottom: 1.4rem;
     max-width: 1600px;
 }
 
@@ -100,8 +100,8 @@ h1, h2, h3 {
     font-size: 2.7rem;
     font-weight: 800;
     color: #2F3142;
-    margin-top: 0.4rem;
-    margin-bottom: 0.45rem;
+    margin-top: 0.2rem;
+    margin-bottom: 0.35rem;
     line-height: 1.2;
     word-break: keep-all;
 }
@@ -109,7 +109,7 @@ h1, h2, h3 {
 .sub-text {
     font-size: 0.98rem;
     color: #6B7280;
-    margin-bottom: 0.95rem;
+    margin-bottom: 0.8rem;
     line-height: 1.5;
     word-break: keep-all;
 }
@@ -118,16 +118,16 @@ h1, h2, h3 {
     background: #ffffff;
     border: 1px solid #ECEEF3;
     border-radius: 18px;
-    padding: 14px 16px;
+    padding: 12px 14px;
     box-shadow: 0 4px 16px rgba(20, 24, 40, 0.04);
-    margin-bottom: 14px;
+    margin-bottom: 10px;
 }
 
 .section-title {
     font-size: 1.7rem;
     font-weight: 800;
     color: #2F3142;
-    margin: 10px 0 12px 0;
+    margin: 8px 0 10px 0;
     line-height: 1.2;
 }
 
@@ -137,7 +137,7 @@ h1, h2, h3 {
     border-radius: 999px;
     font-size: 0.80rem;
     font-weight: 700;
-    margin: 0 8px 8px 0;
+    margin: 0 6px 6px 0;
     border: 1px solid;
 }
 
@@ -151,6 +151,166 @@ h1, h2, h3 {
     border: 1px solid #D8DEE8;
     background: #ffffff;
     color: #344054;
+}
+
+.summary-card {
+    border-radius: 22px;
+    overflow: hidden;
+    border: 1px solid #E8EBF2;
+    margin-top: 4px;
+    margin-bottom: 10px;
+}
+
+.summary-inner {
+    display: flex;
+}
+
+.summary-accent {
+    width: 10px;
+    flex-shrink: 0;
+}
+
+.summary-body {
+    width: 100%;
+    padding: 14px 16px 12px 16px;
+}
+
+.summary-meta {
+    font-size: 0.92rem;
+    font-weight: 800;
+    margin-bottom: 6px;
+}
+
+.summary-title {
+    font-size: 1.22rem;
+    font-weight: 800;
+    color: #232634;
+    line-height: 1.28;
+    margin: 0;
+    word-break: keep-all;
+}
+
+.tag-pill {
+    display: inline-block;
+    padding: 5px 10px;
+    border-radius: 999px;
+    font-size: 0.74rem;
+    font-weight: 800;
+    border: 1px solid #D1D5DB;
+    background: #ffffff;
+    color: #475467;
+    margin-left: 6px;
+    vertical-align: middle;
+}
+
+.follow-pill {
+    display: inline-block;
+    padding: 5px 10px;
+    border-radius: 999px;
+    font-size: 0.74rem;
+    font-weight: 800;
+    border: 1px solid #D1D5DB;
+    background: #F8FAFC;
+    color: #344054;
+    margin-right: 6px;
+    margin-bottom: 6px;
+    vertical-align: middle;
+}
+
+.info-box {
+    background: #ffffff;
+    border: 1px solid #ECEEF3;
+    border-radius: 16px;
+    padding: 11px 13px 10px 13px;
+    min-height: 68px;
+    margin-bottom: 8px;
+}
+
+.info-label {
+    font-size: 0.77rem;
+    font-weight: 800;
+    color: #6B7280;
+    margin-bottom: 6px;
+    line-height: 1.35;
+}
+
+.info-value {
+    font-size: 0.96rem;
+    font-weight: 600;
+    color: #232634;
+    line-height: 1.5;
+    white-space: pre-wrap;
+    word-break: break-word;
+}
+
+.memo-box {
+    background: #FFFBEA;
+    border: 1px solid #F8E3A3;
+    border-left: 8px solid #F5C84B;
+    border-radius: 16px;
+    padding: 12px 16px;
+    margin-top: 4px;
+}
+
+.memo-title {
+    font-size: 0.90rem;
+    font-weight: 800;
+    color: #7A5A00;
+    margin-bottom: 6px;
+}
+
+.memo-text {
+    font-size: 0.94rem;
+    color: #4B5563;
+    line-height: 1.55;
+    white-space: pre-wrap;
+    word-break: break-word;
+}
+
+.follow-wrap {
+    background: #F7FAFF;
+    border: 1px solid #D7E7FF;
+    border-left: 8px solid #3B82F6;
+    border-radius: 18px;
+    padding: 14px 16px;
+    margin-top: 8px;
+    margin-bottom: 10px;
+}
+
+.follow-title {
+    font-size: 1rem;
+    font-weight: 800;
+    color: #1D4ED8;
+    margin-bottom: 10px;
+}
+
+.follow-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+}
+
+.follow-box {
+    border: 1px solid #DDE6F4;
+    border-radius: 14px;
+    padding: 10px 12px;
+    background: #ffffff;
+}
+
+.follow-label {
+    font-size: 0.75rem;
+    font-weight: 800;
+    color: #6B7280;
+    margin-bottom: 4px;
+}
+
+.follow-value {
+    font-size: 0.92rem;
+    font-weight: 600;
+    color: #1F2937;
+    line-height: 1.45;
+    white-space: pre-wrap;
+    word-break: break-word;
 }
 
 .small-action button {
@@ -186,32 +346,30 @@ div[data-testid="stForm"] {
     background: #ffffff;
 }
 
-/* expander 공통 모양 */
 .streamlit-expanderHeader {
     font-weight: 800 !important;
-    font-size: 0.92rem !important;
-    line-height: 1.45 !important;
+    font-size: 0.94rem !important;
+    line-height: 1.42 !important;
     text-align: left !important;
-    color: #344054 !important;
 }
 
 div[data-testid="stExpander"] {
-    margin-bottom: 10px !important;
+    margin-bottom: 5px !important;
 }
 
 div[data-testid="stExpander"] details {
     border-radius: 16px !important;
-    border: 1.5px solid #E5E7EB !important;
+    border: 1.6px solid #D8DEE8 !important;
     background: #ffffff !important;
     overflow: hidden !important;
     box-shadow: none !important;
 }
 
 div[data-testid="stExpander"] summary {
-    padding-top: 0.38rem !important;
-    padding-bottom: 0.38rem !important;
-    padding-left: 0.92rem !important;
-    padding-right: 0.92rem !important;
+    padding-top: 0.34rem !important;
+    padding-bottom: 0.34rem !important;
+    padding-left: 0.85rem !important;
+    padding-right: 0.85rem !important;
     min-height: auto !important;
 }
 
@@ -220,51 +378,46 @@ div[data-testid="stExpander"] summary:hover {
 }
 
 div[data-testid="stExpanderDetails"] {
-    padding-top: 0.20rem !important;
-    padding-bottom: 0.25rem !important;
+    padding-top: 0.08rem !important;
+    padding-bottom: 0.12rem !important;
 }
 
-.detail-row-wrap {
-    border: 1px solid #ECEEF3;
-    border-radius: 14px;
-    background: #ffffff;
-    margin-top: 6px;
-    margin-bottom: 10px;
-    overflow: hidden;
+.canceled-title {
+    text-decoration: line-through;
+    opacity: 0.65;
 }
 
-.day-head {
-    font-size: 1rem;
+.cancel-pill {
+    display: inline-block;
+    margin-left: 6px;
+    padding: 4px 8px;
+    border-radius: 999px;
+    font-size: 0.72rem;
     font-weight: 800;
-    color: #2F3142;
-    margin-bottom: 8px;
+    background: #FEE2E2;
+    color: #B42318;
+    border: 1px solid #FECACA;
+    vertical-align: middle;
 }
 
-.day-head.sun {
-    color: #C1121F;
-}
-
-.day-head.sat {
-    color: #1D4ED8;
-}
-
-.day-head.dim.sun {
-    color: #F1A0A7;
-}
-
-.day-head.dim.sat {
-    color: #9BB8F5;
-}
-
-.day-head.dim {
-    color: #B5BBC8;
+.attend-pill {
+    display: inline-block;
+    margin-left: 6px;
+    padding: 4px 8px;
+    border-radius: 999px;
+    font-size: 0.72rem;
+    font-weight: 800;
+    background: #FFF7D6;
+    color: #8A6500;
+    border: 1px solid #F2D675;
+    vertical-align: middle;
 }
 
 .sidebar-day-item {
     border: 1px solid #ECEEF3;
     border-radius: 12px;
     padding: 8px 10px;
-    margin-bottom: 8px;
+    margin-bottom: 6px;
     background: #ffffff;
 }
 
@@ -289,18 +442,57 @@ div[data-testid="stExpanderDetails"] {
 }
 
 .menu-btn-wrap {
-    margin-bottom: 6px;
+    margin-bottom: 2px;
 }
 
 .segment-note {
     font-size: 0.84rem;
     color: #667085;
-    margin-bottom: 10px;
+    margin-bottom: 8px;
+}
+
+.day-head {
+    font-size: 1rem;
+    font-weight: 800;
+    color: #2F3142;
+    margin-bottom: 6px;
+}
+
+.day-head.sun {
+    color: #C1121F;
+}
+
+.day-head.sat {
+    color: #1D4ED8;
+}
+
+.day-head.dim.sun {
+    color: #F1A0A7;
+}
+
+.day-head.dim.sat {
+    color: #9BB8F5;
+}
+
+.day-head.dim {
+    color: #B5BBC8;
 }
 
 @media (max-width: 1000px) {
     .main-title {
         font-size: 2.1rem;
+    }
+    .summary-title {
+        font-size: 1.08rem;
+    }
+    .follow-grid {
+        grid-template-columns: 1fr;
+    }
+    .summary-body {
+        padding: 12px 13px 10px 13px;
+    }
+    .info-box {
+        min-height: auto;
     }
 }
 </style>
@@ -787,6 +979,13 @@ def render_metric_chips(day_count, confirmed_count, pending_count, cancel_count)
     """
     st.markdown(html_text, unsafe_allow_html=True)
 
+def format_subject_html(row):
+    subject = esc(safe_str(attend_prefix(row)) + safe_str(row["Subject"]))
+    attend_badge = '<span class="attend-pill">회장 참석</span>' if is_president_attend(row) else ""
+    if safe_str(row["Status"]) == "취소":
+        return f'<span class="canceled-title">{subject}</span>{attend_badge}<span class="cancel-pill">취소</span>'
+    return f'{subject}{attend_badge}'
+
 def weekday_class_by_index(idx: int):
     if idx == 0:
         return "sun"
@@ -906,52 +1105,113 @@ if "table_page_num_value" not in st.session_state:
 # =========================================================
 # 6. 렌더 함수
 # =========================================================
-def render_detail_row(label, value, bg="#FFFFFF"):
-    c1, c2 = st.columns([1.1, 4.4])
-    with c1:
-        st.markdown(
-            f"<div style='font-size:0.82rem; font-weight:800; color:#6B7280; padding:8px 0 6px 2px;'>{html.escape(label)}</div>",
-            unsafe_allow_html=True
-        )
-    with c2:
-        st.markdown(
-            f"<div style='font-size:0.93rem; font-weight:600; color:#232634; line-height:1.5; padding:8px 0 6px 0; white-space:pre-wrap; word-break:break-word; background:{bg};'>{html.escape(value if value else '-')}</div>",
-            unsafe_allow_html=True
-        )
+def render_followup_section(row):
+    st.markdown(f"""
+    <div class="follow-wrap">
+        <div class="follow-title">📌 사무처 팔로우업 핵심 영역</div>
+        <div style="margin-bottom:8px;">
+            <span class="follow-pill">팔로우업 상태: {esc(row["FollowStatus"])}</span>
+            <span class="follow-pill">주 담당자: {esc(row["FollowOwner"])}</span>
+            <span class="follow-pill">준비기한: {esc(row["FollowDue"])}</span>
+        </div>
+        <div class="follow-grid">
+            <div class="follow-box">
+                <div class="follow-label">회의 목적</div>
+                <div class="follow-value">{esc(row["Purpose"])}</div>
+            </div>
+            <div class="follow-box">
+                <div class="follow-label">대응 방향</div>
+                <div class="follow-value">{esc(row["ActionPlan"])}</div>
+            </div>
+            <div class="follow-box">
+                <div class="follow-label">후속/준비사항</div>
+                <div class="follow-value">{esc(row["FollowTask"])}</div>
+            </div>
+            <div class="follow-box">
+                <div class="follow-label">진행 메모</div>
+                <div class="follow-value">{esc(row["FollowProgressMemo"])}</div>
+            </div>
+            <div class="follow-box">
+                <div class="follow-label">공유 메모</div>
+                <div class="follow-value">{esc(row["SharedNote"])}</div>
+            </div>
+            <div class="follow-box">
+                <div class="follow-label">최종 추적일</div>
+                <div class="follow-value">{esc(row["FollowUpdated"])}</div>
+            </div>
+        </div>
+    </div>
+    """, unsafe_allow_html=True)
+
+def render_summary_header(row):
+    c = get_color(row["Category"])
+    attend_badge = '<span class="tag-pill">👑 회장 직접 참석</span>' if is_president_attend(row) else '<span class="tag-pill">대참 가능 일정</span>'
+    st.markdown(f"""
+    <div class="summary-card" style="background:{c['bg']};">
+        <div class="summary-inner">
+            <div class="summary-accent" style="background:{c['line']};"></div>
+            <div class="summary-body">
+                <div class="summary-meta" style="color:{c['text']};">
+                    ⏰ {esc(row["Time"])}
+                    <span class="tag-pill" style="background:{c["soft"]}; color:{c["text"]}; border-color:{c["line"]};">{esc(row["Category"])}</span>
+                    <span class="tag-pill">{esc(row["Status"])}</span>
+                    <span class="tag-pill">우선순위 {esc(row["Priority"])}</span>
+                    <span class="tag-pill">팔로우업 {esc(row["FollowStatus"])}</span>
+                    {attend_badge}
+                </div>
+                <div class="summary-title">{format_subject_html(row)}</div>
+            </div>
+        </div>
+    </div>
+    """, unsafe_allow_html=True)
 
 def render_detail_blocks(row):
-    with st.container(border=True):
-        render_detail_row("방문기관명", safe_str(row["OrgName"]))
-        st.divider()
-        render_detail_row("회의장소(세부)", safe_str(row["DetailPlace"]))
-        st.divider()
-        render_detail_row("보좌관/비서/담당자 정보", contact_text(row))
-        st.divider()
-        render_detail_row("회장님 외 동행인", safe_str(row["Companion"]))
-        st.divider()
-        render_detail_row("사무처 수행직원", safe_str(row["Staff"]))
-        st.divider()
-        render_detail_row("참석 구분", attend_label(row))
-        st.divider()
-        render_detail_row("최종 수정", f"{safe_str(row['Updated'])} / {safe_str(row['UpdatedBy'])}")
-        st.divider()
-        render_detail_row("회의 목적", safe_str(row["Purpose"]))
-        st.divider()
-        render_detail_row("대응 방향", safe_str(row["ActionPlan"]))
-        st.divider()
-        render_detail_row("후속/준비사항", safe_str(row["FollowTask"]))
-        st.divider()
-        render_detail_row("주 담당자", safe_str(row["FollowOwner"]))
-        st.divider()
-        render_detail_row("준비 완료기한", safe_str(row["FollowDue"]))
-        st.divider()
-        render_detail_row("팔로우업 상태", safe_str(row["FollowStatus"]))
-        st.divider()
-        render_detail_row("진행 메모", safe_str(row["FollowProgressMemo"]))
-        st.divider()
-        render_detail_row("공유 메모", safe_str(row["SharedNote"]))
-        st.divider()
-        render_detail_row("일반 Memo", safe_str(row["Memo"]))
+    left_items = [
+        ("방문기관명", f"🏢 {esc(row['OrgName'])}"),
+        ("회의장소(세부)", f"📍 {esc(row['DetailPlace'])}"),
+        ("보좌관/비서/담당자 정보", f"👤 {html.escape(contact_text(row))}"),
+    ]
+    right_items = [
+        ("회장님 외 동행인", f"👥 {esc(row['Companion'])}"),
+        ("사무처 수행직원", f"🧾 {esc(row['Staff'])}"),
+        ("참석 구분 / 최종 수정", f"👑 {esc(attend_label(row))}<br>🕒 {esc(row['Updated'])} / {esc(row['UpdatedBy'])}"),
+    ]
+
+    if st.session_state.get("is_mobile_force_stack", False):
+        for label, value in left_items + right_items:
+            st.markdown(f"""
+            <div class="info-box">
+                <div class="info-label">{label}</div>
+                <div class="info-value">{value}</div>
+            </div>
+            """, unsafe_allow_html=True)
+    else:
+        c1, c2 = st.columns(2)
+        with c1:
+            for label, value in left_items:
+                st.markdown(f"""
+                <div class="info-box">
+                    <div class="info-label">{label}</div>
+                    <div class="info-value">{value}</div>
+                </div>
+                """, unsafe_allow_html=True)
+        with c2:
+            for label, value in right_items:
+                st.markdown(f"""
+                <div class="info-box">
+                    <div class="info-label">{label}</div>
+                    <div class="info-value">{value}</div>
+                </div>
+                """, unsafe_allow_html=True)
+
+    render_followup_section(row)
+
+    st.markdown(f"""
+    <div class="memo-box">
+        <div class="memo-title">📌 일반 메모</div>
+        <div class="memo-text">{esc(row["Memo"])}</div>
+    </div>
+    """, unsafe_allow_html=True)
 
 def render_action_buttons(row, prefix=""):
     st.markdown('<div class="small-action">', unsafe_allow_html=True)
@@ -998,15 +1258,12 @@ def render_action_buttons(row, prefix=""):
 
 def render_compact_event(row, prefix=""):
     c = get_color(row["Category"])
-    label = compact_line_text(row)
-
     st.markdown(
         f"""
         <style>
         div[data-testid="stExpander"]:has(div[id="{prefix}_marker"]) details {{
-            border: 1.6px solid {c['line']} !important;
+            border-color: {c['line']} !important;
             background: #ffffff !important;
-            border-radius: 16px !important;
         }}
         div[data-testid="stExpander"]:has(div[id="{prefix}_marker"]) .streamlit-expanderHeader {{
             color: {c['text']} !important;
@@ -1020,8 +1277,10 @@ def render_compact_event(row, prefix=""):
         unsafe_allow_html=True
     )
 
+    label = compact_line_text(row)
     with st.expander(label, expanded=False):
         st.markdown(f'<div id="{prefix}_marker"></div>', unsafe_allow_html=True)
+        render_summary_header(row)
         render_detail_blocks(row)
         render_action_buttons(row, prefix=prefix)
 
@@ -1321,6 +1580,9 @@ if not has_gsheet_config():
 
 show_flash()
 
+# 좁은 화면 대비 스택 강제 옵션
+st.session_state.is_mobile_force_stack = False
+
 # =========================================================
 # 9. 신규 등록
 # =========================================================
@@ -1461,6 +1723,8 @@ else:
 
         for idx, day_obj in enumerate(week_days):
             with cols[idx]:
+                if idx in [0, 6]:
+                    st.session_state.is_mobile_force_stack = True
                 cls = weekday_class_by_index(idx)
                 label_cls = "day-head"
                 if cls:
@@ -1477,7 +1741,10 @@ else:
                     st.caption("일정 없음")
                 else:
                     for r_idx, (_, row) in enumerate(daily.iterrows()):
+                        st.session_state.is_mobile_force_stack = True
                         render_compact_event(row, prefix=f"week_{idx}_{r_idx}")
+
+        st.session_state.is_mobile_force_stack = False
 
     # -----------------------------------------------------
     # 월별 보기
@@ -1547,7 +1814,9 @@ else:
                                 st.caption("일정 없음")
                             else:
                                 for r_idx, (_, row) in enumerate(daily.iterrows()):
+                                    st.session_state.is_mobile_force_stack = True
                                     render_compact_event(row, prefix=f"month_{didx}_{day_obj}_{r_idx}")
+            st.session_state.is_mobile_force_stack = False
         else:
             st.caption("화면 폭이 좁을 때는 목록형이 더 보기 편합니다.")
             month_list = sort_oldest_first(month_df.copy())
