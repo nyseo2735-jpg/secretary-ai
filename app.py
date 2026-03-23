@@ -87,7 +87,7 @@ html, body, [class*="css"] {
 }
 
 .block-container {
-    padding-top: 1.9rem;
+    padding-top: 2.6rem;
     padding-bottom: 1.4rem;
     max-width: 1600px;
 }
@@ -100,7 +100,7 @@ h1, h2, h3 {
     font-size: 2.7rem;
     font-weight: 800;
     color: #2F3142;
-    margin-top: 0.25rem;
+    margin-top: 0.45rem;
     margin-bottom: 0.35rem;
     line-height: 1.2;
     word-break: keep-all;
@@ -346,23 +346,33 @@ div[data-testid="stForm"] {
     background: #ffffff;
 }
 
-/* ===== 사이드바: 버튼 4개 간격만 축소 ===== */
+/* ===== 사이드바 4개 버튼 박스 간격만 확실히 축소 ===== */
 .menu-btn-wrap {
-    margin-bottom: 0px !important;
-    padding-bottom: 0px !important;
+    margin: 0 !important;
+    padding: 0 !important;
 }
 
-section[data-testid="stSidebar"] div[data-testid="stButton"] {
-    margin-bottom: 3px !important;
+section[data-testid="stSidebar"] div[data-testid="stVerticalBlock"] > div:has(> div[data-testid="stButton"]),
+section[data-testid="stSidebar"] div[data-testid="stVerticalBlock"] > div:has(> div[data-testid="stDownloadButton"]),
+section[data-testid="stSidebar"] div[data-testid="stVerticalBlock"] > div:has(> div[data-testid="stExpander"]) {
+    margin-top: 0 !important;
+    margin-bottom: 2px !important;
+    padding-top: 0 !important;
+    padding-bottom: 0 !important;
 }
 
-section[data-testid="stSidebar"] div[data-testid="stDownloadButton"] {
-    margin-bottom: 3px !important;
+section[data-testid="stSidebar"] div[data-testid="stButton"],
+section[data-testid="stSidebar"] div[data-testid="stDownloadButton"],
+section[data-testid="stSidebar"] div[data-testid="stExpander"] {
+    margin-top: 0 !important;
+    margin-bottom: 0 !important;
 }
 
 section[data-testid="stSidebar"] div[data-testid="stButton"] > button,
 section[data-testid="stSidebar"] div[data-testid="stDownloadButton"] > button {
-    min-height: 2.9rem !important;
+    margin-top: 0 !important;
+    margin-bottom: 0 !important;
+    min-height: 3rem !important;
 }
 
 /* 선택일 미리보기 카드 간격 */
@@ -370,7 +380,7 @@ section[data-testid="stSidebar"] div[data-testid="stDownloadButton"] > button {
     border: 1px solid #ECEEF3;
     border-radius: 12px;
     padding: 8px 10px;
-    margin-bottom: 3px !important;
+    margin-bottom: 2px !important;
     background: #ffffff;
 }
 
@@ -400,7 +410,7 @@ section[data-testid="stSidebar"] div[data-testid="stDownloadButton"] > button {
     margin-bottom: 8px;
 }
 
-/* ===== 일정 바: 일별/주간/월별 expander만 간격 축소 ===== */
+/* ===== 일별/주간/월별 일정 박스 간격만 확실히 축소 ===== */
 .streamlit-expanderHeader {
     font-weight: 800 !important;
     font-size: 0.94rem !important;
@@ -409,7 +419,7 @@ section[data-testid="stSidebar"] div[data-testid="stDownloadButton"] > button {
 }
 
 div[data-testid="stExpander"] {
-    margin-top: 0px !important;
+    margin-top: 0 !important;
     margin-bottom: 3px !important;
 }
 
@@ -419,11 +429,12 @@ div[data-testid="stExpander"] details {
     background: #ffffff !important;
     overflow: hidden !important;
     box-shadow: none !important;
+    margin: 0 !important;
 }
 
 div[data-testid="stExpander"] summary {
-    padding-top: 0.28rem !important;
-    padding-bottom: 0.28rem !important;
+    padding-top: 0.30rem !important;
+    padding-bottom: 0.30rem !important;
     padding-left: 0.84rem !important;
     padding-right: 0.84rem !important;
     min-height: auto !important;
@@ -441,14 +452,14 @@ div[data-testid="stExpanderDetails"] {
 /* expander를 직접 감싸는 블록만 살짝 줄임 */
 div[data-testid="stVerticalBlock"] > div:has(> div[data-testid="stExpander"]) {
     margin-bottom: 3px !important;
-    padding-bottom: 0px !important;
+    padding-bottom: 0 !important;
 }
 
 /* 전역 stVerticalBlock gap은 건드리지 않음 */
 /* 상단 검색/제목/주간 헤더 보호 */
 
 div[data-testid="stTabs"] {
-    margin-bottom: 0px !important;
+    margin-bottom: 0 !important;
 }
 
 .day-head {
@@ -511,20 +522,25 @@ div[data-testid="stTabs"] {
 
 @media (max-width: 1000px) {
     .block-container {
-        padding-top: 1.7rem;
+        padding-top: 2rem;
     }
+
     .main-title {
         font-size: 2.1rem;
     }
+
     .summary-title {
         font-size: 1.08rem;
     }
+
     .follow-grid {
         grid-template-columns: 1fr;
     }
+
     .summary-body {
         padding: 12px 13px 10px 13px;
     }
+
     .info-box {
         min-height: auto;
     }
@@ -538,8 +554,8 @@ div[data-testid="stTabs"] {
     }
 
     div[data-testid="stExpander"] summary {
-        padding-top: 0.28rem !important;
-        padding-bottom: 0.28rem !important;
+        padding-top: 0.30rem !important;
+        padding-bottom: 0.30rem !important;
         padding-left: 0.72rem !important;
         padding-right: 0.72rem !important;
     }
