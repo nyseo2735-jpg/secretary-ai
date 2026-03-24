@@ -648,6 +648,43 @@ section[data-testid="stSidebar"] div[data-testid="stDownloadButton"] > button {
 </style>
 """, unsafe_allow_html=True)
 
+st.markdown("""
+<style>
+/* 사이드바 실제 렌더 영역을 직접 잡음 */
+section[data-testid="stSidebar"] div[data-testid="stSidebarUserContent"] .element-container {
+    margin: 0 0 5px 0 !important;   /* 버튼 사이 간격: 약 5mm 느낌 */
+    padding: 0 !important;
+}
+
+/* 버튼/다운로드/expander wrapper 내부 여백 제거 */
+section[data-testid="stSidebar"] div[data-testid="stSidebarUserContent"] .element-container > div {
+    margin: 0 !important;
+    padding: 0 !important;
+}
+
+section[data-testid="stSidebar"] div[data-testid="stSidebarUserContent"] div[data-testid="stButton"],
+section[data-testid="stSidebar"] div[data-testid="stSidebarUserContent"] div[data-testid="stDownloadButton"],
+section[data-testid="stSidebar"] div[data-testid="stSidebarUserContent"] div[data-testid="stExpander"] {
+    margin: 0 !important;
+    padding: 0 !important;
+}
+
+/* 버튼 자체 높이도 살짝 줄여서 더 촘촘하게 */
+section[data-testid="stSidebar"] div[data-testid="stSidebarUserContent"] div[data-testid="stButton"] > button,
+section[data-testid="stSidebar"] div[data-testid="stSidebarUserContent"] div[data-testid="stDownloadButton"] > button {
+    min-height: 2.8rem !important;
+    padding-top: 0.38rem !important;
+    padding-bottom: 0.38rem !important;
+    margin: 0 !important;
+}
+
+/* 선택일 미리보기 expander도 같은 간격으로 */
+section[data-testid="stSidebar"] div[data-testid="stSidebarUserContent"] div[data-testid="stExpander"] details {
+    margin: 0 !important;
+}
+</style>
+""", unsafe_allow_html=True)
+
 
 # =========================================================
 # 4. 유틸
