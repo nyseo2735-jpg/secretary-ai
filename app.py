@@ -75,6 +75,18 @@ SCOPES = [
 
 ADMIN_RELOAD_PASSWORD = "2735"
 
+CAT_SLUG = {
+    "국회": "assembly",
+    "정부기관": "gov",
+    "대한수의사회": "kvma",
+    "수의과대학": "college",
+    "언론사": "media",
+    "기업": "corp",
+    "유관단체": "assoc",
+    "시도지부": "branch",
+    "기타": "etc",
+}
+
 # =========================================================
 # 3. 스타일
 # =========================================================
@@ -571,6 +583,88 @@ div[data-testid="stTabs"] {
 </style>
 """, unsafe_allow_html=True)
 
+_cat_css = []
+for cat, slug in CAT_SLUG.items():
+    c = COLOR_MAP[cat]
+    _cat_css.append(f"""
+    div[data-testid="stExpander"] details:has(.evt-{slug}) {{
+        border-color: {c["line"]} !important;
+        background: #ffffff !important;
+    }}
+    div[data-testid="stExpander"] details:has(.evt-{slug}) summary {{
+        color: {c["text"]} !important;
+    }}
+    div[data-testid="stExpander"] details:has(.evt-{slug}) summary:hover {{
+        background: {c["soft"]} !important;
+    }}
+    """)
+
+st.markdown(f"""
+<style>
+{''.join(_cat_css)}
+
+/* ===== 사이드바 상단 버튼/미리보기 간격: 화면상 약 5mm ===== */
+section[data-testid="stSidebar"] div[data-testid="stSidebarUserContent"] .element-container:has(> div[data-testid="stButton"]),
+section[data-testid="stSidebar"] div[data-testid="stSidebarUserContent"] .element-container:has(> div[data-testid="stDownloadButton"]),
+section[data-testid="stSidebar"] div[data-testid="stSidebarUserContent"] .element-container:has(> div[data-testid="stExpander"]) {{
+    margin: 0 0 5mm 0 !important;
+    padding: 0 !important;
+}}
+
+section[data-testid="stSidebar"] div[data-testid="stSidebarUserContent"] .element-container:has(> div[data-testid="stButton"]) > div,
+section[data-testid="stSidebar"] div[data-testid="stSidebarUserContent"] .element-container:has(> div[data-testid="stDownloadButton"]) > div,
+section[data-testid="stSidebar"] div[data-testid="stSidebarUserContent"] .element-container:has(> div[data-testid="stExpander"]) > div {{
+    margin: 0 !important;
+    padding: 0 !important;
+}}
+
+section[data-testid="stSidebar"] div[data-testid="stButton"],
+section[data-testid="stSidebar"] div[data-testid="stDownloadButton"],
+section[data-testid="stSidebar"] div[data-testid="stExpander"] {{
+    margin: 0 !important;
+    padding: 0 !important;
+}}
+
+section[data-testid="stSidebar"] div[data-testid="stButton"] > button,
+section[data-testid="stSidebar"] div[data-testid="stDownloadButton"] > button {{
+    min-height: 2.9rem !important;
+    padding-top: 0.38rem !important;
+    padding-bottom: 0.38rem !important;
+    margin: 0 !important;
+}}
+
+/* ===== 일별/주간/월별 일정 Bar 간격: 화면상 약 5mm ===== */
+.element-container:has(> div[data-testid="stExpander"]) {{
+    margin: 0 0 5mm 0 !important;
+    padding: 0 !important;
+}}
+
+.element-container:has(> div[data-testid="stExpander"]) > div {{
+    margin: 0 !important;
+    padding: 0 !important;
+}}
+
+div[data-testid="stExpander"] {{
+    margin: 0 !important;
+}}
+
+div[data-testid="stExpander"] details {{
+    margin: 0 !important;
+}}
+
+div[data-testid="stExpander"] summary {{
+    padding-top: 0.24rem !important;
+    padding-bottom: 0.24rem !important;
+    padding-left: 0.82rem !important;
+    padding-right: 0.82rem !important;
+}}
+
+div[data-testid="stExpanderDetails"] {{
+    padding-top: 0.10rem !important;
+    padding-bottom: 0.10rem !important;
+}}
+</style>
+""", unsafe_allow_html=True)
 
 
 # =========================================================
@@ -641,6 +735,9 @@ def empty_df():
 
 def get_color(cat: str):
     return COLOR_MAP.get(cat, COLOR_MAP["기타"])
+
+def category_slug(cat: str) -> str:
+    return CAT_SLUG.get(cat, "etc")
 
 def to_date_safe(v):
     text = safe_str(v)
@@ -1332,25 +1429,14 @@ def render_action_buttons(row, prefix=""):
     st.markdown('</div>', unsafe_allow_html=True)
 
 def render_compact_event(row, prefix=""):
-    c = get_color(row["Category"])
-    st.markdown(
-        f"""
-        <style>
-        div[data-testid="stExpander"]:has(div[id="{prefix}_marker"]) details {{
-            border-color: {c['line']} !important;
-            background: #ffffff !important;
-        }}
-        div[data-testid="stExpander"]:has(div[id="{prefix}_marker"]) .streamlit-expanderHeader {{
-            color: {c['text']} !important;
-            font-weight: 800 !important;
-        }}
-        div[data-testid="stExpander"]:has(div[id="{prefix}_marker"]) summary:hover {{
-            background: {c['soft']} !important;
-        }}
-        </style>
-        """,
-        unsafe_allow_html=True
-    )
+    slug = category_slug(safe_str(row.get("Category")))
+    label = compact_line_text(row)
+
+    with st.expander(label, expanded=False):
+        st.markdown(f'<div class="evt-marker evt-{slug}" style="display:none;"></div>', unsafe_allow_html=True)
+        render_summary_header(row)
+        render_detail_blocks(row)
+        render_action_buttons(row, prefix=prefix)
 
     label = compact_line_text(row)
     with st.expander(label, expanded=False):
@@ -1572,21 +1658,16 @@ def render_form(mode="new", row_data=None):
 # =========================================================
 st.sidebar.markdown("# 🏢 KVMA 비서실")
 
-st.sidebar.markdown('<div class="menu-btn-wrap">', unsafe_allow_html=True)
 if st.sidebar.button("📅 일정 보기", use_container_width=True):
     st.session_state.main_menu = "📅 일정 보기"
     st.session_state.selected_date = today
     st.session_state.edit_id = None
     st.rerun()
-st.sidebar.markdown('</div>', unsafe_allow_html=True)
 
-st.sidebar.markdown('<div class="menu-btn-wrap">', unsafe_allow_html=True)
 if st.sidebar.button("✍️ 신규 일정 등록", use_container_width=True):
     st.session_state.main_menu = "✍️ 신규 일정 등록"
     st.rerun()
-st.sidebar.markdown('</div>', unsafe_allow_html=True)
 
-st.sidebar.markdown('<div class="menu-btn-wrap">', unsafe_allow_html=True)
 xlsx_bytes = excel_download_bytes(st.session_state.data)
 st.sidebar.download_button(
     "📥 일정 엑셀 다운로드",
@@ -1595,7 +1676,6 @@ st.sidebar.download_button(
     mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
     use_container_width=True
 )
-st.sidebar.markdown('</div>', unsafe_allow_html=True)
 
 selected_day_sidebar = get_active_df(st.session_state.data).copy()
 selected_day_sidebar["DateParsed"] = pd.to_datetime(selected_day_sidebar["Date"], errors="coerce").dt.date
