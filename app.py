@@ -564,6 +564,57 @@ div[data-testid="stTabs"] {
 </style>
 """, unsafe_allow_html=True)
 
+st.markdown("""
+<style>
+
+/* 여기부터 추가한 코드 */
+
+section[data-testid="stSidebar"] .element-container:has(> div[data-testid="stButton"]),
+section[data-testid="stSidebar"] .element-container:has(> div[data-testid="stDownloadButton"]),
+section[data-testid="stSidebar"] .element-container:has(> div[data-testid="stExpander"]) {
+    margin: 0 !important;
+    padding: 0 !important;
+}
+
+section[data-testid="stSidebar"] .element-container:has(> div[data-testid="stButton"]) + .element-container,
+section[data-testid="stSidebar"] .element-container:has(> div[data-testid="stDownloadButton"]) + .element-container,
+section[data-testid="stSidebar"] .element-container:has(> div[data-testid="stExpander"]) + .element-container {
+    margin-top: 3px !important;
+}
+
+section[data-testid="stSidebar"] div[data-testid="stButton"] > button,
+section[data-testid="stSidebar"] div[data-testid="stDownloadButton"] > button {
+    min-height: 2.9rem !important;
+    padding-top: 0.42rem !important;
+    padding-bottom: 0.42rem !important;
+}
+
+.element-container:has(> div[data-testid="stExpander"]) {
+    margin: 0 !important;
+    padding: 0 !important;
+}
+
+.element-container:has(> div[data-testid="stExpander"]) + .element-container:has(> div[data-testid="stExpander"]) {
+    margin-top: 3px !important;
+}
+
+div[data-testid="stExpander"] {
+    margin: 0 !important;
+}
+
+div[data-testid="stExpander"] summary {
+    padding-top: 0.24rem !important;
+    padding-bottom: 0.24rem !important;
+}
+
+div[data-testid="stExpanderDetails"] {
+    padding-top: 0.10rem !important;
+    padding-bottom: 0.10rem !important;
+}
+
+</style>
+""", unsafe_allow_html=True)
+
 # =========================================================
 # 4. 유틸
 # =========================================================
