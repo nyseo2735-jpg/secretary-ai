@@ -615,6 +615,40 @@ div[data-testid="stExpanderDetails"] {
 </style>
 """, unsafe_allow_html=True)
 
+st.markdown("""
+<style>
+
+/* 🔥 사이드바 버튼 간격 강제 제어 (핵심) */
+
+/* 1. 버튼을 감싸는 가장 바깥 컨테이너 */
+section[data-testid="stSidebar"] .element-container {
+    margin-bottom: 5px !important;   /* ← 5mm 느낌 (핵심) */
+    padding: 0 !important;
+}
+
+/* 2. 내부 wrapper 제거 */
+section[data-testid="stSidebar"] .element-container > div {
+    margin: 0 !important;
+    padding: 0 !important;
+}
+
+/* 3. 버튼 자체 여백 제거 */
+section[data-testid="stSidebar"] button {
+    margin: 0 !important;
+}
+
+/* 4. 버튼 높이 살짝 줄여서 더 촘촘하게 */
+section[data-testid="stSidebar"] div[data-testid="stButton"] > button,
+section[data-testid="stSidebar"] div[data-testid="stDownloadButton"] > button {
+    min-height: 2.8rem !important;
+    padding-top: 0.35rem !important;
+    padding-bottom: 0.35rem !important;
+}
+
+</style>
+""", unsafe_allow_html=True)
+
+
 # =========================================================
 # 4. 유틸
 # =========================================================
