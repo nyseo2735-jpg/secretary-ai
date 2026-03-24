@@ -346,32 +346,39 @@ div[data-testid="stForm"] {
     background: #ffffff;
 }
 
-/* ===== 사이드바 버튼 간격: 현재 보이는 간격의 절반 수준 ===== */
+/* ===== 사이드바 4개 버튼 간격: 화면상 약 5mm ===== */
 .menu-btn-wrap {
-    margin-bottom: 6px !important;
-    padding-bottom: 0 !important;
+    margin: 0 !important;
+    padding: 0 !important;
 }
 
-section[data-testid="stSidebar"] div[data-testid="stVerticalBlock"] > div {
-    margin-bottom: 6px !important;
+section[data-testid="stSidebar"] div[data-testid="stSidebarUserContent"] .element-container:has(> div[data-testid="stButton"]),
+section[data-testid="stSidebar"] div[data-testid="stSidebarUserContent"] .element-container:has(> div[data-testid="stDownloadButton"]),
+section[data-testid="stSidebar"] div[data-testid="stSidebarUserContent"] .element-container:has(> div[data-testid="stExpander"]) {
+    margin: 0 0 14px 0 !important;   /* 대략 5mm 수준 */
+    padding: 0 !important;
+}
+
+section[data-testid="stSidebar"] div[data-testid="stSidebarUserContent"] .element-container:has(> div[data-testid="stButton"]) > div,
+section[data-testid="stSidebar"] div[data-testid="stSidebarUserContent"] .element-container:has(> div[data-testid="stDownloadButton"]) > div,
+section[data-testid="stSidebar"] div[data-testid="stSidebarUserContent"] .element-container:has(> div[data-testid="stExpander"]) > div {
+    margin: 0 !important;
+    padding: 0 !important;
 }
 
 section[data-testid="stSidebar"] div[data-testid="stButton"],
 section[data-testid="stSidebar"] div[data-testid="stDownloadButton"],
 section[data-testid="stSidebar"] div[data-testid="stExpander"] {
-    margin-top: 0 !important;
-    margin-bottom: 0 !important;
-}
-
-section[data-testid="stSidebar"] button {
-    margin-bottom: 0 !important;
+    margin: 0 !important;
+    padding: 0 !important;
 }
 
 section[data-testid="stSidebar"] div[data-testid="stButton"] > button,
 section[data-testid="stSidebar"] div[data-testid="stDownloadButton"] > button {
-    min-height: 2.85rem !important;
-    padding-top: 0.42rem !important;
-    padding-bottom: 0.42rem !important;
+    min-height: 2.9rem !important;
+    padding-top: 0.38rem !important;
+    padding-bottom: 0.38rem !important;
+    margin: 0 !important;
 }
 
 .sidebar-day-item {
@@ -564,126 +571,6 @@ div[data-testid="stTabs"] {
 </style>
 """, unsafe_allow_html=True)
 
-st.markdown("""
-<style>
-
-/* 여기부터 추가한 코드 */
-
-section[data-testid="stSidebar"] .element-container:has(> div[data-testid="stButton"]),
-section[data-testid="stSidebar"] .element-container:has(> div[data-testid="stDownloadButton"]),
-section[data-testid="stSidebar"] .element-container:has(> div[data-testid="stExpander"]) {
-    margin: 0 !important;
-    padding: 0 !important;
-}
-
-section[data-testid="stSidebar"] .element-container:has(> div[data-testid="stButton"]) + .element-container,
-section[data-testid="stSidebar"] .element-container:has(> div[data-testid="stDownloadButton"]) + .element-container,
-section[data-testid="stSidebar"] .element-container:has(> div[data-testid="stExpander"]) + .element-container {
-    margin-top: 3px !important;
-}
-
-section[data-testid="stSidebar"] div[data-testid="stButton"] > button,
-section[data-testid="stSidebar"] div[data-testid="stDownloadButton"] > button {
-    min-height: 2.9rem !important;
-    padding-top: 0.42rem !important;
-    padding-bottom: 0.42rem !important;
-}
-
-.element-container:has(> div[data-testid="stExpander"]) {
-    margin: 0 !important;
-    padding: 0 !important;
-}
-
-.element-container:has(> div[data-testid="stExpander"]) + .element-container:has(> div[data-testid="stExpander"]) {
-    margin-top: 3px !important;
-}
-
-div[data-testid="stExpander"] {
-    margin: 0 !important;
-}
-
-div[data-testid="stExpander"] summary {
-    padding-top: 0.24rem !important;
-    padding-bottom: 0.24rem !important;
-}
-
-div[data-testid="stExpanderDetails"] {
-    padding-top: 0.10rem !important;
-    padding-bottom: 0.10rem !important;
-}
-
-</style>
-""", unsafe_allow_html=True)
-
-st.markdown("""
-<style>
-
-/* 🔥 사이드바 버튼 간격 강제 제어 (핵심) */
-
-/* 1. 버튼을 감싸는 가장 바깥 컨테이너 */
-section[data-testid="stSidebar"] .element-container {
-    margin-bottom: 5px !important;   /* ← 5mm 느낌 (핵심) */
-    padding: 0 !important;
-}
-
-/* 2. 내부 wrapper 제거 */
-section[data-testid="stSidebar"] .element-container > div {
-    margin: 0 !important;
-    padding: 0 !important;
-}
-
-/* 3. 버튼 자체 여백 제거 */
-section[data-testid="stSidebar"] button {
-    margin: 0 !important;
-}
-
-/* 4. 버튼 높이 살짝 줄여서 더 촘촘하게 */
-section[data-testid="stSidebar"] div[data-testid="stButton"] > button,
-section[data-testid="stSidebar"] div[data-testid="stDownloadButton"] > button {
-    min-height: 2.8rem !important;
-    padding-top: 0.35rem !important;
-    padding-bottom: 0.35rem !important;
-}
-
-</style>
-""", unsafe_allow_html=True)
-
-st.markdown("""
-<style>
-/* 사이드바 실제 렌더 영역을 직접 잡음 */
-section[data-testid="stSidebar"] div[data-testid="stSidebarUserContent"] .element-container {
-    margin: 0 0 5px 0 !important;   /* 버튼 사이 간격: 약 5mm 느낌 */
-    padding: 0 !important;
-}
-
-/* 버튼/다운로드/expander wrapper 내부 여백 제거 */
-section[data-testid="stSidebar"] div[data-testid="stSidebarUserContent"] .element-container > div {
-    margin: 0 !important;
-    padding: 0 !important;
-}
-
-section[data-testid="stSidebar"] div[data-testid="stSidebarUserContent"] div[data-testid="stButton"],
-section[data-testid="stSidebar"] div[data-testid="stSidebarUserContent"] div[data-testid="stDownloadButton"],
-section[data-testid="stSidebar"] div[data-testid="stSidebarUserContent"] div[data-testid="stExpander"] {
-    margin: 0 !important;
-    padding: 0 !important;
-}
-
-/* 버튼 자체 높이도 살짝 줄여서 더 촘촘하게 */
-section[data-testid="stSidebar"] div[data-testid="stSidebarUserContent"] div[data-testid="stButton"] > button,
-section[data-testid="stSidebar"] div[data-testid="stSidebarUserContent"] div[data-testid="stDownloadButton"] > button {
-    min-height: 2.8rem !important;
-    padding-top: 0.38rem !important;
-    padding-bottom: 0.38rem !important;
-    margin: 0 !important;
-}
-
-/* 선택일 미리보기 expander도 같은 간격으로 */
-section[data-testid="stSidebar"] div[data-testid="stSidebarUserContent"] div[data-testid="stExpander"] details {
-    margin: 0 !important;
-}
-</style>
-""", unsafe_allow_html=True)
 
 
 # =========================================================
