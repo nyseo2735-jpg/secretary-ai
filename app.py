@@ -87,7 +87,7 @@ html, body, [class*="css"] {
 }
 
 .block-container {
-    padding-top: 2.55rem;
+    padding-top: 2.5rem;
     padding-bottom: 1.4rem;
     max-width: 1600px;
 }
@@ -346,19 +346,14 @@ div[data-testid="stForm"] {
     background: #ffffff;
 }
 
-/* ===== 사이드바 4개 버튼 간격/높이 ===== */
+/* ===== 사이드바 버튼 간격: 현재 보이는 간격의 절반 수준 ===== */
 .menu-btn-wrap {
-    margin: 0 !important;
-    padding: 0 !important;
+    margin-bottom: 6px !important;
+    padding-bottom: 0 !important;
 }
 
-section[data-testid="stSidebar"] div[data-testid="stVerticalBlock"] > div:has(> div[data-testid="stButton"]),
-section[data-testid="stSidebar"] div[data-testid="stVerticalBlock"] > div:has(> div[data-testid="stDownloadButton"]),
-section[data-testid="stSidebar"] div[data-testid="stVerticalBlock"] > div:has(> div[data-testid="stExpander"]) {
-    margin-top: 0 !important;
-    margin-bottom: 1px !important;
-    padding-top: 0 !important;
-    padding-bottom: 0 !important;
+section[data-testid="stSidebar"] div[data-testid="stVerticalBlock"] > div {
+    margin-bottom: 6px !important;
 }
 
 section[data-testid="stSidebar"] div[data-testid="stButton"],
@@ -368,21 +363,22 @@ section[data-testid="stSidebar"] div[data-testid="stExpander"] {
     margin-bottom: 0 !important;
 }
 
-section[data-testid="stSidebar"] div[data-testid="stButton"] > button,
-section[data-testid="stSidebar"] div[data-testid="stDownloadButton"] > button {
-    margin-top: 0 !important;
+section[data-testid="stSidebar"] button {
     margin-bottom: 0 !important;
-    min-height: 2.65rem !important;
-    padding-top: 0.35rem !important;
-    padding-bottom: 0.35rem !important;
 }
 
-/* 선택일 미리보기 카드 */
+section[data-testid="stSidebar"] div[data-testid="stButton"] > button,
+section[data-testid="stSidebar"] div[data-testid="stDownloadButton"] > button {
+    min-height: 2.85rem !important;
+    padding-top: 0.42rem !important;
+    padding-bottom: 0.42rem !important;
+}
+
 .sidebar-day-item {
     border: 1px solid #ECEEF3;
     border-radius: 12px;
     padding: 8px 10px;
-    margin-bottom: 1px !important;
+    margin-bottom: 2px !important;
     background: #ffffff;
 }
 
@@ -412,17 +408,20 @@ section[data-testid="stSidebar"] div[data-testid="stDownloadButton"] > button {
     margin-bottom: 8px;
 }
 
-/* ===== 일별/주간/월별 일정 박스 공통 ===== */
+/* ===== 일정 박스 간격: 일별/주간/월별 공통으로 절반 수준 ===== */
 .streamlit-expanderHeader {
     font-weight: 800 !important;
-    font-size: 0.92rem !important;
-    line-height: 1.22 !important;
+    font-size: 0.90rem !important;
+    line-height: 1.2 !important;
     text-align: left !important;
 }
 
 div[data-testid="stExpander"] {
-    margin-top: 0 !important;
-    margin-bottom: 1px !important;
+    margin-bottom: 6px !important;
+}
+
+div[data-testid="stVerticalBlock"] > div:has(> div[data-testid="stExpander"]) {
+    margin-bottom: 6px !important;
 }
 
 div[data-testid="stExpander"] details {
@@ -431,14 +430,13 @@ div[data-testid="stExpander"] details {
     background: #ffffff !important;
     overflow: hidden !important;
     box-shadow: none !important;
-    margin: 0 !important;
 }
 
 div[data-testid="stExpander"] summary {
-    padding-top: 0.18rem !important;
-    padding-bottom: 0.18rem !important;
-    padding-left: 0.80rem !important;
-    padding-right: 0.80rem !important;
+    padding-top: 0.22rem !important;
+    padding-bottom: 0.22rem !important;
+    padding-left: 0.82rem !important;
+    padding-right: 0.82rem !important;
     min-height: auto !important;
 }
 
@@ -447,17 +445,11 @@ div[data-testid="stExpander"] summary:hover {
 }
 
 div[data-testid="stExpanderDetails"] {
-    padding-top: 0.12rem !important;
-    padding-bottom: 0.12rem !important;
+    padding-top: 0.08rem !important;
+    padding-bottom: 0.08rem !important;
 }
 
-/* expander만 감싸는 wrapper만 축소 */
-div[data-testid="stVerticalBlock"] > div:has(> div[data-testid="stExpander"]) {
-    margin-bottom: 1px !important;
-    padding-bottom: 0 !important;
-}
-
-/* 전역 블록 간격은 건드리지 않음 */
+/* 탭/상단은 건드리지 않음 */
 div[data-testid="stTabs"] {
     margin-bottom: 0 !important;
 }
@@ -520,10 +512,9 @@ div[data-testid="stTabs"] {
     vertical-align: middle;
 }
 
-/* 좁은 주간/월별 칸에서 너무 세로로 길어지는 것 완화 */
 @media (max-width: 1000px) {
     .block-container {
-        padding-top: 2.1rem;
+        padding-top: 2.2rem;
     }
 
     .main-title {
@@ -546,19 +537,23 @@ div[data-testid="stTabs"] {
         min-height: auto;
     }
 
-    section[data-testid="stSidebar"] div[data-testid="stButton"] {
-        margin-bottom: 1px !important;
+    section[data-testid="stSidebar"] div[data-testid="stVerticalBlock"] > div {
+        margin-bottom: 6px !important;
     }
 
     div[data-testid="stExpander"] {
-        margin-bottom: 1px !important;
+        margin-bottom: 6px !important;
+    }
+
+    div[data-testid="stVerticalBlock"] > div:has(> div[data-testid="stExpander"]) {
+        margin-bottom: 6px !important;
     }
 
     div[data-testid="stExpander"] summary {
-        padding-top: 0.16rem !important;
-        padding-bottom: 0.16rem !important;
-        padding-left: 0.68rem !important;
-        padding-right: 0.68rem !important;
+        padding-top: 0.22rem !important;
+        padding-bottom: 0.22rem !important;
+        padding-left: 0.72rem !important;
+        padding-right: 0.72rem !important;
     }
 
     .streamlit-expanderHeader {
