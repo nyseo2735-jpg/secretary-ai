@@ -411,7 +411,6 @@ div[data-testid="stExpander"] summary:hover {
     background: #FAFAFA !important;
 }
 
-/* 탭/상단은 건드리지 않음 */
 div[data-testid="stTabs"] {
     margin-bottom: 0 !important;
 }
@@ -504,46 +503,73 @@ div[data-testid="stTabs"] {
         line-height: 1.18 !important;
     }
 }
+
 /* ================================
-   🔴 사이드바 4개 버튼 간격 (핵심)
+   🔴 사이드바 4개 버튼 간격 — 약 5mm (19px)
    ================================ */
 section[data-testid="stSidebar"] div[data-testid="stSidebarUserContent"] .stVerticalBlock > div {
-    margin-bottom: 6px !important;
+    margin-bottom: 0px !important;
+    padding-bottom: 0px !important;
 }
 
-/* 버튼 자체 여백 제거 */
 section[data-testid="stSidebar"] div[data-testid="stButton"],
-section[data-testid="stSidebar"] div[data-testid="stDownloadButton"],
-section[data-testid="stSidebar"] div[data-testid="stExpander"] {
-    margin: 0 !important;
-    padding: 0 !important;
+section[data-testid="stSidebar"] div[data-testid="stDownloadButton"] {
+    margin-top: 0px !important;
+    margin-bottom: 0px !important;
+    padding-top: 0px !important;
+    padding-bottom: 0px !important;
+}
+
+/* 버튼 wrapper gap 강제 제거 후 직접 gap 부여 */
+section[data-testid="stSidebar"] div[data-testid="stSidebarUserContent"] .stVerticalBlock {
+    gap: 5px !important;
 }
 
 /* 버튼 높이 살짝 압축 */
 section[data-testid="stSidebar"] div[data-testid="stButton"] > button,
 section[data-testid="stSidebar"] div[data-testid="stDownloadButton"] > button {
-    min-height: 2.7rem !important;
-    padding-top: 0.35rem !important;
-    padding-bottom: 0.35rem !important;
+    min-height: 2.6rem !important;
+    padding-top: 0.28rem !important;
+    padding-bottom: 0.28rem !important;
 }
 
+/* expander(미리보기) 상단 여백도 축소 */
+section[data-testid="stSidebar"] div[data-testid="stExpander"] {
+    margin-top: 0px !important;
+    margin-bottom: 0px !important;
+}
 
 /* ================================
-   🔴 일정 바 간격 (일별/주간/월별 공통)
+   🔴 일별 보기 — 일정 expander 간격 50% 이하
    ================================ */
+/* 일별/주간/월별 공통: expander 감싸는 div 간격 */
 div[data-testid="stVerticalBlock"] > div:has(> div[data-testid="stExpander"]) {
-    margin-bottom: 6px !important;
+    margin-bottom: 3px !important;
+    padding-bottom: 0px !important;
 }
 
-/* expander 자체 간격 제거 */
+/* expander 자체 margin 제거 */
 div[data-testid="stExpander"] {
-    margin: 0 !important;
+    margin-top: 0px !important;
+    margin-bottom: 0px !important;
 }
 
-/* 내부 padding 살짝 압축 */
+/* expander summary 내부 패딩 압축 */
 div[data-testid="stExpander"] summary {
-    padding-top: 0.20rem !important;
-    padding-bottom: 0.20rem !important;
+    padding-top: 0.18rem !important;
+    padding-bottom: 0.18rem !important;
+}
+
+/* ================================
+   🔴 주간/월별 — 컬럼 내 expander 간격 약 5mm
+   ================================ */
+/* 주간/월별 보기의 각 day 컬럼 내부 vertical gap */
+div[data-testid="stHorizontalBlock"] div[data-testid="stVerticalBlock"] > div:has(> div[data-testid="stExpander"]) {
+    margin-bottom: 5px !important;
+}
+
+div[data-testid="stHorizontalBlock"] div[data-testid="stVerticalBlock"] > div:has(> div[data-testid="stExpander"]) + div:has(> div[data-testid="stExpander"]) {
+    margin-top: 0px !important;
 }
 </style>
 """, unsafe_allow_html=True)
@@ -1631,7 +1657,6 @@ if not has_gsheet_config():
 
 show_flash()
 
-# 좁은 화면 대비 스택 강제 옵션
 st.session_state.is_mobile_force_stack = False
 
 # =========================================================
@@ -1905,7 +1930,7 @@ else:
         table_follow_filter = tc3.selectbox("팔로우업 상태", ["전체"] + FOLLOW_STATUS_OPTIONS, index=0, key="table_follow_filter")
         only_open_follow = tc4.checkbox("미완료 팔로우업만 보기", value=False, key="only_open_follow")
 
-        st.caption("‘한 페이지 행 수’는 한 번에 보여줄 일정 데이터 행 개수입니다.")
+        st.caption("'한 페이지 행 수'는 한 번에 보여줄 일정 데이터 행 개수입니다.")
 
         table_df = filtered_df.copy()
 
