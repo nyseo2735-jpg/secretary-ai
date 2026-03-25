@@ -1,7 +1,6 @@
 import streamlit as st
 import pandas as pd
 from datetime import datetime, date, timedelta, time
-from zoneinfo import ZoneInfo
 import calendar
 import html
 from io import BytesIO
@@ -63,8 +62,6 @@ DATA_COLUMNS = [
     "FollowProgressMemo",
     "FollowUpdated",
     "Updated",
-    "IsDeleted",
-    "UpdatedBy",
 ]
 
 SCOPES = [
@@ -497,15 +494,6 @@ div[data-testid="stForm"] {
 # =========================================================
 # 4. 유틸
 # =========================================================
-KST = ZoneInfo("Asia/Seoul")
-
-def now_kst():
-    return datetime.now(KST)
-
-def now_kst_str():
-    return now_kst().strftime("%Y-%m-%d %H:%M")
-
-
 def safe_str(v):
     if v is None:
         return ""
@@ -600,14 +588,10 @@ def esc(v):
 
 
 def excel_download_bytes(df: pd.DataFrame) -> bytes:
-    export_df = get_active_df(df).copy()
-    export_df = ensure_columns(export_df)
-    if "IsDeleted" in export_df.columns:
-        export_df = export_df.drop(columns=["IsDeleted"], errors="ignore")
-
+    df = ensure_columns(df)
     output = BytesIO()
     with pd.ExcelWriter(output, engine="openpyxl") as writer:
-        export_df.to_excel(writer, index=False, sheet_name="Schedule")
+        df.to_excel(writer, index=False, sheet_name="Schedule")
     output.seek(0)
     return output.getvalue()
 
@@ -626,22 +610,6 @@ def get_sheet_config():
     sheet_name = get_secret_value("google_sheet_name", "")
     worksheet_name = get_secret_value("google_worksheet_name", "")
     return sheet_name, worksheet_name
-
-
-def has_gsheet_config():
-    sheet_name, worksheet_name = get_sheet_config()
-    return ("gcp_service_account" in st.secrets) and bool(sheet_name) and bool(worksheet_name)
-
-
-def column_letter(n: int) -> str:
-    result = ""
-    while n > 0:
-        n, remainder = divmod(n - 1, 26)
-        result = chr(65 + remainder) + result
-    return result
-
-
-LAST_COL_LETTER = column_letter(len(DATA_COLUMNS))
 
 
 @st.cache_resource
@@ -668,8 +636,8 @@ def get_worksheet():
     try:
         ws = sh.worksheet(worksheet_name)
     except gspread.WorksheetNotFound:
-        ws = sh.add_worksheet(title=worksheet_name, rows=10000, cols=max(len(DATA_COLUMNS) + 8, 40))
-        ws.update(range_name=f"A1:{LAST_COL_LETTER}1", values=[DATA_COLUMNS])
+        ws = sh.add_worksheet(title=worksheet_name, rows=5000, cols=max(len(DATA_COLUMNS) + 8, 40))
+        ws.update("A1:Y1", [DATA_COLUMNS])
 
     return ws
 
@@ -678,34 +646,20 @@ def ensure_sheet_header(ws):
     values = ws.get_all_values()
 
     if not values:
-        ws.update(range_name=f"A1:{LAST_COL_LETTER}1", values=[DATA_COLUMNS])
+        ws.update("A1:Y1", [DATA_COLUMNS])
         return
 
     first_row = values[0] if values else []
-    current_header = first_row[:len(first_row)]
+    first_row_trimmed = first_row[:len(DATA_COLUMNS)]
 
-    if current_header == DATA_COLUMNS:
-        return
-
-    data_rows = values[1:] if len(values) > 1 else []
-
-    old_header_index = {}
-    for idx, col in enumerate(first_row):
-        old_header_index[col] = idx
-
-    rebuilt_rows = []
-    for row in data_rows:
-        new_row = []
-        for col in DATA_COLUMNS:
-            if col in old_header_index and old_header_index[col] < len(row):
-                new_row.append(row[old_header_index[col]])
-            else:
-                new_row.append("")
-        rebuilt_rows.append(new_row)
-
-    new_values = [DATA_COLUMNS] + rebuilt_rows
-    ws.clear()
-    ws.update(range_name=f"A1:{LAST_COL_LETTER}{len(new_values)}", values=new_values)
+    if first_row_trimmed != DATA_COLUMNS:
+        all_values = values[1:] if values else []
+        new_values = [DATA_COLUMNS]
+        for row in all_values:
+            row = row[:len(DATA_COLUMNS)] + [""] * max(0, len(DATA_COLUMNS) - len(row))
+            new_values.append(row[:len(DATA_COLUMNS)])
+        ws.clear()
+        ws.update(f"A1:Y{len(new_values)}", new_values)
 
 
 def clean_records_df(df: pd.DataFrame) -> pd.DataFrame:
@@ -714,52 +668,49 @@ def clean_records_df(df: pd.DataFrame) -> pd.DataFrame:
     if df.empty:
         return df
 
+    # 완전 빈 행 제거
     non_id_cols = [c for c in DATA_COLUMNS if c != "ID"]
     mask_not_empty = df[non_id_cols].apply(
         lambda row: any(safe_str(v) for v in row), axis=1
     )
     df = df[mask_not_empty].copy()
 
-    if df.empty:
-        return ensure_columns(df)
-
+    # ID 없으면 생성
     missing_id_mask = df["ID"].apply(lambda x: safe_str(x) == "")
     if missing_id_mask.any():
         for idx in df[missing_id_mask].index:
             df.at[idx, "ID"] = next_id()
 
+    # 기본값 보정
     df["Category"] = df["Category"].apply(lambda x: x if x in CATEGORIES else "기타")
     df["Status"] = df["Status"].apply(lambda x: x if x in STATUS_OPTIONS else "확정")
     df["Priority"] = df["Priority"].apply(lambda x: x if x in PRIORITY_OPTIONS else "보통")
     df["FollowStatus"] = df["FollowStatus"].apply(lambda x: x if x in FOLLOW_STATUS_OPTIONS else "미착수")
-    df["IsDeleted"] = df["IsDeleted"].apply(lambda x: "Y" if safe_str(x).upper() == "Y" else "")
 
+    # 날짜/시간 정규화
     df["Date"] = df["Date"].apply(lambda x: to_date_safe(x).strftime("%Y-%m-%d") if to_date_safe(x) else "")
     df["Time"] = df["Time"].apply(lambda x: parse_time_safe(x).strftime("%H:%M") if safe_str(x) else "")
     df["FollowDue"] = df["FollowDue"].apply(lambda x: to_date_safe(x).strftime("%Y-%m-%d") if to_date_safe(x) else "")
 
-    for col in ["FollowUpdated", "Updated", "UpdatedBy"]:
+    for col in ["FollowUpdated", "Updated"]:
         df[col] = df[col].apply(lambda x: safe_str(x))
 
+    # ID 기준 중복 제거: 마지막 값 우선
     df = df.drop_duplicates(subset=["ID"], keep="last").reset_index(drop=True)
 
     return ensure_columns(df)
 
 
-def get_active_df(df: pd.DataFrame) -> pd.DataFrame:
-    temp = clean_records_df(df)
-    if temp.empty:
-        return temp
-    return temp[temp["IsDeleted"] != "Y"].reset_index(drop=True)
-
-
 def load_data_from_gsheet():
     try:
-        if not has_gsheet_config():
-            if "gcp_service_account" not in st.secrets:
-                st.info("구글 시트 연결 정보가 아직 설정되지 않았습니다. 현재는 임시 세션 데이터만 보입니다.")
-            else:
-                st.info("google_sheet_name 또는 google_worksheet_name 설정이 없습니다. 현재는 임시 세션 데이터만 보입니다.")
+        if "gcp_service_account" not in st.secrets:
+            st.info("구글 시트 연결 정보가 아직 설정되지 않았습니다. 현재는 임시 세션 데이터만 보입니다.")
+            return empty_df()
+
+        sheet_name, worksheet_name = get_sheet_config()
+
+        if not sheet_name or not worksheet_name:
+            st.info("google_sheet_name 또는 google_worksheet_name 설정이 없습니다. 현재는 임시 세션 데이터만 보입니다.")
             return empty_df()
 
         ws = get_worksheet()
@@ -777,71 +728,16 @@ def load_data_from_gsheet():
         return empty_df()
 
 
-def find_row_number_by_id(ws, record_id: str):
-    id_col_num = DATA_COLUMNS.index("ID") + 1
-    id_values = ws.col_values(id_col_num)
-
-    for row_num in range(2, len(id_values) + 1):
-        if safe_str(id_values[row_num - 1]) == safe_str(record_id):
-            return row_num
-    return None
-
-
-def append_record_to_gsheet(record: dict):
-    ws = get_worksheet()
-    ensure_sheet_header(ws)
-    row_values = [normalize_cell(record.get(col, "")) for col in DATA_COLUMNS]
-    ws.append_row(row_values, value_input_option="USER_ENTERED")
-
-
-def update_record_in_gsheet(record: dict):
-    ws = get_worksheet()
-    ensure_sheet_header(ws)
-
-    row_num = find_row_number_by_id(ws, record["ID"])
-    row_values = [normalize_cell(record.get(col, "")) for col in DATA_COLUMNS]
-
-    if row_num is None:
-        ws.append_row(row_values, value_input_option="USER_ENTERED")
-    else:
-        ws.update(
-            range_name=f"A{row_num}:{LAST_COL_LETTER}{row_num}",
-            values=[row_values]
-        )
-
-
-def soft_delete_record_in_gsheet(record_id: str):
-    ws = get_worksheet()
-    ensure_sheet_header(ws)
-
-    row_num = find_row_number_by_id(ws, record_id)
-    if row_num is None:
-        return
-
-    row_values = ws.row_values(row_num)
-    row_values = row_values[:len(DATA_COLUMNS)] + [""] * max(0, len(DATA_COLUMNS) - len(row_values))
-
-    temp = {col: row_values[idx] if idx < len(row_values) else "" for idx, col in enumerate(DATA_COLUMNS)}
-    temp["IsDeleted"] = "Y"
-    temp["Updated"] = now_kst_str()
-    temp["UpdatedBy"] = safe_str(st.session_state.get("editor_name", ""))
-
-    ws.update(
-        range_name=f"A{row_num}:{LAST_COL_LETTER}{row_num}",
-        values=[[normalize_cell(temp.get(col, "")) for col in DATA_COLUMNS]]
-    )
-
-
 def save_all_to_gsheet(df: pd.DataFrame):
     ws = get_worksheet()
     df = clean_records_df(df)
     values = [DATA_COLUMNS] + df[DATA_COLUMNS].values.tolist()
     ws.clear()
-    ws.update(range_name=f"A1:{LAST_COL_LETTER}{len(values)}", values=values)
+    ws.update(f"A1:Y{len(values)}", values)
 
 
 def get_filtered_df(df, selected_cat="카테고리", search_text="", status_filter="일정 현황", follow_status_filter="팔로우업 상태"):
-    temp = get_active_df(df)
+    temp = clean_records_df(df)
 
     temp["DateParsed"] = pd.to_datetime(temp["Date"], errors="coerce").dt.date
 
@@ -867,7 +763,6 @@ def get_filtered_df(df, selected_cat="카테고리", search_text="", status_filt
             | temp["FollowTask"].fillna("").str.contains(q, case=False, na=False)
             | temp["Memo"].fillna("").str.contains(q, case=False, na=False)
             | temp["FollowProgressMemo"].fillna("").str.contains(q, case=False, na=False)
-            | temp["UpdatedBy"].fillna("").str.contains(q, case=False, na=False)
         )
         temp = temp[mask]
 
@@ -886,14 +781,16 @@ def month_calendar_weeks(year: int, month: int):
 
 
 def next_id():
-    return now_kst().strftime("%Y%m%d%H%M%S%f")
+    return datetime.now().strftime("%Y%m%d%H%M%S%f")
 
 
-def persist_data_full_sync():
+def persist_data():
     try:
-        if has_gsheet_config():
+        st.session_state.data = clean_records_df(st.session_state.data)
+
+        sheet_name, worksheet_name = get_sheet_config()
+        if "gcp_service_account" in st.secrets and sheet_name and worksheet_name:
             save_all_to_gsheet(st.session_state.data)
-            st.session_state.data = load_data_from_gsheet()
         return True, None
     except Exception as e:
         return False, str(e)
@@ -901,86 +798,34 @@ def persist_data_full_sync():
 
 def save_record(record: dict, is_edit=False):
     record = {col: normalize_cell(record.get(col, "")) for col in DATA_COLUMNS}
-    record["Updated"] = now_kst_str()
-    record["UpdatedBy"] = safe_str(st.session_state.get("editor_name", ""))
-    record["IsDeleted"] = ""
+    record["Updated"] = datetime.now().strftime("%Y-%m-%d %H:%M")
 
-    try:
-        if has_gsheet_config():
-            if is_edit:
-                update_record_in_gsheet(record)
-            else:
-                append_record_to_gsheet(record)
+    current = clean_records_df(st.session_state.data)
 
-            st.session_state.data = load_data_from_gsheet()
-            return True, None
-
-        current = clean_records_df(st.session_state.data)
-
-        if is_edit:
-            mask = current["ID"].astype(str) == str(record["ID"])
-            if mask.any():
-                for col in DATA_COLUMNS:
-                    current.loc[mask, col] = record[col]
-            else:
-                current = pd.concat([current, pd.DataFrame([record])], ignore_index=True)
+    if is_edit:
+        mask = current["ID"].astype(str) == str(record["ID"])
+        if mask.any():
+            for col in DATA_COLUMNS:
+                current.loc[mask, col] = record[col]
         else:
             current = pd.concat([current, pd.DataFrame([record])], ignore_index=True)
+    else:
+        current = pd.concat([current, pd.DataFrame([record])], ignore_index=True)
 
-        st.session_state.data = clean_records_df(current)
-        return True, None
-
-    except Exception as e:
-        return False, str(e)
-
-
-def soft_delete_record(record_id: str):
-    try:
-        if has_gsheet_config():
-            soft_delete_record_in_gsheet(record_id)
-            st.session_state.data = load_data_from_gsheet()
-            return True, None
-
-        current = clean_records_df(st.session_state.data)
-        mask = current["ID"].astype(str) == str(record_id)
-        if mask.any():
-            current.loc[mask, "IsDeleted"] = "Y"
-            current.loc[mask, "Updated"] = now_kst_str()
-            current.loc[mask, "UpdatedBy"] = safe_str(st.session_state.get("editor_name", ""))
-        st.session_state.data = clean_records_df(current)
-        return True, None
-
-    except Exception as e:
-        return False, str(e)
+    st.session_state.data = clean_records_df(current)
+    ok, err = persist_data()
+    return ok, err
 
 
 def update_follow_status(record_id: str, new_status: str):
-    try:
-        current = clean_records_df(st.session_state.data)
-        target = current[current["ID"].astype(str) == str(record_id)]
-
-        if target.empty:
-            return False, "대상 일정을 찾지 못했습니다."
-
-        row = target.iloc[0].to_dict()
-        row["FollowStatus"] = new_status
-        row["FollowUpdated"] = now_kst_str()
-        row["Updated"] = now_kst_str()
-        row["UpdatedBy"] = safe_str(st.session_state.get("editor_name", ""))
-
-        if has_gsheet_config():
-            update_record_in_gsheet(row)
-            st.session_state.data = load_data_from_gsheet()
-        else:
-            mask = current["ID"].astype(str) == str(record_id)
-            for col in DATA_COLUMNS:
-                current.loc[mask, col] = normalize_cell(row.get(col, ""))
-            st.session_state.data = clean_records_df(current)
-
-        return True, None
-
-    except Exception as e:
-        return False, str(e)
+    current = clean_records_df(st.session_state.data)
+    mask = current["ID"].astype(str) == str(record_id)
+    if mask.any():
+        current.loc[mask, "FollowStatus"] = new_status
+        current.loc[mask, "FollowUpdated"] = datetime.now().strftime("%Y-%m-%d %H:%M")
+        current.loc[mask, "Updated"] = datetime.now().strftime("%Y-%m-%d %H:%M")
+        st.session_state.data = clean_records_df(current)
+        persist_data()
 
 
 def contact_text(row):
@@ -1066,7 +911,7 @@ def day_header_html(day_obj: date, text: str, dim: bool = False):
 
 
 def sort_latest_first(df: pd.DataFrame):
-    df = ensure_columns(df).copy()
+    df = clean_records_df(df).copy()
     if df.empty:
         return df
     df["DateSort"] = pd.to_datetime(df["Date"], errors="coerce")
@@ -1077,7 +922,7 @@ def sort_latest_first(df: pd.DataFrame):
 
 
 def sort_oldest_first(df: pd.DataFrame):
-    df = ensure_columns(df).copy()
+    df = clean_records_df(df).copy()
     if df.empty:
         return df
     df["DateSort"] = pd.to_datetime(df["Date"], errors="coerce")
@@ -1088,23 +933,22 @@ def sort_oldest_first(df: pd.DataFrame):
 
 
 def to_display_dataframe(df: pd.DataFrame) -> pd.DataFrame:
-    display_df = ensure_columns(df).copy()
+    display_df = clean_records_df(df).copy()
 
     if display_df.empty:
-        return display_df.drop(columns=["IsDeleted"], errors="ignore")
+        return display_df
 
     for col in display_df.columns:
         display_df[col] = display_df[col].apply(normalize_cell)
 
     display_df = display_df.fillna("")
-    display_df = display_df.drop(columns=["IsDeleted"], errors="ignore")
     return display_df
 
 
 # =========================================================
 # 5. 상태 초기화
 # =========================================================
-today = now_kst().date()
+today = datetime.now().date()
 
 if "data" not in st.session_state:
     st.session_state.data = load_data_from_gsheet()
@@ -1150,9 +994,6 @@ if "show_reload_password" not in st.session_state:
 
 if "table_page_num_value" not in st.session_state:
     st.session_state.table_page_num_value = 1
-
-if "editor_name" not in st.session_state:
-    st.session_state.editor_name = ""
 
 # =========================================================
 # 6. 렌더 함수
@@ -1257,7 +1098,7 @@ def render_detail_blocks(row):
         st.markdown(f"""
         <div class="info-box">
             <div class="info-label">최종 수정</div>
-            <div class="info-value">🕒 {esc(row["Updated"])} / {esc(row["UpdatedBy"])}</div>
+            <div class="info-value">🕒 {esc(row["Updated"])}</div>
         </div>
         """, unsafe_allow_html=True)
 
@@ -1284,47 +1125,34 @@ def render_action_buttons(row, prefix=""):
 
     if c2.button(toggle_label, key=f"{prefix}_cancel_{row['ID']}", use_container_width=True):
         current = clean_records_df(st.session_state.data)
-        target = current[current["ID"].astype(str) == str(row["ID"])]
-
-        if not target.empty:
-            new_row = target.iloc[0].to_dict()
-            new_row["Status"] = toggle_next
-            new_row["Updated"] = now_kst_str()
-            new_row["UpdatedBy"] = safe_str(st.session_state.get("editor_name", ""))
-
-            ok, err = save_record(new_row, is_edit=True)
-            if ok:
-                st.session_state.flash_message = "상태가 변경되었습니다."
-            else:
-                st.session_state.flash_message = f"상태 변경 실패: {err}"
-            st.rerun()
+        mask = current["ID"].astype(str) == str(row["ID"])
+        current.loc[mask, "Status"] = toggle_next
+        current.loc[mask, "Updated"] = datetime.now().strftime("%Y-%m-%d %H:%M")
+        st.session_state.data = clean_records_df(current)
+        persist_data()
+        st.session_state.flash_message = "상태가 변경되었습니다."
+        st.rerun()
 
     if c3.button("삭제", key=f"{prefix}_delete_{row['ID']}", use_container_width=True):
-        ok, err = soft_delete_record(row["ID"])
+        current = clean_records_df(st.session_state.data)
+        current = current[current["ID"].astype(str) != str(row["ID"])].reset_index(drop=True)
+        st.session_state.data = clean_records_df(current)
 
         if st.session_state.edit_id == row["ID"]:
             st.session_state.edit_id = None
 
-        if ok:
-            st.session_state.flash_message = "일정이 삭제되었습니다."
-        else:
-            st.session_state.flash_message = f"삭제 실패: {err}"
+        persist_data()
+        st.session_state.flash_message = "일정이 삭제되었습니다."
         st.rerun()
 
     if c4.button("진행중", key=f"{prefix}_follow_inprogress_{row['ID']}", use_container_width=True):
-        ok, err = update_follow_status(row["ID"], "진행중")
-        if ok:
-            st.session_state.flash_message = "팔로우업 상태를 진행중으로 변경했습니다."
-        else:
-            st.session_state.flash_message = f"팔로우업 상태 변경 실패: {err}"
+        update_follow_status(row["ID"], "진행중")
+        st.session_state.flash_message = "팔로우업 상태를 진행중으로 변경했습니다."
         st.rerun()
 
     if c5.button("완료", key=f"{prefix}_follow_done_{row['ID']}", use_container_width=True):
-        ok, err = update_follow_status(row["ID"], "완료")
-        if ok:
-            st.session_state.flash_message = "팔로우업 상태를 완료로 변경했습니다."
-        else:
-            st.session_state.flash_message = f"팔로우업 상태 변경 실패: {err}"
+        update_follow_status(row["ID"], "완료")
+        st.session_state.flash_message = "팔로우업 상태를 완료로 변경했습니다."
         st.rerun()
 
     st.markdown('</div>', unsafe_allow_html=True)
@@ -1369,7 +1197,7 @@ def render_form(mode="new", row_data=None):
     if row_data is None:
         row_data = {
             "ID": "",
-            "Date": now_kst().strftime("%Y-%m-%d"),
+            "Date": datetime.now().strftime("%Y-%m-%d"),
             "Time": "09:00",
             "Category": CATEGORIES[0],
             "Subject": "",
@@ -1393,8 +1221,6 @@ def render_form(mode="new", row_data=None):
             "FollowProgressMemo": "",
             "FollowUpdated": "",
             "Updated": "",
-            "IsDeleted": "",
-            "UpdatedBy": "",
         }
 
     title = "✍️ 신규 일정 등록" if mode == "new" else "🛠️ 일정 수정"
@@ -1402,7 +1228,7 @@ def render_form(mode="new", row_data=None):
 
     with st.form(f"form_{mode}", clear_on_submit=False):
         r1c1, r1c2, r1c3 = st.columns(3)
-        input_date = r1c1.date_input("일정 날짜", value=to_date_safe(row_data["Date"]) or now_kst().date())
+        input_date = r1c1.date_input("일정 날짜", value=to_date_safe(row_data["Date"]) or datetime.now().date())
         input_time = r1c2.time_input("일정 시간", value=parse_time_safe(row_data["Time"]))
         input_category = r1c3.selectbox(
             "카테고리",
@@ -1504,12 +1330,9 @@ def render_form(mode="new", row_data=None):
                         "SharedNote": safe_str(input_shared_note),
                         "FollowStatus": input_follow_status,
                         "FollowProgressMemo": safe_str(input_follow_progress),
-                        "FollowUpdated": now_kst_str(),
+                        "FollowUpdated": datetime.now().strftime("%Y-%m-%d %H:%M"),
                         "Updated": "",
-                        "IsDeleted": "",
-                        "UpdatedBy": "",
                     }
-
                     ok, err = save_record(record, is_edit=False)
                     st.session_state.selected_date = input_date
                     st.session_state.edit_id = None
@@ -1517,7 +1340,7 @@ def render_form(mode="new", row_data=None):
                     if ok:
                         st.session_state.flash_message = "신규 일정이 저장되었습니다."
                     else:
-                        st.session_state.flash_message = f"저장 실패: {err}"
+                        st.session_state.flash_message = f"화면에는 저장되었지만 구글 시트 저장은 실패했습니다: {err}"
 
                     st.session_state.main_menu = "📅 일정 보기" if submit_view else "✍️ 신규 일정 등록"
                     st.rerun()
@@ -1555,12 +1378,9 @@ def render_form(mode="new", row_data=None):
                         "SharedNote": safe_str(input_shared_note),
                         "FollowStatus": input_follow_status,
                         "FollowProgressMemo": safe_str(input_follow_progress),
-                        "FollowUpdated": now_kst_str(),
+                        "FollowUpdated": datetime.now().strftime("%Y-%m-%d %H:%M"),
                         "Updated": "",
-                        "IsDeleted": "",
-                        "UpdatedBy": "",
                     }
-
                     ok, err = save_record(record, is_edit=True)
                     st.session_state.edit_id = None
                     st.session_state.selected_date = input_date
@@ -1568,12 +1388,13 @@ def render_form(mode="new", row_data=None):
                     if ok:
                         st.session_state.flash_message = "일정이 수정되었습니다."
                     else:
-                        st.session_state.flash_message = f"수정 실패: {err}"
+                        st.session_state.flash_message = f"화면에는 수정되었지만 구글 시트 저장은 실패했습니다: {err}"
                     st.rerun()
 
             if cancel_btn:
                 st.session_state.edit_id = None
                 st.rerun()
+
 
 # =========================================================
 # 7. 사이드바
@@ -1592,22 +1413,16 @@ if st.sidebar.button("✍️ 신규 일정 등록", use_container_width=True):
     st.rerun()
 st.sidebar.markdown('</div>', unsafe_allow_html=True)
 
-st.session_state.editor_name = st.sidebar.text_input(
-    "사용자명",
-    value=st.session_state.editor_name,
-    placeholder="예: 홍길동"
-)
-
 xlsx_bytes = excel_download_bytes(st.session_state.data)
 st.sidebar.download_button(
     "📥 일정 엑셀 다운로드",
     data=xlsx_bytes,
-    file_name=f"kvma_schedule_{now_kst().strftime('%Y%m%d_%H%M')}.xlsx",
+    file_name=f"kvma_schedule_{datetime.now().strftime('%Y%m%d_%H%M')}.xlsx",
     mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
     use_container_width=True
 )
 
-selected_day_sidebar = get_active_df(st.session_state.data).copy()
+selected_day_sidebar = clean_records_df(st.session_state.data).copy()
 selected_day_sidebar["Date"] = pd.to_datetime(selected_day_sidebar["Date"], errors="coerce").dt.date
 selected_day_sidebar = selected_day_sidebar[selected_day_sidebar["Date"] == st.session_state.selected_date]
 selected_day_sidebar = sort_oldest_first(selected_day_sidebar)
@@ -1660,10 +1475,13 @@ st.markdown(
     unsafe_allow_html=True
 )
 
-if not has_gsheet_config():
+if "gcp_service_account" not in st.secrets:
     st.info("현재는 임시 세션 상태입니다. 새로고침 후에도 일정이 계속 유지되려면 구글 시트 연결이 필요합니다.")
 
 show_flash()
+
+sheet_name_debug, worksheet_name_debug = get_sheet_config()
+st.caption(f"DEBUG | sheet='{sheet_name_debug}' / worksheet='{worksheet_name_debug}'")
 
 # =========================================================
 # 9. 신규 등록
@@ -1762,7 +1580,7 @@ else:
         )
 
         if st.session_state.edit_id:
-            current = get_active_df(st.session_state.data)
+            current = clean_records_df(st.session_state.data)
             edit_target = current[current["ID"].astype(str) == str(st.session_state.edit_id)]
             edit_target = ensure_columns(edit_target)
 
