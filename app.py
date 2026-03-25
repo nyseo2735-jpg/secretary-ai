@@ -479,43 +479,40 @@ div[data-testid="stTabs"] {
         line-height: 1.18 !important;
     }
 }
-/* ✅ stVerticalBlock gap 강제 고정 */
-.e12zf7d53,
-.st-emotion-cache-tn0cau {
-    gap: 4px !important;
-    row-gap: 4px !important;
-}
-
-/* 사이드바만 더 좁게 */
-[data-testid="stSidebar"] .e12zf7d53,
-[data-testid="stSidebar"] .st-emotion-cache-tn0cau {
-    gap: 2px !important;
-    row-gap: 2px !important;
-}
 </style>
 """, unsafe_allow_html=True)
-
+st.html("""
 <script>
 (function() {
+    // 사이드바 버튼 4개 + 일별/주간/월별 일정 박스 간격만 조정
+    // 대상: stExpander를 직접 자식으로 가진 stVerticalBlock만 선택
     function fixGap() {
         document.querySelectorAll('[data-testid="stVerticalBlock"]').forEach(el => {
-            el.style.setProperty('gap', '4px', 'important');
-        });
-        const sidebar = document.querySelector('[data-testid="stSidebar"]');
-        if (sidebar) {
-            sidebar.querySelectorAll('[data-testid="stVerticalBlock"]').forEach(el => {
+            // 직접 자식 중 stExpander가 있는 경우만 (일정 박스 목록)
+            const hasExpander = el.querySelector(':scope > div > [data-testid="stExpander"]');
+            // 직접 자식 중 stButton/stDownloadButton이 있는 경우만 (사이드바 버튼)
+            const hasButton = el.querySelector(':scope > div > [data-testid="stButton"], :scope > div > [data-testid="stDownloadButton"], :scope > div > [data-testid="stExpander"]');
+
+            const inSidebar = el.closest('[data-testid="stSidebar"]');
+
+            if (inSidebar && hasButton) {
                 el.style.setProperty('gap', '2px', 'important');
-            });
-        }
+            } else if (!inSidebar && hasExpander) {
+                el.style.setProperty('gap', '4px', 'important');
+            }
+        });
     }
-    setTimeout(fixGap, 100);
-    setTimeout(fixGap, 500);
+
+    setTimeout(fixGap, 200);
+    setTimeout(fixGap, 600);
     setTimeout(fixGap, 1500);
-    new MutationObserver(fixGap).observe(document.body, {childList:true, subtree:true});
+
+    new MutationObserver(function(mutations) {
+        fixGap();
+    }).observe(document.body, {childList: true, subtree: true});
 })();
 </script>
-""", unsafe_allow_html=True)
-
+""")
 
 # =========================================================
 # 4. 유틸
