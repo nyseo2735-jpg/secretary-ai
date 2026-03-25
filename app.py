@@ -422,25 +422,11 @@ div[data-testid="stTabs"] {
     margin-bottom: 6px;
 }
 
-.day-head.sun {
-    color: #C1121F;
-}
-
-.day-head.sat {
-    color: #1D4ED8;
-}
-
-.day-head.dim.sun {
-    color: #F1A0A7;
-}
-
-.day-head.dim.sat {
-    color: #9BB8F5;
-}
-
-.day-head.dim {
-    color: #B5BBC8;
-}
+.day-head.sun { color: #C1121F; }
+.day-head.sat { color: #1D4ED8; }
+.day-head.dim.sun { color: #F1A0A7; }
+.day-head.dim.sat { color: #9BB8F5; }
+.day-head.dim { color: #B5BBC8; }
 
 .canceled-title {
     text-decoration: line-through;
@@ -474,84 +460,39 @@ div[data-testid="stTabs"] {
 }
 
 @media (max-width: 1000px) {
-    .block-container {
-        padding-top: 2.2rem;
-    }
-
-    .main-title {
-        font-size: 2.1rem;
-    }
-
-    .summary-title {
-        font-size: 1.08rem;
-    }
-
-    .follow-grid {
-        grid-template-columns: 1fr;
-    }
-
-    .summary-body {
-        padding: 12px 13px 10px 13px;
-    }
-
-    .info-box {
-        min-height: auto;
-    }
-
-    .streamlit-expanderHeader {
-        font-size: 0.88rem !important;
-        line-height: 1.18 !important;
-    }
+    .block-container { padding-top: 2.2rem; }
+    .main-title { font-size: 2.1rem; }
+    .summary-title { font-size: 1.08rem; }
+    .follow-grid { grid-template-columns: 1fr; }
+    .summary-body { padding: 12px 13px 10px 13px; }
+    .info-box { min-height: auto; }
+    .streamlit-expanderHeader { font-size: 0.88rem !important; line-height: 1.18 !important; }
 }
 
-/* ================================
-   🔴 사이드바 4개 버튼 간격 — 약 5mm (19px)
-   ================================ */
-section[data-testid="stSidebar"] div[data-testid="stSidebarUserContent"] .stVerticalBlock > div {
-    margin-bottom: 0px !important;
-    padding-bottom: 0px !important;
+/* =========================================================
+   ✅ 핵심 간격 수정 — stVerticalBlock gap 직접 덮어쓰기
+   Streamlit은 gap을 인라인 style로 주입하기 때문에
+   margin/padding 계열은 완전히 무시됨.
+   stVerticalBlock 자체의 gap을 !important로 덮어야 함.
+   ========================================================= */
+
+/* 메인 영역 전체 — 일별/주간/월별 expander 간격 축소 */
+.main [data-testid="stVerticalBlock"],
+section.main [data-testid="stVerticalBlock"] {
+    gap: 4px !important;
 }
 
-section[data-testid="stSidebar"] div[data-testid="stButton"],
-section[data-testid="stSidebar"] div[data-testid="stDownloadButton"] {
-    margin-top: 0px !important;
-    margin-bottom: 0px !important;
-    padding-top: 0px !important;
-    padding-bottom: 0px !important;
-}
-
-/* 버튼 wrapper gap 강제 제거 후 직접 gap 부여 */
-section[data-testid="stSidebar"] div[data-testid="stSidebarUserContent"] .stVerticalBlock {
+/* 사이드바 — 버튼 4개 간격 약 5mm */
+section[data-testid="stSidebar"] [data-testid="stVerticalBlock"] {
     gap: 5px !important;
 }
 
-/* 버튼 높이 살짝 압축 */
+/* 사이드바 버튼 높이 압축 */
 section[data-testid="stSidebar"] div[data-testid="stButton"] > button,
 section[data-testid="stSidebar"] div[data-testid="stDownloadButton"] > button {
     min-height: 2.6rem !important;
     padding-top: 0.28rem !important;
     padding-bottom: 0.28rem !important;
-}
-
-/* expander(미리보기) 상단 여백도 축소 */
-section[data-testid="stSidebar"] div[data-testid="stExpander"] {
-    margin-top: 0px !important;
-    margin-bottom: 0px !important;
-}
-
-/* ================================
-   🔴 일별 보기 — 일정 expander 간격 50% 이하
-   ================================ */
-/* 일별/주간/월별 공통: expander 감싸는 div 간격 */
-div[data-testid="stVerticalBlock"] > div:has(> div[data-testid="stExpander"]) {
-    margin-bottom: 3px !important;
-    padding-bottom: 0px !important;
-}
-
-/* expander 자체 margin 제거 */
-div[data-testid="stExpander"] {
-    margin-top: 0px !important;
-    margin-bottom: 0px !important;
 }
 
 /* expander summary 내부 패딩 압축 */
@@ -560,37 +501,19 @@ div[data-testid="stExpander"] summary {
     padding-bottom: 0.18rem !important;
 }
 
-/* ================================
-   🔴 주간/월별 — 컬럼 내 expander 간격 약 5mm
-   ================================ */
-/* 주간/월별 보기의 각 day 컬럼 내부 vertical gap */
-div[data-testid="stHorizontalBlock"] div[data-testid="stVerticalBlock"] > div:has(> div[data-testid="stExpander"]) {
-    margin-bottom: 5px !important;
+/* expander 자체 margin 완전 제거 */
+div[data-testid="stExpander"] {
+    margin-top: 0px !important;
+    margin-bottom: 0px !important;
 }
 
-div[data-testid="stHorizontalBlock"] div[data-testid="stVerticalBlock"] > div:has(> div[data-testid="stExpander"]) + div:has(> div[data-testid="stExpander"]) {
-    margin-top: 0px !important;
+/* 컬럼 내부(주간/월별) stVerticalBlock gap도 동일 적용 */
+[data-testid="column"] [data-testid="stVerticalBlock"] {
+    gap: 4px !important;
 }
 </style>
 """, unsafe_allow_html=True)
 
-_cat_css = []
-for cat, slug in CAT_SLUG.items():
-    c = COLOR_MAP[cat]
-    _cat_css.append(f"""
-    div[data-testid="stExpander"] details:has(.evt-{slug}) {{
-        border-color: {c["line"]} !important;
-        background: #ffffff !important;
-    }}
-    div[data-testid="stExpander"] details:has(.evt-{slug}) summary {{
-        color: {c["text"]} !important;
-    }}
-    div[data-testid="stExpander"] details:has(.evt-{slug}) summary:hover {{
-        background: {c["soft"]} !important;
-    }}
-    """)
-
-st.markdown(f"<style>{''.join(_cat_css)}</style>", unsafe_allow_html=True)
 
 # =========================================================
 # 4. 유틸
