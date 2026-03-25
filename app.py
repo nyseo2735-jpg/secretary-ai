@@ -1286,6 +1286,11 @@ def render_compact_event(row, prefix="", add_gap=True):
         render_detail_blocks(row)
         render_action_buttons(row, prefix=prefix)
 
+    st.markdown('<div style="margin-top:-14px;"></div>', unsafe_allow_html=True)
+    
+    # expander 사이 간격을 직접 음수 마진으로 당겨붙임
+    st.markdown('<div style="margin-top:-12px;"></div>', unsafe_allow_html=True)
+
 def render_form(mode="new", row_data=None):
     if row_data is None:
         row_data = {
@@ -1512,10 +1517,12 @@ with sidebar_top:
         st.session_state.selected_date = today
         st.session_state.edit_id = None
         st.rerun()
+    st.markdown('<div style="margin-top:-14px;"></div>', unsafe_allow_html=True)
 
     if st.button("✍️ 신규 일정 등록", use_container_width=True):
         st.session_state.main_menu = "✍️ 신규 일정 등록"
         st.rerun()
+    st.markdown('<div style="margin-top:-14px;"></div>', unsafe_allow_html=True)
 
     xlsx_bytes = excel_download_bytes(st.session_state.data)
     st.download_button(
@@ -1525,6 +1532,7 @@ with sidebar_top:
         mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
         use_container_width=True
     )
+    st.markdown('<div style="margin-top:-14px;"></div>', unsafe_allow_html=True)
 
     with st.expander(f"📊 선택일 일정 미리보기 ({st.session_state.selected_date})", expanded=False):
         st.caption("현재 화면에서 선택한 날짜의 일정을 요약해서 보여줍니다.")
