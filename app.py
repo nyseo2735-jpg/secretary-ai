@@ -504,6 +504,47 @@ div[data-testid="stTabs"] {
         line-height: 1.18 !important;
     }
 }
+/* ================================
+   🔴 사이드바 4개 버튼 간격 (핵심)
+   ================================ */
+section[data-testid="stSidebar"] div[data-testid="stSidebarUserContent"] .stVerticalBlock > div {
+    margin-bottom: 6px !important;
+}
+
+/* 버튼 자체 여백 제거 */
+section[data-testid="stSidebar"] div[data-testid="stButton"],
+section[data-testid="stSidebar"] div[data-testid="stDownloadButton"],
+section[data-testid="stSidebar"] div[data-testid="stExpander"] {
+    margin: 0 !important;
+    padding: 0 !important;
+}
+
+/* 버튼 높이 살짝 압축 */
+section[data-testid="stSidebar"] div[data-testid="stButton"] > button,
+section[data-testid="stSidebar"] div[data-testid="stDownloadButton"] > button {
+    min-height: 2.7rem !important;
+    padding-top: 0.35rem !important;
+    padding-bottom: 0.35rem !important;
+}
+
+
+/* ================================
+   🔴 일정 바 간격 (일별/주간/월별 공통)
+   ================================ */
+div[data-testid="stVerticalBlock"] > div:has(> div[data-testid="stExpander"]) {
+    margin-bottom: 6px !important;
+}
+
+/* expander 자체 간격 제거 */
+div[data-testid="stExpander"] {
+    margin: 0 !important;
+}
+
+/* 내부 padding 살짝 압축 */
+div[data-testid="stExpander"] summary {
+    padding-top: 0.20rem !important;
+    padding-bottom: 0.20rem !important;
+}
 </style>
 """, unsafe_allow_html=True)
 
@@ -1082,12 +1123,6 @@ def to_display_dataframe(df: pd.DataFrame) -> pd.DataFrame:
     display_df = display_df.drop(columns=["DateParsed"], errors="ignore")
     return display_df
 
-def render_gap(px: int = 18, sidebar: bool = False):
-    gap_html = f'<div style="height:{px}px;"></div>'
-    if sidebar:
-        st.sidebar.markdown(gap_html, unsafe_allow_html=True)
-    else:
-        st.markdown(gap_html, unsafe_allow_html=True)
 
 # =========================================================
 # 5. 상태 초기화
@@ -1302,9 +1337,6 @@ def render_compact_event(row, prefix="", add_gap=True):
         render_summary_header(row)
         render_detail_blocks(row)
         render_action_buttons(row, prefix=prefix)
-
-    if add_gap:
-        render_gap(18)
 
 def render_form(mode="new", row_data=None):
     if row_data is None:
@@ -1533,13 +1565,9 @@ with sidebar_top:
         st.session_state.edit_id = None
         st.rerun()
 
-    render_gap(18, sidebar=True)
-
     if st.button("✍️ 신규 일정 등록", use_container_width=True):
         st.session_state.main_menu = "✍️ 신규 일정 등록"
         st.rerun()
-
-    render_gap(18, sidebar=True)
 
     xlsx_bytes = excel_download_bytes(st.session_state.data)
     st.download_button(
@@ -1549,8 +1577,6 @@ with sidebar_top:
         mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
         use_container_width=True
     )
-
-    render_gap(18, sidebar=True)
 
     with st.expander(f"📊 선택일 일정 미리보기 ({st.session_state.selected_date})", expanded=False):
         st.caption("현재 화면에서 선택한 날짜의 일정을 요약해서 보여줍니다.")
@@ -1721,7 +1747,7 @@ else:
             else:
                 day_rows = list(day_df.iterrows())
                 for idx, (_, row) in enumerate(day_rows):
-                    render_compact_event(row, prefix=f"day_{idx}", add_gap=(idx < len(day_rows) - 1))
+                    render_compact_event(row, prefix=f"day_{idx}")
 
     # -----------------------------------------------------
     # 주간 보기
@@ -1769,7 +1795,7 @@ else:
                     daily_rows = list(daily.iterrows())
                     for r_idx, (_, row) in enumerate(daily_rows):
                         st.session_state.is_mobile_force_stack = True
-                        render_compact_event(row, prefix=f"week_{idx}_{r_idx}", add_gap=(r_idx < len(daily_rows) - 1))
+                        render_compact_event(row, prefix=f"week_{idx}_{r_idx}")
 
         st.session_state.is_mobile_force_stack = False
 
@@ -1843,7 +1869,7 @@ else:
                                 daily_rows = list(daily.iterrows())
                                 for r_idx, (_, row) in enumerate(daily_rows):
                                     st.session_state.is_mobile_force_stack = True
-                                    render_compact_event(row, prefix=f"month_{didx}_{day_obj}_{r_idx}", add_gap=(r_idx < len(daily_rows) - 1))
+                                    render_compact_event(row, prefix=f"month_{didx}_{day_obj}_{r_idx}")
             st.session_state.is_mobile_force_stack = False
         else:
             st.caption("화면 폭이 좁을 때는 목록형이 더 보기 편합니다.")
@@ -1865,7 +1891,7 @@ else:
                 else:
                     daily_rows = list(daily.iterrows())
                     for r_idx, (_, row) in enumerate(daily_rows):
-                        render_compact_event(row, prefix=f"month_list_{d}_{r_idx}", add_gap=(r_idx < len(daily_rows) - 1))
+                        render_compact_event(row, prefix=f"month_list_{d}_{r_idx}")
 
     # -----------------------------------------------------
     # 전체 일정표
