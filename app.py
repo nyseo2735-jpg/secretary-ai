@@ -580,6 +580,27 @@ div[data-testid="stTabs"] {
         line-height: 1.18 !important;
     }
 }
+/* ===== 사이드바 상단 4개 간격: 시각적 약 5mm(≈18px) ===== */
+section[data-testid="stSidebar"] div[data-testid="stSidebarUserContent"] .stVerticalBlock > div {
+    gap: 18px !important;
+}
+
+section[data-testid="stSidebar"] div[data-testid="stButton"] > button,
+section[data-testid="stSidebar"] div[data-testid="stDownloadButton"] > button {
+    min-height: 2.8rem !important;
+    padding-top: 0.35rem !important;
+    padding-bottom: 0.35rem !important;
+}
+
+/* ===== 일별/주간/월별 일정 바 간격 ===== */
+div[data-testid="stExpander"] {
+    margin-bottom: 18px !important;
+}
+
+div[data-testid="stExpander"] summary {
+    padding-top: 0.22rem !important;
+    padding-bottom: 0.22rem !important;
+}
 </style>
 """, unsafe_allow_html=True)
 
@@ -1656,48 +1677,54 @@ def render_form(mode="new", row_data=None):
 # =========================================================
 # 7. 사이드바
 # =========================================================
+# =========================================================
+# 7. 사이드바
+# =========================================================
 st.sidebar.markdown("# 🏢 KVMA 비서실")
-
-if st.sidebar.button("📅 일정 보기", use_container_width=True):
-    st.session_state.main_menu = "📅 일정 보기"
-    st.session_state.selected_date = today
-    st.session_state.edit_id = None
-    st.rerun()
-
-if st.sidebar.button("✍️ 신규 일정 등록", use_container_width=True):
-    st.session_state.main_menu = "✍️ 신규 일정 등록"
-    st.rerun()
-
-xlsx_bytes = excel_download_bytes(st.session_state.data)
-st.sidebar.download_button(
-    "📥 일정 엑셀 다운로드",
-    data=xlsx_bytes,
-    file_name=f"kvma_schedule_{now_kst().strftime('%Y%m%d_%H%M')}.xlsx",
-    mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-    use_container_width=True
-)
 
 selected_day_sidebar = get_active_df(st.session_state.data).copy()
 selected_day_sidebar["DateParsed"] = pd.to_datetime(selected_day_sidebar["Date"], errors="coerce").dt.date
 selected_day_sidebar = selected_day_sidebar[selected_day_sidebar["DateParsed"] == st.session_state.selected_date]
 selected_day_sidebar = sort_oldest_first(selected_day_sidebar)
 
-with st.sidebar.expander(f"📊 선택일 일정 미리보기 ({st.session_state.selected_date})", expanded=False):
-    st.caption("현재 화면에서 선택한 날짜의 일정을 요약해서 보여줍니다.")
-    if selected_day_sidebar.empty:
-        st.caption("선택한 날짜의 일정이 없습니다.")
-    else:
-        for _, row in selected_day_sidebar.iterrows():
-            c = get_color(row["Category"])
-            st.markdown(
-                f"""
-                <div class="sidebar-day-item" style="border-color:{c["line"]}; background:{c["bg"]};">
-                    <div class="sidebar-day-time">{html.escape(safe_str(row["Time"]))} · {html.escape(safe_str(row["Category"]))} · {html.escape(safe_str(row["FollowStatus"]))}</div>
-                    <div class="sidebar-day-title">{html.escape(compact_subject_text(row))}</div>
-                </div>
-                """,
-                unsafe_allow_html=True
-            )
+sidebar_top = st.sidebar.container()
+
+with sidebar_top:
+    if st.button("📅 일정 보기", use_container_width=True):
+        st.session_state.main_menu = "📅 일정 보기"
+        st.session_state.selected_date = today
+        st.session_state.edit_id = None
+        st.rerun()
+
+    if st.button("✍️ 신규 일정 등록", use_container_width=True):
+        st.session_state.main_menu = "✍️ 신규 일정 등록"
+        st.rerun()
+
+    xlsx_bytes = excel_download_bytes(st.session_state.data)
+    st.download_button(
+        "📥 일정 엑셀 다운로드",
+        data=xlsx_bytes,
+        file_name=f"kvma_schedule_{now_kst().strftime('%Y%m%d_%H%M')}.xlsx",
+        mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+        use_container_width=True
+    )
+
+    with st.expander(f"📊 선택일 일정 미리보기 ({st.session_state.selected_date})", expanded=False):
+        st.caption("현재 화면에서 선택한 날짜의 일정을 요약해서 보여줍니다.")
+        if selected_day_sidebar.empty:
+            st.caption("선택한 날짜의 일정이 없습니다.")
+        else:
+            for _, row in selected_day_sidebar.iterrows():
+                c = get_color(row["Category"])
+                st.markdown(
+                    f"""
+                    <div class="sidebar-day-item" style="border-color:{c["line"]}; background:{c["bg"]};">
+                        <div class="sidebar-day-time">{html.escape(safe_str(row["Time"]))} · {html.escape(safe_str(row["Category"]))} · {html.escape(safe_str(row["FollowStatus"]))}</div>
+                        <div class="sidebar-day-title">{html.escape(compact_subject_text(row))}</div>
+                    </div>
+                    """,
+                    unsafe_allow_html=True
+                )
 
 st.sidebar.markdown("---")
 st.sidebar.markdown('<div class="helper-note">구글 시트 다시 불러오기는 맨 아래에서 비밀번호 입력 후 실행할 수 있습니다.</div>', unsafe_allow_html=True)
