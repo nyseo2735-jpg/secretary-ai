@@ -479,6 +479,19 @@ div[data-testid="stTabs"] {
         line-height: 1.18 !important;
     }
 }
+/* ✅ stVerticalBlock gap 강제 고정 */
+.e12zf7d53,
+.st-emotion-cache-tn0cau {
+    gap: 4px !important;
+    row-gap: 4px !important;
+}
+
+/* 사이드바만 더 좁게 */
+[data-testid="stSidebar"] .e12zf7d53,
+[data-testid="stSidebar"] .st-emotion-cache-tn0cau {
+    gap: 2px !important;
+    row-gap: 2px !important;
+}
 </style>
 """, unsafe_allow_html=True)
 
