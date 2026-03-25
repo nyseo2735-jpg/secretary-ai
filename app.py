@@ -384,6 +384,9 @@ div[data-testid="stForm"] {
     font-size: 0.82rem;
     color: #667085;
     line-height: 1.45;
+    display: block;
+    margin-top: 8px !important;
+    margin-bottom: 12px !important;
 }
 
 .segment-note {
@@ -409,6 +412,11 @@ div[data-testid="stExpander"] details {
 
 div[data-testid="stExpander"] summary:hover {
     background: #FAFAFA !important;
+}
+
+div[data-testid="stExpander"] summary {
+    padding-top: 0.18rem !important;
+    padding-bottom: 0.18rem !important;
 }
 
 div[data-testid="stTabs"] {
@@ -466,74 +474,55 @@ div[data-testid="stTabs"] {
     .follow-grid { grid-template-columns: 1fr; }
     .summary-body { padding: 12px 13px 10px 13px; }
     .info-box { min-height: auto; }
-    .streamlit-expanderHeader { font-size: 0.88rem !important; line-height: 1.18 !important; }
+    .streamlit-expanderHeader {
+        font-size: 0.88rem !important;
+        line-height: 1.18 !important;
+    }
 }
-
-/* =========================================================
-   ✅ 핵심 간격 수정 — stVerticalBlock gap 직접 덮어쓰기
-   Streamlit은 gap을 인라인 style로 주입하기 때문에
-   margin/padding 계열은 완전히 무시됨.
-   stVerticalBlock 자체의 gap을 !important로 덮어야 함.
-   ========================================================= */
-
-/* 메인 영역 전체 — 일별/주간/월별 expander 간격 축소 */
-.main [data-testid="stVerticalBlock"],
-section.main [data-testid="stVerticalBlock"] {
-    gap: 4px !important;
-}
-
-/* 사이드바 — 버튼 4개 간격 약 5mm */
-section[data-testid="stSidebar"] [data-testid="stVerticalBlock"] {
-    gap: 5px !important;
-}
-
-/* 사이드바 버튼 높이 압축 */
-section[data-testid="stSidebar"] div[data-testid="stButton"] > button,
-section[data-testid="stSidebar"] div[data-testid="stDownloadButton"] > button {
-    min-height: 2.6rem !important;
-    padding-top: 0.28rem !important;
-    padding-bottom: 0.28rem !important;
-}
-
-/* expander summary 내부 패딩 압축 */
-div[data-testid="stExpander"] summary {
-    padding-top: 0.18rem !important;
-    padding-bottom: 0.18rem !important;
-}
-
-/* expander 자체 margin 완전 제거 */
-div[data-testid="stExpander"] {
-    margin-top: 0px !important;
-    margin-bottom: 0px !important;
-}
-
-/* 컬럼 내부(주간/월별) stVerticalBlock gap도 동일 적용 */
-[data-testid="column"] [data-testid="stVerticalBlock"] {
-    gap: 4px !important;
-}
-/* =========================================================
-   ✅ 진짜 작동하는 gap 수정 (e12zf7d53 = stVerticalBlock 실제 클래스)
-   ========================================================= */
-
-/* 메인 + 주간/월별 일정 박스 간격 */
-.e12zf7d53 {
-    gap: 4px !important;
-}
-
-/* 사이드바 버튼 간격 — 50% 더 축소 */
-section[data-testid="stSidebar"] .e12zf7d53 {
-    gap: 2px !important;
-}
-
-/* 사이드바 helper 문장 ↔ 버튼 사이 여백 확보 */
-section[data-testid="stSidebar"] .helper-note {
-    margin-top: 10px !important;
-    margin-bottom: 10px !important;
-    display: block;
-}
-
 </style>
 """, unsafe_allow_html=True)
+
+import streamlit.components.v1 as components
+
+components.html("""
+<script>
+(function() {
+    function fixGap() {
+        const doc = window.parent.document;
+
+        // 메인 영역 — 일별/주간/월별 일정 박스 간격
+        doc.querySelectorAll('[data-testid="stVerticalBlock"]').forEach(el => {
+            el.style.setProperty('gap', '4px', 'important');
+        });
+
+        // 사이드바만 더 좁게 (버튼 4개 간격)
+        const sidebar = doc.querySelector('[data-testid="stSidebar"]');
+        if (sidebar) {
+            sidebar.querySelectorAll('[data-testid="stVerticalBlock"]').forEach(el => {
+                el.style.setProperty('gap', '2px', 'important');
+            });
+        }
+    }
+
+    // 최초 실행 (약간 딜레이 후 — Streamlit 렌더링 완료 대기)
+    setTimeout(fixGap, 100);
+    setTimeout(fixGap, 500);
+    setTimeout(fixGap, 1000);
+
+    // Streamlit이 리렌더링할 때마다 자동 재적용
+    const observer = new MutationObserver(() => {
+        fixGap();
+    });
+
+    observer.observe(window.parent.document.body, {
+        childList: true,
+        subtree: true,
+        attributes: false,
+        characterData: false
+    });
+})();
+</script>
+""", height=0)
 
 
 # =========================================================
