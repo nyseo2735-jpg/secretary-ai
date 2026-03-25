@@ -37,6 +37,18 @@ STATUS_OPTIONS = ["확정", "보류", "완료", "취소"]
 PRIORITY_OPTIONS = ["높음", "보통", "낮음"]
 FOLLOW_STATUS_OPTIONS = ["미착수", "진행중", "완료", "보류"]
 
+CAT_SLUG = {
+    "국회": "assembly",
+    "정부기관": "gov",
+    "대한수의사회": "kvma",
+    "수의과대학": "college",
+    "언론사": "media",
+    "기업": "corp",
+    "유관단체": "assoc",
+    "시도지부": "branch",
+    "기타": "etc",
+}
+
 DATA_COLUMNS = [
     "ID",
     "Date",
@@ -74,18 +86,6 @@ SCOPES = [
 ]
 
 ADMIN_RELOAD_PASSWORD = "2735"
-
-CAT_SLUG = {
-    "국회": "assembly",
-    "정부기관": "gov",
-    "대한수의사회": "kvma",
-    "수의과대학": "college",
-    "언론사": "media",
-    "기업": "corp",
-    "유관단체": "assoc",
-    "시도지부": "branch",
-    "기타": "etc",
-}
 
 # =========================================================
 # 3. 스타일
@@ -358,41 +358,6 @@ div[data-testid="stForm"] {
     background: #ffffff;
 }
 
-/* ===== 사이드바 4개 버튼 간격: 화면상 약 5mm ===== */
-.menu-btn-wrap {
-    margin: 0 !important;
-    padding: 0 !important;
-}
-
-section[data-testid="stSidebar"] div[data-testid="stSidebarUserContent"] .element-container:has(> div[data-testid="stButton"]),
-section[data-testid="stSidebar"] div[data-testid="stSidebarUserContent"] .element-container:has(> div[data-testid="stDownloadButton"]),
-section[data-testid="stSidebar"] div[data-testid="stSidebarUserContent"] .element-container:has(> div[data-testid="stExpander"]) {
-    margin: 0 0 14px 0 !important;   /* 대략 5mm 수준 */
-    padding: 0 !important;
-}
-
-section[data-testid="stSidebar"] div[data-testid="stSidebarUserContent"] .element-container:has(> div[data-testid="stButton"]) > div,
-section[data-testid="stSidebar"] div[data-testid="stSidebarUserContent"] .element-container:has(> div[data-testid="stDownloadButton"]) > div,
-section[data-testid="stSidebar"] div[data-testid="stSidebarUserContent"] .element-container:has(> div[data-testid="stExpander"]) > div {
-    margin: 0 !important;
-    padding: 0 !important;
-}
-
-section[data-testid="stSidebar"] div[data-testid="stButton"],
-section[data-testid="stSidebar"] div[data-testid="stDownloadButton"],
-section[data-testid="stSidebar"] div[data-testid="stExpander"] {
-    margin: 0 !important;
-    padding: 0 !important;
-}
-
-section[data-testid="stSidebar"] div[data-testid="stButton"] > button,
-section[data-testid="stSidebar"] div[data-testid="stDownloadButton"] > button {
-    min-height: 2.9rem !important;
-    padding-top: 0.38rem !important;
-    padding-bottom: 0.38rem !important;
-    margin: 0 !important;
-}
-
 .sidebar-day-item {
     border: 1px solid #ECEEF3;
     border-radius: 12px;
@@ -427,20 +392,11 @@ section[data-testid="stSidebar"] div[data-testid="stDownloadButton"] > button {
     margin-bottom: 8px;
 }
 
-/* ===== 일정 박스 간격: 일별/주간/월별 공통으로 절반 수준 ===== */
 .streamlit-expanderHeader {
     font-weight: 800 !important;
     font-size: 0.90rem !important;
     line-height: 1.2 !important;
     text-align: left !important;
-}
-
-div[data-testid="stExpander"] {
-    margin-bottom: 6px !important;
-}
-
-div[data-testid="stVerticalBlock"] > div:has(> div[data-testid="stExpander"]) {
-    margin-bottom: 6px !important;
 }
 
 div[data-testid="stExpander"] details {
@@ -451,21 +407,8 @@ div[data-testid="stExpander"] details {
     box-shadow: none !important;
 }
 
-div[data-testid="stExpander"] summary {
-    padding-top: 0.22rem !important;
-    padding-bottom: 0.22rem !important;
-    padding-left: 0.82rem !important;
-    padding-right: 0.82rem !important;
-    min-height: auto !important;
-}
-
 div[data-testid="stExpander"] summary:hover {
     background: #FAFAFA !important;
-}
-
-div[data-testid="stExpanderDetails"] {
-    padding-top: 0.08rem !important;
-    padding-bottom: 0.08rem !important;
 }
 
 /* 탭/상단은 건드리지 않음 */
@@ -556,50 +499,10 @@ div[data-testid="stTabs"] {
         min-height: auto;
     }
 
-    section[data-testid="stSidebar"] div[data-testid="stVerticalBlock"] > div {
-        margin-bottom: 6px !important;
-    }
-
-    div[data-testid="stExpander"] {
-        margin-bottom: 6px !important;
-    }
-
-    div[data-testid="stVerticalBlock"] > div:has(> div[data-testid="stExpander"]) {
-        margin-bottom: 6px !important;
-    }
-
-    div[data-testid="stExpander"] summary {
-        padding-top: 0.22rem !important;
-        padding-bottom: 0.22rem !important;
-        padding-left: 0.72rem !important;
-        padding-right: 0.72rem !important;
-    }
-
     .streamlit-expanderHeader {
         font-size: 0.88rem !important;
         line-height: 1.18 !important;
     }
-}
-/* ===== 사이드바 상단 4개 간격: 시각적 약 5mm(≈18px) ===== */
-section[data-testid="stSidebar"] div[data-testid="stSidebarUserContent"] .stVerticalBlock > div {
-    gap: 18px !important;
-}
-
-section[data-testid="stSidebar"] div[data-testid="stButton"] > button,
-section[data-testid="stSidebar"] div[data-testid="stDownloadButton"] > button {
-    min-height: 2.8rem !important;
-    padding-top: 0.35rem !important;
-    padding-bottom: 0.35rem !important;
-}
-
-/* ===== 일별/주간/월별 일정 바 간격 ===== */
-div[data-testid="stExpander"] {
-    margin-bottom: 18px !important;
-}
-
-div[data-testid="stExpander"] summary {
-    padding-top: 0.22rem !important;
-    padding-bottom: 0.22rem !important;
 }
 </style>
 """, unsafe_allow_html=True)
@@ -620,73 +523,7 @@ for cat, slug in CAT_SLUG.items():
     }}
     """)
 
-st.markdown(f"""
-<style>
-{''.join(_cat_css)}
-
-/* ===== 사이드바 상단 버튼/미리보기 간격: 화면상 약 5mm ===== */
-section[data-testid="stSidebar"] div[data-testid="stSidebarUserContent"] .element-container:has(> div[data-testid="stButton"]),
-section[data-testid="stSidebar"] div[data-testid="stSidebarUserContent"] .element-container:has(> div[data-testid="stDownloadButton"]),
-section[data-testid="stSidebar"] div[data-testid="stSidebarUserContent"] .element-container:has(> div[data-testid="stExpander"]) {{
-    margin: 0 0 5mm 0 !important;
-    padding: 0 !important;
-}}
-
-section[data-testid="stSidebar"] div[data-testid="stSidebarUserContent"] .element-container:has(> div[data-testid="stButton"]) > div,
-section[data-testid="stSidebar"] div[data-testid="stSidebarUserContent"] .element-container:has(> div[data-testid="stDownloadButton"]) > div,
-section[data-testid="stSidebar"] div[data-testid="stSidebarUserContent"] .element-container:has(> div[data-testid="stExpander"]) > div {{
-    margin: 0 !important;
-    padding: 0 !important;
-}}
-
-section[data-testid="stSidebar"] div[data-testid="stButton"],
-section[data-testid="stSidebar"] div[data-testid="stDownloadButton"],
-section[data-testid="stSidebar"] div[data-testid="stExpander"] {{
-    margin: 0 !important;
-    padding: 0 !important;
-}}
-
-section[data-testid="stSidebar"] div[data-testid="stButton"] > button,
-section[data-testid="stSidebar"] div[data-testid="stDownloadButton"] > button {{
-    min-height: 2.9rem !important;
-    padding-top: 0.38rem !important;
-    padding-bottom: 0.38rem !important;
-    margin: 0 !important;
-}}
-
-/* ===== 일별/주간/월별 일정 Bar 간격: 화면상 약 5mm ===== */
-.element-container:has(> div[data-testid="stExpander"]) {{
-    margin: 0 0 5mm 0 !important;
-    padding: 0 !important;
-}}
-
-.element-container:has(> div[data-testid="stExpander"]) > div {{
-    margin: 0 !important;
-    padding: 0 !important;
-}}
-
-div[data-testid="stExpander"] {{
-    margin: 0 !important;
-}}
-
-div[data-testid="stExpander"] details {{
-    margin: 0 !important;
-}}
-
-div[data-testid="stExpander"] summary {{
-    padding-top: 0.24rem !important;
-    padding-bottom: 0.24rem !important;
-    padding-left: 0.82rem !important;
-    padding-right: 0.82rem !important;
-}}
-
-div[data-testid="stExpanderDetails"] {{
-    padding-top: 0.10rem !important;
-    padding-bottom: 0.10rem !important;
-}}
-</style>
-""", unsafe_allow_html=True)
-
+st.markdown(f"<style>{''.join(_cat_css)}</style>", unsafe_allow_html=True)
 
 # =========================================================
 # 4. 유틸
@@ -1245,6 +1082,13 @@ def to_display_dataframe(df: pd.DataFrame) -> pd.DataFrame:
     display_df = display_df.drop(columns=["DateParsed"], errors="ignore")
     return display_df
 
+def render_gap(px: int = 18, sidebar: bool = False):
+    gap_html = f'<div style="height:{px}px;"></div>'
+    if sidebar:
+        st.sidebar.markdown(gap_html, unsafe_allow_html=True)
+    else:
+        st.markdown(gap_html, unsafe_allow_html=True)
+
 # =========================================================
 # 5. 상태 초기화
 # =========================================================
@@ -1449,7 +1293,7 @@ def render_action_buttons(row, prefix=""):
 
     st.markdown('</div>', unsafe_allow_html=True)
 
-def render_compact_event(row, prefix=""):
+def render_compact_event(row, prefix="", add_gap=True):
     slug = category_slug(safe_str(row.get("Category")))
     label = compact_line_text(row)
 
@@ -1459,12 +1303,8 @@ def render_compact_event(row, prefix=""):
         render_detail_blocks(row)
         render_action_buttons(row, prefix=prefix)
 
-    label = compact_line_text(row)
-    with st.expander(label, expanded=False):
-        st.markdown(f'<div id="{prefix}_marker"></div>', unsafe_allow_html=True)
-        render_summary_header(row)
-        render_detail_blocks(row)
-        render_action_buttons(row, prefix=prefix)
+    if add_gap:
+        render_gap(18)
 
 def render_form(mode="new", row_data=None):
     if row_data is None:
@@ -1677,9 +1517,6 @@ def render_form(mode="new", row_data=None):
 # =========================================================
 # 7. 사이드바
 # =========================================================
-# =========================================================
-# 7. 사이드바
-# =========================================================
 st.sidebar.markdown("# 🏢 KVMA 비서실")
 
 selected_day_sidebar = get_active_df(st.session_state.data).copy()
@@ -1696,9 +1533,13 @@ with sidebar_top:
         st.session_state.edit_id = None
         st.rerun()
 
+    render_gap(18, sidebar=True)
+
     if st.button("✍️ 신규 일정 등록", use_container_width=True):
         st.session_state.main_menu = "✍️ 신규 일정 등록"
         st.rerun()
+
+    render_gap(18, sidebar=True)
 
     xlsx_bytes = excel_download_bytes(st.session_state.data)
     st.download_button(
@@ -1708,6 +1549,8 @@ with sidebar_top:
         mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
         use_container_width=True
     )
+
+    render_gap(18, sidebar=True)
 
     with st.expander(f"📊 선택일 일정 미리보기 ({st.session_state.selected_date})", expanded=False):
         st.caption("현재 화면에서 선택한 날짜의 일정을 요약해서 보여줍니다.")
@@ -1876,8 +1719,9 @@ else:
             if day_df.empty:
                 st.caption("선택한 날짜의 일정이 없습니다.")
             else:
-                for idx, (_, row) in enumerate(day_df.iterrows()):
-                    render_compact_event(row, prefix=f"day_{idx}")
+                day_rows = list(day_df.iterrows())
+                for idx, (_, row) in enumerate(day_rows):
+                    render_compact_event(row, prefix=f"day_{idx}", add_gap=(idx < len(day_rows) - 1))
 
     # -----------------------------------------------------
     # 주간 보기
@@ -1922,9 +1766,10 @@ else:
                 if daily.empty:
                     st.caption("일정 없음")
                 else:
-                    for r_idx, (_, row) in enumerate(daily.iterrows()):
+                    daily_rows = list(daily.iterrows())
+                    for r_idx, (_, row) in enumerate(daily_rows):
                         st.session_state.is_mobile_force_stack = True
-                        render_compact_event(row, prefix=f"week_{idx}_{r_idx}")
+                        render_compact_event(row, prefix=f"week_{idx}_{r_idx}", add_gap=(r_idx < len(daily_rows) - 1))
 
         st.session_state.is_mobile_force_stack = False
 
@@ -1995,9 +1840,10 @@ else:
                             if daily.empty:
                                 st.caption("일정 없음")
                             else:
-                                for r_idx, (_, row) in enumerate(daily.iterrows()):
+                                daily_rows = list(daily.iterrows())
+                                for r_idx, (_, row) in enumerate(daily_rows):
                                     st.session_state.is_mobile_force_stack = True
-                                    render_compact_event(row, prefix=f"month_{didx}_{day_obj}_{r_idx}")
+                                    render_compact_event(row, prefix=f"month_{didx}_{day_obj}_{r_idx}", add_gap=(r_idx < len(daily_rows) - 1))
             st.session_state.is_mobile_force_stack = False
         else:
             st.caption("화면 폭이 좁을 때는 목록형이 더 보기 편합니다.")
@@ -2017,8 +1863,9 @@ else:
                 if daily.empty:
                     st.caption("일정 없음")
                 else:
-                    for r_idx, (_, row) in enumerate(daily.iterrows()):
-                        render_compact_event(row, prefix=f"month_list_{d}_{r_idx}")
+                    daily_rows = list(daily.iterrows())
+                    for r_idx, (_, row) in enumerate(daily_rows):
+                        render_compact_event(row, prefix=f"month_list_{d}_{r_idx}", add_gap=(r_idx < len(daily_rows) - 1))
 
     # -----------------------------------------------------
     # 전체 일정표
