@@ -482,47 +482,26 @@ div[data-testid="stTabs"] {
 </style>
 """, unsafe_allow_html=True)
 
-import streamlit.components.v1 as components
-
-components.html("""
 <script>
 (function() {
     function fixGap() {
-        const doc = window.parent.document;
-
-        // 메인 영역 — 일별/주간/월별 일정 박스 간격
-        doc.querySelectorAll('[data-testid="stVerticalBlock"]').forEach(el => {
+        document.querySelectorAll('[data-testid="stVerticalBlock"]').forEach(el => {
             el.style.setProperty('gap', '4px', 'important');
         });
-
-        // 사이드바만 더 좁게 (버튼 4개 간격)
-        const sidebar = doc.querySelector('[data-testid="stSidebar"]');
+        const sidebar = document.querySelector('[data-testid="stSidebar"]');
         if (sidebar) {
             sidebar.querySelectorAll('[data-testid="stVerticalBlock"]').forEach(el => {
                 el.style.setProperty('gap', '2px', 'important');
             });
         }
     }
-
-    // 최초 실행 (약간 딜레이 후 — Streamlit 렌더링 완료 대기)
     setTimeout(fixGap, 100);
     setTimeout(fixGap, 500);
-    setTimeout(fixGap, 1000);
-
-    // Streamlit이 리렌더링할 때마다 자동 재적용
-    const observer = new MutationObserver(() => {
-        fixGap();
-    });
-
-    observer.observe(window.parent.document.body, {
-        childList: true,
-        subtree: true,
-        attributes: false,
-        characterData: false
-    });
+    setTimeout(fixGap, 1500);
+    new MutationObserver(fixGap).observe(document.body, {childList:true, subtree:true});
 })();
 </script>
-""", height=0)
+""", unsafe_allow_html=True)
 
 
 # =========================================================
