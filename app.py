@@ -511,6 +511,27 @@ div[data-testid="stExpander"] {
 [data-testid="column"] [data-testid="stVerticalBlock"] {
     gap: 4px !important;
 }
+/* =========================================================
+   ✅ 진짜 작동하는 gap 수정 (e12zf7d53 = stVerticalBlock 실제 클래스)
+   ========================================================= */
+
+/* 메인 + 주간/월별 일정 박스 간격 */
+.e12zf7d53 {
+    gap: 4px !important;
+}
+
+/* 사이드바 버튼 간격 — 50% 더 축소 */
+section[data-testid="stSidebar"] .e12zf7d53 {
+    gap: 2px !important;
+}
+
+/* 사이드바 helper 문장 ↔ 버튼 사이 여백 확보 */
+section[data-testid="stSidebar"] .helper-note {
+    margin-top: 10px !important;
+    margin-bottom: 10px !important;
+    display: block;
+}
+
 </style>
 """, unsafe_allow_html=True)
 
