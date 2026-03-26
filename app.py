@@ -830,14 +830,6 @@ def render_compact_event(row, prefix=""):
 
 
 def render_week_month_event(row, prefix=""):
-    """
-    주간/월별 보기용.
-    st.expander 를 완전히 제거하고 순수 st.button + st.markdown 조합으로 구현.
-    - 헤더 버튼: 카테고리 고유 컬러 border/bg/text
-    - 화살표(>) 없음
-    - 클릭하면 세션 상태로 토글
-    - 펼치면 한 줄 한 항목
-    """
     c        = get_color(safe_str(row.get("Category", "기타")))
     time_txt = safe_str(row.get("Time", ""))
     cat_txt  = safe_str(row.get("Category", "기타"))
@@ -847,46 +839,59 @@ def render_week_month_event(row, prefix=""):
     toggle_key = f"wm_toggle_{prefix}_{row_id}"
     is_open    = st.session_state.wm_expanded.get(toggle_key, False)
     is_cancel  = safe_str(row.get("Status")) == "취소"
-
-    # ── 헤더 버튼 (카테고리 고유 컬러, 화살표 없음) ──
     label_style = "text-decoration:line-through;opacity:0.65;" if is_cancel else ""
+
+    # ── 박스 자체가 클릭 버튼 (st.button, use_container_width, 컬러 인라인 스타일 주입) ──
+    # st.button은 label만 표시되므로, 버튼 위에 CSS로 배경/테두리 컬러를 uid로 주입
+    btn_uid = f"wmbtn_{prefix}_{row_id}".replace("-","_").replace(".","_").replace(":","_").replace(" ","_")
+
     st.markdown(f"""
-<div style="
-    border: 2px solid {c['line']};
-    background: {c['bg']};
-    border-radius: 12px;
-    margin-bottom: 4px;
-    overflow: hidden;
-">
-  <div style="padding: 7px 10px 5px 10px;">
-    <div style="font-size:0.80rem; font-weight:700; color:{c['text']}; line-height:1.4; word-break:keep-all; {label_style}">
-      {html.escape(label)}
-    </div>
-  </div>
+<style>
+div[data-testid='stButton'][id='{btn_uid}'] > button,
+#{btn_uid} > div[data-testid='stButton'] > button,
+div#{btn_uid} button {{
+    background: {c['bg']} !important;
+    border: 1px solid {c['line']} !important;
+    color: {c['text']} !important;
+    border-radius: 12px !important;
+    font-weight: 700 !important;
+    font-size: 0.80rem !important;
+    line-height: 1.4 !important;
+    text-align: left !important;
+    padding: 7px 10px !important;
+    white-space: normal !important;
+    word-break: keep-all !important;
+    height: auto !important;
+    min-height: 0 !important;
+    {label_style}
+}}
+div[data-testid='stButton'][id='{btn_uid}'] > button:hover,
+#{btn_uid} > div[data-testid='stButton'] > button:hover {{
+    background: {c['soft']} !important;
+    border-color: {c['line']} !important;
+}}
+</style>
+<div id="{btn_uid}">
 """, unsafe_allow_html=True)
 
-    # 토글 버튼 (열기/닫기)
-    btn_label = "▲ 닫기" if is_open else "▼ 상세보기"
-    if st.button(btn_label, key=toggle_key, use_container_width=True):
+    if st.button(label, key=toggle_key, use_container_width=True):
         st.session_state.wm_expanded[toggle_key] = not is_open
         st.rerun()
 
-    # 닫는 div
     st.markdown("</div>", unsafe_allow_html=True)
 
     # ── 펼쳐진 상세 영역 ──
     if is_open:
         st.markdown(f"""
 <div style="
-    border: 2px solid {c['line']};
+    border: 1px solid {c['line']};
     border-top: none;
     background: {c['bg']};
     border-radius: 0 0 12px 12px;
     padding: 8px 10px 6px 10px;
-    margin-top: -4px;
-    margin-bottom: 4px;
+    margin-top: -6px;
+    margin-bottom: 0px;
 ">
-  <!-- 상단 배지 -->
   <div style="display:flex;flex-wrap:wrap;gap:4px;margin-bottom:8px;">
     <span style="background:{c['soft']};color:{c['text']};border:1px solid {c['line']};border-radius:999px;padding:2px 8px;font-size:0.70rem;font-weight:800;">{esc(cat_txt)}</span>
     <span style="background:#F3F4F6;color:#374151;border:1px solid #D1D5DB;border-radius:999px;padding:2px 8px;font-size:0.70rem;font-weight:700;">{esc(row.get('Status',''))}</span>
@@ -894,7 +899,6 @@ def render_week_month_event(row, prefix=""):
     <span style="background:#F3F4F6;color:#374151;border:1px solid #D1D5DB;border-radius:999px;padding:2px 8px;font-size:0.70rem;font-weight:700;">{'👑 회장 직접 참석' if is_president_attend(row) else '대참 가능'}</span>
     <span style="background:#EFF6FF;color:#1D4ED8;border:1px solid #BFDBFE;border-radius:999px;padding:2px 8px;font-size:0.70rem;font-weight:700;">팔로우 {esc(row.get('FollowStatus',''))}</span>
   </div>
-  <!-- 상세 그리드: 한 줄 한 항목 -->
   <div class="wm-detail-grid">
     <div class="wm-detail-cell"><div class="wm-detail-label">일정 날짜</div><div class="wm-detail-value">{esc(row.get('Date',''))}</div></div>
     <div class="wm-detail-cell"><div class="wm-detail-label">일정 시간</div><div class="wm-detail-value">{esc(row.get('Time',''))}</div></div>
@@ -916,6 +920,10 @@ def render_week_month_event(row, prefix=""):
 </div>
 """, unsafe_allow_html=True)
         render_action_buttons_compact(row, prefix=prefix)
+
+    st.markdown('<div style="margin-top:-14px;"></div>', unsafe_allow_html=True)
+    st.markdown('<div style="margin-top:-12px;"></div>', unsafe_allow_html=True)
+
 
 
 def render_form(mode="new", row_data=None):
