@@ -9,12 +9,18 @@ import math
 import gspread
 from google.oauth2.service_account import Credentials
 
+# =========================================================
+# 1. 페이지 설정
+# =========================================================
 st.set_page_config(
     page_title="KVMA President Schedule",
     layout="wide",
     initial_sidebar_state="expanded"
 )
 
+# =========================================================
+# 2. 상수
+# =========================================================
 COLOR_MAP = {
     "국회": {"bg": "#FFF5F6", "soft": "#FDECEF", "line": "#D84C57", "text": "#B4232C", "dot": "🔴"},
     "정부기관": {"bg": "#F4F9FF", "soft": "#EAF4FF", "line": "#3B82F6", "text": "#1D4ED8", "dot": "🔵"},
@@ -53,14 +59,9 @@ SCOPES = [
 
 ADMIN_RELOAD_PASSWORD = "2735"
 
-# ─────────────────────────────────────────────
-# 수정된 CSS 블록
-# 변경 내용:
-#   1) .wm-col-wrap 내부 gap → 4px (주간/월별 전용)
-#   2) 사이드바 gap → 4px (기존 유지)
-#   3) 일별 보기 stVerticalBlock gap → 건드리지 않음
-#   4) .wm-event-btn 클래스: 버튼 색상을 인라인 var()로 받아 처리
-# ─────────────────────────────────────────────
+# =========================================================
+# 3. 스타일
+# =========================================================
 st.markdown("""
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Pretendard:wght@400;500;600;700;800&display=swap');
@@ -147,11 +148,23 @@ div[data-testid='stForm'] {
     border: 1px solid #ECEEF3; border-radius: 18px; padding: 16px 16px 10px 16px; background: #ffffff;
 }
 
+/* ──────────────────────────────────────────
+   사이드바 미리보기 박스 간격 (강제 적용)
+────────────────────────────────────────── */
 .sidebar-day-item {
-    border: 1px solid #ECEEF3; border-radius: 12px; padding: 8px 10px;
-    margin-bottom: 8px !important; margin-top: 0px !important;
-    background: #ffffff; display: block !important;
+    border: 1px solid #ECEEF3;
+    border-radius: 12px;
+    padding: 8px 10px;
+    margin-bottom: 8px !important;
+    margin-top: 0px !important;
+    background: #ffffff;
+    display: block !important;
 }
+.sidebar-day-time { font-size: 0.78rem; font-weight: 800; color: #475467; margin-bottom: 4px; }
+.sidebar-day-title { font-size: 0.86rem; font-weight: 700; color: #1F2937; line-height: 1.35; }
+
+/* 사이드바 미리보기 컨테이너 내부 p 태그 margin 제거 */
+[data-testid='stSidebar'] .sidebar-day-item + .sidebar-day-item { margin-top: 0 !important; }
 [data-testid='stSidebar'] .stMarkdown p { margin-bottom: 0 !important; margin-top: 0 !important; }
 
 .helper-note {
@@ -169,7 +182,7 @@ div[data-testid='stExpander'] summary:hover { background: #FAFAFA !important; }
 div[data-testid='stExpander'] summary { padding-top: 0.18rem !important; padding-bottom: 0.18rem !important; }
 div[data-testid='stTabs'] { margin-bottom: 0 !important; }
 
-.day-head { font-size: 1rem; font-weight: 800; color: #2F3142; margin-bottom: 4px; }
+.day-head { font-size: 1rem; font-weight: 800; color: #2F3142; margin-bottom: 16px; }
 .day-head.sun { color: #C1121F; }
 .day-head.sat { color: #1D4ED8; }
 .day-head.dim.sun { color: #F1A0A7; }
@@ -188,9 +201,15 @@ div[data-testid='stTabs'] { margin-bottom: 0 !important; }
     border: 1px solid #F2D675; vertical-align: middle;
 }
 
+/* ──────────────────────────────────────────
+   주간/월별 이벤트 detail grid: 한 줄 한 항목
+────────────────────────────────────────── */
 .wm-detail-grid {
-    display: grid; grid-template-columns: 1fr; gap: 5px;
-    margin-top: 6px; margin-bottom: 8px;
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 5px;
+    margin-top: 6px;
+    margin-bottom: 8px;
 }
 .wm-detail-cell {
     background: #F8FAFC; border: 1px solid #E5E7EB; border-radius: 8px; padding: 5px 7px;
@@ -210,45 +229,28 @@ div[data-testid='stTabs'] { margin-bottom: 0 !important; }
     .info-box { min-height: auto; }
 }
 
-/* ── 사이드바 버튼 간격만 ── */
+/* ── GAP OVERRIDE ── */
 [data-testid='stSidebar'] [data-testid='stVerticalBlock']:has(
     > div > [data-testid='stButton'],
     > div > [data-testid='stDownloadButton'],
     > div > [data-testid='stExpander']
 ) { gap: 4px !important; row-gap: 4px !important; }
 
-/* ── 주간/월별 일정 컬럼 내부 gap: wm-col-wrap 안에서만 ── */
-.wm-col-wrap [data-testid='stVerticalBlock'] {
-    gap: 2px !important;
-    row-gap: 2px !important;
-}
+[data-testid='stMain'] [data-testid='stVerticalBlock']:has(
+    > div > [data-testid='stExpander']
+) { gap: 4px !important; row-gap: 4px !important; }
 
-/* ── 주간/월별 이벤트 버튼 스타일: CSS 변수 방식 ── */
-.wm-evt-wrap [data-testid='stButton'] > button {
-    background: var(--wm-bg, #ffffff) !important;
-    border: 1px solid var(--wm-line, #D8DEE8) !important;
-    color: var(--wm-text, #374151) !important;
-    border-radius: 10px !important;
-    font-weight: 700 !important;
-    font-size: 0.78rem !important;
-    line-height: 1.3 !important;
-    text-align: left !important;
-    padding: 5px 8px !important;
-    white-space: normal !important;
-    word-break: keep-all !important;
-    height: auto !important;
-    min-height: 0 !important;
-    width: 100% !important;
-}
-.wm-evt-wrap [data-testid='stButton'] > button:hover {
-    background: var(--wm-soft, #F3F4F6) !important;
-    border-color: var(--wm-line, #D8DEE8) !important;
-    color: var(--wm-text, #374151) !important;
-}
+[data-testid='column'] [data-testid='stVerticalBlock']:has(
+    > div > [data-testid='stExpander']
+) { gap: 4px !important; row-gap: 4px !important; }
+
 </style>
 """, unsafe_allow_html=True)
 
 
+# =========================================================
+# 4. 유틸
+# =========================================================
 KST = ZoneInfo("Asia/Seoul")
 
 def now_kst(): return datetime.now(KST)
@@ -638,6 +640,9 @@ def to_display_dataframe(df: pd.DataFrame) -> pd.DataFrame:
     return display_df
 
 
+# =========================================================
+# 5. 상태 초기화
+# =========================================================
 today = now_kst().date()
 
 if "data" not in st.session_state: st.session_state.data = load_data_from_gsheet()
@@ -645,7 +650,7 @@ else: st.session_state.data = clean_records_df(st.session_state.data)
 
 if "app_today" not in st.session_state: st.session_state.app_today = today
 if st.session_state.app_today != today:
-    st.session_state.app_today     = today
+    st.session_state.app_today    = today
     st.session_state.selected_date = today
 
 for key, val in [
@@ -665,9 +670,15 @@ for key, val in [
 ]:
     if key not in st.session_state: st.session_state[key] = val
 
+# =========================================================
+# 5-1. 날짜 선택 콜백
+# =========================================================
 def _on_date_change():
     st.session_state.selected_date = st.session_state._date_input_main
 
+# =========================================================
+# 6. 렌더 함수
+# =========================================================
 def render_followup_section(row):
     st.markdown(f"""
     <div class="follow-wrap">
@@ -800,21 +811,13 @@ def render_compact_event(row, prefix=""):
     st.markdown('<div style="margin-top:-12px;"></div>', unsafe_allow_html=True)
 
 
-def _toggle_wm(key):
-    st.session_state.wm_expanded[key] = not st.session_state.wm_expanded.get(key, False)
-
-
-# ─────────────────────────────────────────────────────────────────
+# =========================================================
 # render_week_month_event
-#
-# 핵심 변경:
-#   1) CSS 변수(--wm-bg, --wm-line, --wm-text, --wm-soft)를
-#      .wm-evt-wrap 래퍼 div의 style 속성에 직접 선언.
-#      → Streamlit이 같은 stVerticalBlock 안에 래퍼와 버튼을
-#        함께 렌더하므로 CSS 상속이 확실히 동작.
-#   2) JS 의존 완전 제거.
-#   3) 박스 간 margin: 기존 -14px/-12px 두 줄 유지.
-# ─────────────────────────────────────────────────────────────────
+# - st.expander 제거, st.button 토글 방식
+# - 카테고리 고유 컬러를 JavaScript로 직접 DOM에 주입
+# - > 화살표 없음 (st.button이므로)
+# - 기존 margin-top 간격 그대로 유지
+# =========================================================
 def render_week_month_event(row, prefix=""):
     c         = get_color(safe_str(row.get("Category", "기타")))
     time_txt  = safe_str(row.get("Time", ""))
@@ -822,35 +825,81 @@ def render_week_month_event(row, prefix=""):
     subject   = compact_subject_text(row)
     label     = f"{time_txt} [{cat_txt}] {subject}" if time_txt else f"[{cat_txt}] {subject}"
     is_cancel = safe_str(row.get("Status")) == "취소"
-    row_id    = safe_str(row.get("ID", ""))
-    tkey      = f"wm_toggle_{prefix}_{row_id}"
-    is_open   = st.session_state.wm_expanded.get(tkey, False)
 
-    # CSS 변수를 래퍼 div의 style에 직접 선언 → 버튼이 상속받음
-    st.markdown(
-        f'<div class="wm-evt-wrap" style="'
-        f'--wm-bg:{c["bg"]};'
-        f'--wm-soft:{c["soft"]};'
-        f'--wm-line:{c["line"]};'
-        f'--wm-text:{c["text"]};'
-        f'margin-bottom:0;padding:0;">'
-        f'</div>',
-        unsafe_allow_html=True
-    )
+    row_id     = safe_str(row.get("ID", ""))
+    toggle_key = f"wm_toggle_{prefix}_{row_id}"
+    is_open    = st.session_state.wm_expanded.get(toggle_key, False)
 
-    # 취소 일정은 label에 취소선 표시 (버튼 텍스트이므로 HTML 불가 → 괄호로 표시)
-    btn_label = label
-    if is_cancel:
-        btn_label = f"[취소] {label}"
+    # 버튼 DOM 타겟팅용 고유 key (data-testid 기반 nth 방식 대신 key 텍스트 매칭)
+    # Streamlit button의 key는 aria-label 또는 내부 p 텍스트로 노출되지 않으므로
+    # JavaScript로 버튼 생성 직후 스타일을 주입하는 방식 사용
+    btn_js_id = "wmbtn_" + "".join(ch if ch.isalnum() else "_" for ch in toggle_key)
 
-    st.button(btn_label, key=tkey, use_container_width=True,
-              on_click=_toggle_wm, args=(tkey,))
+    label_style = "text-decoration:line-through;opacity:0.65;" if is_cancel else ""
+
+    # ── JavaScript로 해당 버튼만 정확히 스타일 적용 ──
+    # Streamlit에서 st.button의 key는 data-testid에 노출되지 않지만
+    # 버튼 텍스트(innerText)로 찾을 수 있음.
+    # 단, 같은 텍스트 버튼이 여럿일 수 있으므로
+    # 마커 div(data-btnid)를 먼저 렌더하고
+    # 그 다음 형제 stButton을 JS로 찾아 스타일 적용
+    st.markdown(f"""
+<div data-btnid="{btn_js_id}" style="display:none;height:0;margin:0;padding:0;overflow:hidden;"></div>
+<script>
+(function(){{
+  function applyStyle(){{
+    var marker = document.querySelector('div[data-btnid="{btn_js_id}"]');
+    if(!marker) return;
+    // marker의 부모(stMarkdown wrap) 다음 형제들 중 stButton을 찾음
+    var parent = marker.closest('[data-testid="stMarkdown"]') || marker.parentElement;
+    var sib = parent;
+    var btn = null;
+    var limit = 8;
+    while(sib && limit > 0){{
+      sib = sib.nextElementSibling;
+      limit--;
+      if(!sib) break;
+      var b = sib.querySelector('button');
+      if(b){{ btn = b; break; }}
+    }}
+    if(!btn) return;
+    btn.style.setProperty('background', '{c["bg"]}', 'important');
+    btn.style.setProperty('border', '1px solid {c["line"]}', 'important');
+    btn.style.setProperty('color', '{c["text"]}', 'important');
+    btn.style.setProperty('border-radius', '12px', 'important');
+    btn.style.setProperty('font-weight', '700', 'important');
+    btn.style.setProperty('font-size', '0.80rem', 'important');
+    btn.style.setProperty('text-align', 'left', 'important');
+    btn.style.setProperty('padding', '7px 10px', 'important');
+    btn.style.setProperty('white-space', 'normal', 'important');
+    btn.style.setProperty('word-break', 'keep-all', 'important');
+    btn.style.setProperty('height', 'auto', 'important');
+    btn.style.setProperty('line-height', '1.4', 'important');
+    if('{label_style}'){{
+      btn.style.setProperty('text-decoration', 'line-through', 'important');
+      btn.style.setProperty('opacity', '0.65', 'important');
+    }}
+  }}
+  if(document.readyState === 'loading'){{
+    document.addEventListener('DOMContentLoaded', applyStyle);
+  }} else {{
+    setTimeout(applyStyle, 0);
+    setTimeout(applyStyle, 100);
+    setTimeout(applyStyle, 300);
+  }}
+}})();
+</script>
+""", unsafe_allow_html=True)
+
+    if st.button(label, key=toggle_key, use_container_width=True):
+        st.session_state.wm_expanded[toggle_key] = not is_open
+        st.rerun()
 
     if is_open:
         st.markdown(f"""
 <div style="border:1px solid {c['line']};border-top:none;background:{c['bg']};
-            border-radius:0 0 10px 10px;padding:8px 10px 2px 10px;margin-top:-4px;">
-  <div style="display:flex;flex-wrap:wrap;gap:4px;margin-bottom:6px;">
+            border-radius:0 0 12px 12px;padding:8px 10px 6px 10px;margin-top:-6px;">
+  <div style="display:flex;flex-wrap:wrap;gap:4px;margin-bottom:8px;">
     <span style="background:{c['soft']};color:{c['text']};border:1px solid {c['line']};
                  border-radius:999px;padding:2px 8px;font-size:0.70rem;font-weight:800;">{esc(cat_txt)}</span>
     <span style="background:#F3F4F6;color:#374151;border:1px solid #D1D5DB;
@@ -880,10 +929,10 @@ def render_week_month_event(row, prefix=""):
     <div class="wm-detail-cell"><div class="wm-detail-label">공유 메모</div><div class="wm-detail-value">{esc(row.get('SharedNote','')) or '—'}</div></div>
     <div class="wm-detail-cell"><div class="wm-detail-label">일반 메모</div><div class="wm-detail-value">{esc(row.get('Memo','')) or '—'}</div></div>
   </div>
-</div>""", unsafe_allow_html=True)
+</div>
+""", unsafe_allow_html=True)
         render_action_buttons_compact(row, prefix=prefix)
 
-    # 박스 간 간격 (기존과 동일하게 유지)
     st.markdown('<div style="margin-top:-14px;"></div>', unsafe_allow_html=True)
     st.markdown('<div style="margin-top:-12px;"></div>', unsafe_allow_html=True)
 
@@ -1063,19 +1112,30 @@ with sidebar_top:
         if selected_day_sidebar.empty:
             st.caption("선택한 날짜의 일정이 없습니다.")
         else:
+            # ── 사이드바 미리보기: 모든 박스를 단일 HTML로 묶어 출력 ──
+            # Streamlit이 각 st.markdown() 호출마다 stMarkdown wrapper를 삽입해
+            # 박스 사이에 기본 gap이 생기는 문제를 해결하기 위해
+            # 전체를 하나의 HTML 블록으로 출력하고 margin-top으로 간격 제어
             parts = []
             for i, (_, row) in enumerate(selected_day_sidebar.iterrows()):
                 c = get_color(row["Category"])
                 mt = "8px" if i > 0 else "0px"
                 parts.append(
-                    f'<div style="border:1px solid {c["line"]};border-radius:12px;padding:8px 10px;'
-                    f'background:{c["bg"]};display:block;margin-top:{mt};">'
+                    f'<div style="'
+                    f'border:1px solid {c["line"]};'
+                    f'border-radius:12px;'
+                    f'padding:8px 10px;'
+                    f'background:{c["bg"]};'
+                    f'display:block;'
+                    f'margin-top:{mt};'
+                    f'">'
                     f'<div style="font-size:0.78rem;font-weight:800;color:{c["text"]};margin-bottom:4px;">'
                     f'{html.escape(safe_str(row["Time"]))} · {html.escape(safe_str(row["Category"]))} · {html.escape(safe_str(row["FollowStatus"]))}'
                     f'</div>'
                     f'<div style="font-size:0.86rem;font-weight:700;color:#1F2937;line-height:1.35;">'
                     f'{html.escape(compact_subject_text(row))}'
-                    f'</div></div>'
+                    f'</div>'
+                    f'</div>'
                 )
             st.markdown("".join(parts), unsafe_allow_html=True)
 
@@ -1108,8 +1168,15 @@ if not has_gsheet_config():
 show_flash()
 st.session_state.is_mobile_force_stack = False
 
+# =========================================================
+# 9. 신규 등록
+# =========================================================
 if st.session_state.main_menu == "✍️ 신규 일정 등록":
     render_form(mode="new")
+
+# =========================================================
+# 10. 일정 보기
+# =========================================================
 else:
     st.markdown('<div class="panel">', unsafe_allow_html=True)
     st.markdown("**검색어 · 카테고리 · 일정 현황 · 날짜를 기준으로 일정을 찾을 수 있습니다.**")
@@ -1145,12 +1212,12 @@ else:
         st.session_state.selected_date = st.session_state._date_input_main
 
     if fc6.button("오늘", use_container_width=True):
-        st.session_state.search_text            = ""
-        st.session_state.selected_cat           = "카테고리"
-        st.session_state.selected_status        = "일정 현황"
+        st.session_state.search_text           = ""
+        st.session_state.selected_cat          = "카테고리"
+        st.session_state.selected_status       = "일정 현황"
         st.session_state.selected_follow_status = "팔로우업 상태"
-        st.session_state.selected_date          = today
-        st.session_state.table_page_num_value   = 1
+        st.session_state.selected_date         = today
+        st.session_state.table_page_num_value  = 1
         st.rerun()
 
     render_legend()
@@ -1175,6 +1242,7 @@ else:
 
     tabs = st.tabs(["일별 보기", "주간 보기", "월별 보기", "전체 일정표"])
 
+    # ── 일별 ──
     with tabs[0]:
         st.markdown(f'<div class="section-title">📍 {st.session_state.selected_date.strftime("%Y년 %m월 %d일")} 일정</div>', unsafe_allow_html=True)
         if st.session_state.edit_id:
@@ -1188,6 +1256,7 @@ else:
                 for idx, (_, row) in enumerate(day_df.iterrows()):
                     render_compact_event(row, prefix=f"day_{idx}")
 
+    # ── 주간 ──
     with tabs[1]:
         st.markdown('<div class="section-title">📅 주간 일정</div>', unsafe_allow_html=True)
         wc1, wc2 = st.columns([1.3, 4.7])
@@ -1203,7 +1272,6 @@ else:
 
         for idx, day_obj in enumerate(week_days):
             with cols[idx]:
-                st.markdown('<div class="wm-col-wrap">', unsafe_allow_html=True)
                 cls       = weekday_class_by_index(idx)
                 label_cls = "day-head" + (f" {cls}" if cls else "")
                 st.markdown(f'<div class="{label_cls}">{day_obj.month}/{day_obj.day} ({day_names[idx]})</div>', unsafe_allow_html=True)
@@ -1213,18 +1281,18 @@ else:
                     for r_idx, (_, row) in enumerate(daily.iterrows()):
                         st.session_state.is_mobile_force_stack = True
                         render_week_month_event(row, prefix=f"week_{idx}_{r_idx}")
-                st.markdown('</div>', unsafe_allow_html=True)
 
         st.session_state.is_mobile_force_stack = False
 
+    # ── 월별 ──
     with tabs[2]:
         st.markdown('<div class="section-title">🗓️ 월별 일정</div>', unsafe_allow_html=True)
         mc1, mc2, mc3 = st.columns([1, 1, 2])
         current_year = st.session_state.selected_date.year
         year_options = list(range(min(2025, current_year-3), max(2040, current_year+10)+1))
-        month_year      = mc1.selectbox("년도", year_options, index=year_options.index(current_year), key="month_year_select")
-        month_month     = mc2.selectbox("월", list(range(1,13)), index=st.session_state.selected_date.month-1, key="month_month_select")
-        month_view_mode = mc3.radio("보기 방식", ["캘린더형","목록형"], horizontal=True, key="month_view_mode")
+        month_year       = mc1.selectbox("년도", year_options, index=year_options.index(current_year), key="month_year_select")
+        month_month      = mc2.selectbox("월", list(range(1,13)), index=st.session_state.selected_date.month-1, key="month_month_select")
+        month_view_mode  = mc3.radio("보기 방식", ["캘린더형","목록형"], horizontal=True, key="month_view_mode")
 
         month_df = filtered_df[filtered_df["DateParsed"].apply(
             lambda d: d.year == month_year and d.month == month_month if pd.notna(d) else False
@@ -1241,7 +1309,6 @@ else:
                 week_cols = st.columns(7)
                 for didx, day_obj in enumerate(week):
                     with week_cols[didx]:
-                        st.markdown('<div class="wm-col-wrap">', unsafe_allow_html=True)
                         if day_obj.month != month_month:
                             st.markdown(day_header_html(day_obj, f"{day_obj.day}일", dim=True), unsafe_allow_html=True)
                             st.caption(" ")
@@ -1253,7 +1320,6 @@ else:
                                 for r_idx, (_, row) in enumerate(daily.iterrows()):
                                     st.session_state.is_mobile_force_stack = True
                                     render_week_month_event(row, prefix=f"month_{didx}_{day_obj}_{r_idx}")
-                        st.markdown('</div>', unsafe_allow_html=True)
             st.session_state.is_mobile_force_stack = False
         else:
             st.caption("화면 폭이 좁을 때는 목록형이 더 보기 편합니다.")
@@ -1271,6 +1337,7 @@ else:
                     for r_idx, (_, row) in enumerate(daily.iterrows()):
                         render_week_month_event(row, prefix=f"month_list_{d}_{r_idx}")
 
+    # ── 전체 일정표 ──
     with tabs[3]:
         st.markdown('<div class="section-title">📋 전체 일정표</div>', unsafe_allow_html=True)
         tc1,tc2,tc3,tc4 = st.columns([1.25,1.3,1.4,2.8])
