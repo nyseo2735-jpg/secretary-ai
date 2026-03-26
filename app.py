@@ -817,160 +817,136 @@ def render_compact_event(row, prefix=""):
     st.markdown('<div style="margin-top:-12px;"></div>', unsafe_allow_html=True)
 
 
+# =========================================================
+# [수정 1/2] render_week_month_event
+# - st.expander 유지
+# - 카테고리 고유 컬러: border 1px + 텍스트 + 배경
+# - > 화살표 완전 제거
+# - 사이드바 미리보기 박스와 동일한 느낌
+# =========================================================
 def render_week_month_event(row, prefix=""):
-    """
-    주간/월별 보기용.
-    핵심 수정:
-    - CSS를 st.expander 호출 전에 전역 주입 (uid 기반)
-    - expander 의 details 엘리먼트를 uid 클래스로 직접 타겟
-    - 카테고리 고유 컬러 border + 라벨 텍스트 컬러
-    - arrow 제거
-    - 펼치면 한 줄 한 항목
-    """
     c        = get_color(safe_str(row.get("Category", "기타")))
     time_txt = safe_str(row.get("Time", ""))
     cat_txt  = safe_str(row.get("Category", "기타"))
     subject  = compact_subject_text(row)
     label    = f"{time_txt} [{cat_txt}] {subject}" if time_txt else f"[{cat_txt}] {subject}"
 
-    # uid: CSS 클래스명으로 사용하기 위해 특수문자 제거
     raw_uid = f"wmev_{prefix}_{safe_str(row.get('ID',''))}"
-    uid = "".join(c2 if c2.isalnum() or c2 == "_" else "_" for c2 in raw_uid)
+    uid = "".join(ch if ch.isalnum() or ch == "_" else "_" for ch in raw_uid)
 
-    # ── CSS를 expander 렌더링 직전에 주입 ──
-    # Streamlit은 st.expander()가 렌더될 때 details 엘리먼트에
-    # 별도 클래스를 달 수 없으므로, 컨테이너 div를 st.markdown으로
-    # 바로 앞에 출력하고 "인접 형제 선택자"(+) 로 타겟팅한다.
-    # 단, Streamlit DOM 구조상 인접 형제가 아닌
-    # "같은 stVerticalBlock 내 다음 stExpander" 를 정확히 잡으려면
-    # :has() 보다 더 구체적인 방법이 필요하다.
+    # ── 핵심: <style> 태그를 expander 바로 앞에 주입 ──
+    # Streamlit은 같은 렌더 사이클에서 st.markdown(style)을 먼저 DOM에 삽입하므로
+    # expander의 details 엘리먼트가 그 다음에 위치한다.
+    # details 엘리먼트에는 고유 class 가 없으므로,
+    # 전역 스코프에서 uid 를 data 속성으로 달아두고
+    # "직전 형제(sibling)" 관계 없이 uid 기반으로 타겟팅한다.
+    # → 실제 DOM: .stMarkdown(uid div) 와 .stExpander 는
+    #   같은 stVerticalBlock 안의 형제(sibling) 이므로
+    #   일반적인 CSS 인접 선택자(+)가 작동하지 않는다.
     #
-    # 가장 신뢰할 수 있는 방법:
-    #   1) <div id="{uid}_wrap"> 를 출력
-    #   2) 해당 div 의 부모(stVerticalBlock)에서
-    #      "바로 다음 stExpander details" 를 CSS로 타겟
-    #   → Streamlit DOM: stVerticalBlock > div > stMarkdown(div wrap)
-    #                                    > div > stExpander > details
-    #   실제로 같은 stVerticalBlock 안에 순서대로 들어가므로
-    #   아래처럼 uid wrap div 이후 형제를 잡는 것이 가장 안정적.
+    # ✅ 가장 확실한 방법:
+    #   expander summary 안의 p 태그는 label 텍스트를 담는다.
+    #   label 에 고유 문자열(uid)을 숨겨 넣으면
+    #   :has() 로 해당 details 를 정확히 타겟팅할 수 있다.
+    #   단, label 에 HTML 은 렌더되지 않으므로
+    #   label 에 눈에 안 보이는 zero-width space + uid 를 삽입.
     #
-    # ※ 대안: expander label 에 보이지 않는 span 을 삽입해
-    #    summary 내부에서 CSS 를 올려타는 방식 (아래 적용)
+    # ✅✅ 더 단순한 방법 (현재 적용):
+    #   매 expander 마다 <style> 블록을 주입하되,
+    #   "페이지 전체에서 이 uid label 을 가진 expander" 를
+    #   summary p 의 텍스트 내용(attribute selector)으로 찾는 대신,
+    #   순서 기반(nth-of-type) 대신 ---
+    #   결론: Streamlit DOM 에서 확실히 동작하는 유일한 방법은
+    #   전역 CSS 에서 모든 stExpander 를 동일하게 스타일링하는 것이므로
+    #   각 expander 호출 직전에 인라인 style 을 주입하고
+    #   expander 의 details 에 직접 style attribute 를 달 수 없으므로
+    #   → Python 수준에서 st.expander 를 쓰지 않고
+    #     순수 HTML/JS 로 토글을 구현하는 것이 유일한 보장 방법.
+    #
+    # 하지만 사용자가 st.expander 유지를 원하므로:
+    # summary 의 첫 번째 p 태그 텍스트가 label 과 일치하는
+    # details 를 :has(p) 로 잡고, 전역 override 로 컬러 적용.
+    # 단, 같은 페이지에 여러 expander 가 있으면 모두 같은 색이 되므로
+    # uid 를 활용해 label 에 보이지 않는 문자를 삽입해 구분한다.
 
-    # expander summary 안에 숨겨진 span 을 삽입해
-    # 그 부모인 details 까지 CSS를 올려타는 방식 사용
-    # → label 에 HTML 은 렌더 안 되므로, 대신 바로 앞 markdown wrap div 방식 사용
+    # label 에 zero-width joiner(U+200D) + uid 해시 삽입 (화면에 안 보임)
+    uid_marker = uid[-8:] if len(uid) >= 8 else uid  # 짧은 suffix 사용
+    # 실제로 label 텍스트에 삽입하면 expander 헤더에 그대로 표시되므로
+    # 대신 CSS 를 전역으로 주입하되 순서 카운터를 활용하지 않고
+    # 가장 최근에 주입된 style 이 이후 expander 에 적용되도록 한다.
+    # → 결국 "직전 st.markdown style 주입 + expander" 패턴에서
+    #   CSS 선택자를 전역으로 두면 모든 expander 에 마지막 색이 덮어씌워짐.
+    #
+    # ✅✅✅ 최종 결론 및 적용 방식:
+    # each expander 를 감싸는 container div 를 st.markdown 으로 출력하고
+    # 해당 div 의 data-uid 속성을 이용해
+    # "이 div 바로 다음 형제인 stExpander > details" 를 CSS 로 타겟팅.
+    # Streamlit 1.33+ 에서 stExpander 는 stVerticalBlock 의 직접 자식이므로
+    # .stMarkdown 과 .stExpander 는 같은 레벨의 형제임.
+    # → div[data-uid] + div > details  (직접 인접 형제)
+    # → 또는 div[data-uid] ~ div[data-testid='stExpander'] details (일반 형제)
+    # 단, Streamlit 은 각 요소를 별도 div 로 감싸므로
+    # .stMarkdown(uid) 의 다음 형제는 stExpander 가 아니라
+    # stExpander 를 담는 div 임.
+    # 따라서: div:has(> div[data-uid='X']) + div details { ... }
+    # 또는:   div[data-uid='X'] 의 부모 다음 형제 details
 
     st.markdown(f"""
 <style>
-/* uid wrap div 바로 다음에 오는 stExpander > details 타겟 */
-div[data-uid='{uid}'] + div[data-testid='stExpander'] details,
-div[data-uid='{uid}'] + div div[data-testid='stExpander'] details {{
-    border: 2px solid {c['line']} !important;
+/* ── {uid} expander 컬러 오버라이드 ── */
+/* 방법: uid div 를 감싸는 stMarkdown div 의 다음 형제(stExpander wrap div) > details */
+div:has(> div[data-uid='{uid}']) + div details {{
+    border: 1px solid {c['line']} !important;
     background: {c['bg']} !important;
-    border-radius: 14px !important;
+    border-radius: 12px !important;
+    box-shadow: none !important;
 }}
-div[data-uid='{uid}'] + div[data-testid='stExpander'] details summary p,
-div[data-uid='{uid}'] + div[data-testid='stExpander'] details summary span,
-div[data-uid='{uid}'] + div div[data-testid='stExpander'] details summary p,
-div[data-uid='{uid}'] + div div[data-testid='stExpander'] details summary span {{
+div:has(> div[data-uid='{uid}']) + div details summary p,
+div:has(> div[data-uid='{uid}']) + div details summary span {{
     color: {c['text']} !important;
     font-weight: 700 !important;
     font-size: 0.82rem !important;
 }}
-div[data-uid='{uid}'] + div[data-testid='stExpander'] details summary [data-testid='stExpanderToggleIcon'],
-div[data-uid='{uid}'] + div[data-testid='stExpander'] details summary svg,
-div[data-uid='{uid}'] + div div[data-testid='stExpander'] details summary [data-testid='stExpanderToggleIcon'],
-div[data-uid='{uid}'] + div div[data-testid='stExpander'] details summary svg {{
+/* > 화살표(토글 아이콘) 완전 제거 */
+div:has(> div[data-uid='{uid}']) + div details summary [data-testid='stExpanderToggleIcon'],
+div:has(> div[data-uid='{uid}']) + div details summary svg {{
     display: none !important;
 }}
+div:has(> div[data-uid='{uid}']) + div details summary {{
+    padding-left: 10px !important;
+}}
 </style>
-<div data-uid='{uid}' style='display:none;margin:0;padding:0;height:0;'></div>
+<div data-uid='{uid}' style='display:none;height:0;margin:0;padding:0;'></div>
 """, unsafe_allow_html=True)
 
     with st.expander(label, expanded=False):
         is_cancel = safe_str(row.get("Status")) == "취소"
 
-        # 상단 배지 행
         st.markdown(f"""
 <div style="display:flex;flex-wrap:wrap;gap:4px;margin-bottom:8px;">
-    <span style="background:{c['soft']};color:{c['text']};border:1px solid {c['line']};
-          border-radius:999px;padding:2px 8px;font-size:0.70rem;font-weight:800;">{esc(cat_txt)}</span>
-    <span style="background:#F3F4F6;color:#374151;border:1px solid #D1D5DB;
-          border-radius:999px;padding:2px 8px;font-size:0.70rem;font-weight:700;">{esc(row.get('Status',''))}</span>
-    <span style="background:#F3F4F6;color:#374151;border:1px solid #D1D5DB;
-          border-radius:999px;padding:2px 8px;font-size:0.70rem;font-weight:700;">우선순위 {esc(row.get('Priority',''))}</span>
-    <span style="background:#F3F4F6;color:#374151;border:1px solid #D1D5DB;
-          border-radius:999px;padding:2px 8px;font-size:0.70rem;font-weight:700;">{'👑 회장 직접 참석' if is_president_attend(row) else '대참 가능'}</span>
-    <span style="background:#EFF6FF;color:#1D4ED8;border:1px solid #BFDBFE;
-          border-radius:999px;padding:2px 8px;font-size:0.70rem;font-weight:700;">팔로우 {esc(row.get('FollowStatus',''))}</span>
+    <span style="background:{c['soft']};color:{c['text']};border:1px solid {c['line']};border-radius:999px;padding:2px 8px;font-size:0.70rem;font-weight:800;">{esc(cat_txt)}</span>
+    <span style="background:#F3F4F6;color:#374151;border:1px solid #D1D5DB;border-radius:999px;padding:2px 8px;font-size:0.70rem;font-weight:700;">{esc(row.get('Status',''))}</span>
+    <span style="background:#F3F4F6;color:#374151;border:1px solid #D1D5DB;border-radius:999px;padding:2px 8px;font-size:0.70rem;font-weight:700;">우선순위 {esc(row.get('Priority',''))}</span>
+    <span style="background:#F3F4F6;color:#374151;border:1px solid #D1D5DB;border-radius:999px;padding:2px 8px;font-size:0.70rem;font-weight:700;">{'👑 회장 직접 참석' if is_president_attend(row) else '대참 가능'}</span>
+    <span style="background:#EFF6FF;color:#1D4ED8;border:1px solid #BFDBFE;border-radius:999px;padding:2px 8px;font-size:0.70rem;font-weight:700;">팔로우 {esc(row.get('FollowStatus',''))}</span>
 </div>
-
 <div class="wm-detail-grid">
-    <div class="wm-detail-cell">
-        <div class="wm-detail-label">일정 날짜</div>
-        <div class="wm-detail-value">{esc(row.get('Date',''))}</div>
-    </div>
-    <div class="wm-detail-cell">
-        <div class="wm-detail-label">일정 시간</div>
-        <div class="wm-detail-value">{esc(row.get('Time',''))}</div>
-    </div>
-    <div class="wm-detail-cell">
-        <div class="wm-detail-label">카테고리</div>
-        <div class="wm-detail-value" style="color:{c['text']};font-weight:700;">{esc(cat_txt)}</div>
-    </div>
-    <div class="wm-detail-cell">
-        <div class="wm-detail-label">일정 현황</div>
-        <div class="wm-detail-value">{esc(row.get('Status',''))}</div>
-    </div>
-    <div class="wm-detail-cell">
-        <div class="wm-detail-label">우선순위</div>
-        <div class="wm-detail-value">{esc(row.get('Priority',''))}</div>
-    </div>
-    <div class="wm-detail-cell">
-        <div class="wm-detail-label">회장직접참석 여부</div>
-        <div class="wm-detail-value">{'👑 직접 참석' if is_president_attend(row) else '대참 가능'}</div>
-    </div>
-    <div class="wm-detail-cell">
-        <div class="wm-detail-label">회의명</div>
-        <div class="wm-detail-value" style="font-weight:700;{'text-decoration:line-through;opacity:0.65;' if is_cancel else ''}">{esc(row.get('Subject',''))}</div>
-    </div>
-    <div class="wm-detail-cell">
-        <div class="wm-detail-label">방문기관명</div>
-        <div class="wm-detail-value">{esc(row.get('OrgName','')) or '—'}</div>
-    </div>
-    <div class="wm-detail-cell">
-        <div class="wm-detail-label">회장님 외 동행인</div>
-        <div class="wm-detail-value">{esc(row.get('Companion','')) or '—'}</div>
-    </div>
-    <div class="wm-detail-cell">
-        <div class="wm-detail-label">주 담당자</div>
-        <div class="wm-detail-value">{esc(row.get('FollowOwner','')) or '—'}</div>
-    </div>
-    <div class="wm-detail-cell">
-        <div class="wm-detail-label">팔로우업 상태</div>
-        <div class="wm-detail-value">{esc(row.get('FollowStatus',''))}</div>
-    </div>
-    <div class="wm-detail-cell">
-        <div class="wm-detail-label">회의 목적</div>
-        <div class="wm-detail-value">{esc(row.get('Purpose','')) or '—'}</div>
-    </div>
-    <div class="wm-detail-cell">
-        <div class="wm-detail-label">후속/준비사항</div>
-        <div class="wm-detail-value">{esc(row.get('FollowTask','')) or '—'}</div>
-    </div>
-    <div class="wm-detail-cell">
-        <div class="wm-detail-label">진행 메모</div>
-        <div class="wm-detail-value">{esc(row.get('FollowProgressMemo','')) or '—'}</div>
-    </div>
-    <div class="wm-detail-cell">
-        <div class="wm-detail-label">공유 메모</div>
-        <div class="wm-detail-value">{esc(row.get('SharedNote','')) or '—'}</div>
-    </div>
-    <div class="wm-detail-cell">
-        <div class="wm-detail-label">일반 메모</div>
-        <div class="wm-detail-value">{esc(row.get('Memo','')) or '—'}</div>
-    </div>
+    <div class="wm-detail-cell"><div class="wm-detail-label">일정 날짜</div><div class="wm-detail-value">{esc(row.get('Date',''))}</div></div>
+    <div class="wm-detail-cell"><div class="wm-detail-label">일정 시간</div><div class="wm-detail-value">{esc(row.get('Time',''))}</div></div>
+    <div class="wm-detail-cell"><div class="wm-detail-label">카테고리</div><div class="wm-detail-value" style="color:{c['text']};font-weight:700;">{esc(cat_txt)}</div></div>
+    <div class="wm-detail-cell"><div class="wm-detail-label">일정 현황</div><div class="wm-detail-value">{esc(row.get('Status',''))}</div></div>
+    <div class="wm-detail-cell"><div class="wm-detail-label">우선순위</div><div class="wm-detail-value">{esc(row.get('Priority',''))}</div></div>
+    <div class="wm-detail-cell"><div class="wm-detail-label">회장직접참석 여부</div><div class="wm-detail-value">{'👑 직접 참석' if is_president_attend(row) else '대참 가능'}</div></div>
+    <div class="wm-detail-cell"><div class="wm-detail-label">회의명</div><div class="wm-detail-value" style="font-weight:700;{'text-decoration:line-through;opacity:0.65;' if is_cancel else ''}">{esc(row.get('Subject',''))}</div></div>
+    <div class="wm-detail-cell"><div class="wm-detail-label">방문기관명</div><div class="wm-detail-value">{esc(row.get('OrgName','')) or '—'}</div></div>
+    <div class="wm-detail-cell"><div class="wm-detail-label">회장님 외 동행인</div><div class="wm-detail-value">{esc(row.get('Companion','')) or '—'}</div></div>
+    <div class="wm-detail-cell"><div class="wm-detail-label">주 담당자</div><div class="wm-detail-value">{esc(row.get('FollowOwner','')) or '—'}</div></div>
+    <div class="wm-detail-cell"><div class="wm-detail-label">팔로우업 상태</div><div class="wm-detail-value">{esc(row.get('FollowStatus',''))}</div></div>
+    <div class="wm-detail-cell"><div class="wm-detail-label">회의 목적</div><div class="wm-detail-value">{esc(row.get('Purpose','')) or '—'}</div></div>
+    <div class="wm-detail-cell"><div class="wm-detail-label">후속/준비사항</div><div class="wm-detail-value">{esc(row.get('FollowTask','')) or '—'}</div></div>
+    <div class="wm-detail-cell"><div class="wm-detail-label">진행 메모</div><div class="wm-detail-value">{esc(row.get('FollowProgressMemo','')) or '—'}</div></div>
+    <div class="wm-detail-cell"><div class="wm-detail-label">공유 메모</div><div class="wm-detail-value">{esc(row.get('SharedNote','')) or '—'}</div></div>
+    <div class="wm-detail-cell"><div class="wm-detail-label">일반 메모</div><div class="wm-detail-value">{esc(row.get('Memo','')) or '—'}</div></div>
 </div>
 """, unsafe_allow_html=True)
 
@@ -1139,7 +1115,6 @@ with sidebar_top:
     )
     st.markdown('<div style="margin-top:-14px;"></div>', unsafe_allow_html=True)
 
-    # ── 사이드바 미리보기: 버튼 토글 방식 ──
     preview_open     = st.session_state.sidebar_preview_open
     arrow_icon       = "▲" if preview_open else "▼"
     preview_date_str = str(st.session_state.selected_date)
@@ -1156,13 +1131,31 @@ with sidebar_top:
         if selected_day_sidebar.empty:
             st.caption("선택한 날짜의 일정이 없습니다.")
         else:
-            # ── 미리보기 박스: 박스 간 간격을 위해 각 항목을 컨테이너로 감싸서 출력 ──
-            for _, row in selected_day_sidebar.iterrows():
+            # =========================================================
+            # [수정 2/2] 사이드바 미리보기 박스 간격
+            # - 각 항목 사이에 st.markdown 으로 6px 높이 spacer 삽입
+            # - HTML 박스 자체의 margin-bottom 도 인라인으로 명시
+            # =========================================================
+            for i, (_, row) in enumerate(selected_day_sidebar.iterrows()):
                 c = get_color(row["Category"])
-                st.markdown(f"""<div class="sidebar-day-item" style="border-color:{c['line']};background:{c['bg']};margin-bottom:8px !important;">
-    <div class="sidebar-day-time">{html.escape(safe_str(row['Time']))} · {html.escape(safe_str(row['Category']))} · {html.escape(safe_str(row['FollowStatus']))}</div>
-    <div class="sidebar-day-title">{html.escape(compact_subject_text(row))}</div>
-</div>""", unsafe_allow_html=True)
+                if i > 0:
+                    st.markdown('<div style="height:6px;line-height:0;font-size:0;"></div>', unsafe_allow_html=True)
+                st.markdown(
+                    f'<div style="'
+                    f'border:1px solid {c["line"]};'
+                    f'border-radius:12px;'
+                    f'padding:8px 10px;'
+                    f'background:{c["bg"]};'
+                    f'display:block;">'
+                    f'<div style="font-size:0.78rem;font-weight:800;color:{c["text"]};margin-bottom:4px;">'
+                    f'{html.escape(safe_str(row["Time"]))} · {html.escape(safe_str(row["Category"]))} · {html.escape(safe_str(row["FollowStatus"]))}'
+                    f'</div>'
+                    f'<div style="font-size:0.86rem;font-weight:700;color:#1F2937;line-height:1.35;">'
+                    f'{html.escape(compact_subject_text(row))}'
+                    f'</div>'
+                    f'</div>',
+                    unsafe_allow_html=True
+                )
 
 st.sidebar.markdown("---")
 st.sidebar.markdown('<div class="helper-note">구글 시트 다시 불러오기는 맨 아래에서 비밀번호 입력 후 실행할 수 있습니다.</div>', unsafe_allow_html=True)
