@@ -9,18 +9,12 @@ import math
 import gspread
 from google.oauth2.service_account import Credentials
 
-# =========================================================
-# 1. 페이지 설정
-# =========================================================
 st.set_page_config(
     page_title="KVMA President Schedule",
     layout="wide",
     initial_sidebar_state="expanded"
 )
 
-# =========================================================
-# 2. 상수
-# =========================================================
 COLOR_MAP = {
     "국회": {"bg": "#FFF5F6", "soft": "#FDECEF", "line": "#D84C57", "text": "#B4232C", "dot": "🔴"},
     "정부기관": {"bg": "#F4F9FF", "soft": "#EAF4FF", "line": "#3B82F6", "text": "#1D4ED8", "dot": "🔵"},
@@ -59,9 +53,6 @@ SCOPES = [
 
 ADMIN_RELOAD_PASSWORD = "2735"
 
-# =========================================================
-# 3. 스타일
-# =========================================================
 st.markdown("""
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Pretendard:wght@400;500;600;700;800&display=swap');
@@ -148,7 +139,6 @@ div[data-testid='stForm'] {
     border: 1px solid #ECEEF3; border-radius: 18px; padding: 16px 16px 10px 16px; background: #ffffff;
 }
 
-/* 사이드바 미리보기 */
 .sidebar-day-item {
     border: 1px solid #ECEEF3; border-radius: 12px; padding: 8px 10px;
     margin-bottom: 8px !important; margin-top: 0px !important;
@@ -190,7 +180,6 @@ div[data-testid='stTabs'] { margin-bottom: 0 !important; }
     border: 1px solid #F2D675; vertical-align: middle;
 }
 
-/* 주간/월별 detail grid */
 .wm-detail-grid {
     display: grid; grid-template-columns: 1fr; gap: 5px;
     margin-top: 6px; margin-bottom: 8px;
@@ -213,44 +202,22 @@ div[data-testid='stTabs'] { margin-bottom: 0 !important; }
     .info-box { min-height: auto; }
 }
 
-/* ── GAP OVERRIDE: 사이드바 버튼 간격 ── */
+/* ── GAP OVERRIDE: 사이드바 버튼 간격만 ── */
 [data-testid='stSidebar'] [data-testid='stVerticalBlock']:has(
     > div > [data-testid='stButton'],
     > div > [data-testid='stDownloadButton'],
     > div > [data-testid='stExpander']
 ) { gap: 4px !important; row-gap: 4px !important; }
 
-/* ── 주간/월별 일정 박스 간격 근본 해결 ──
-   column 안의 stVerticalBlock gap을 0으로 제거
-   → st.button들 사이의 Streamlit 기본 gap 제거
-*/
-[data-testid='column'] [data-testid='stVerticalBlock'] {
+/* ── 주간/월별 일정 버튼 gap: wm-col-wrap 클래스 안에서만 적용 ── */
+.wm-col-wrap [data-testid='stVerticalBlock'] {
     gap: 4px !important;
     row-gap: 4px !important;
 }
-
-/* ── 주간/월별 일정 버튼 컬러: wm-event-btn-{slug} 클래스 기반 ──
-   각 버튼 직전에 삽입되는 숨김 span.wm-event-btn-{slug} 의
-   바로 다음 형제 div > button 을 타겟팅
-   → Streamlit DOM: span(marker) 과 stButton-div 는
-     같은 stMarkdown 내부에 있지 않고 별개 stVerticalBlock 자식이므로
-     형제 선택자가 작동하지 않음
-   → 유일하게 동작하는 방법: 버튼 key를 aria-label로 노출하는
-     [aria-label] 선택자 사용 (Streamlit 1.28+ button은
-     label 텍스트를 p 태그로 렌더)
-   → 결론: 카테고리별 전역 클래스를 stButton wrapper에 직접 주입 불가
-     → 대신 각 렌더 시점에 해당 key를 가진 버튼을 
-       key 기반 attribute selector로 타겟팅하는 <style> 블록 주입
-       (같은 페이지에 동일 key는 하나뿐이므로 충돌 없음)
-*/
-
 </style>
 """, unsafe_allow_html=True)
 
 
-# =========================================================
-# 4. 유틸
-# =========================================================
 KST = ZoneInfo("Asia/Seoul")
 
 def now_kst(): return datetime.now(KST)
@@ -640,9 +607,6 @@ def to_display_dataframe(df: pd.DataFrame) -> pd.DataFrame:
     return display_df
 
 
-# =========================================================
-# 5. 상태 초기화
-# =========================================================
 today = now_kst().date()
 
 if "data" not in st.session_state: st.session_state.data = load_data_from_gsheet()
@@ -673,9 +637,6 @@ for key, val in [
 def _on_date_change():
     st.session_state.selected_date = st.session_state._date_input_main
 
-# =========================================================
-# 6. 렌더 함수
-# =========================================================
 def render_followup_section(row):
     st.markdown(f"""
     <div class="follow-wrap">
@@ -808,23 +769,9 @@ def render_compact_event(row, prefix=""):
     st.markdown('<div style="margin-top:-12px;"></div>', unsafe_allow_html=True)
 
 
-# =========================================================
-# render_week_month_event
-# ─ 근본 해결:
-#   1. 버튼 컬러: st.markdown으로 <style> 주입 시
-#      toggle_key 를 p 텍스트가 아닌 form-element key로
-#      직접 찾을 수 없으므로,
-#      버튼을 순수 HTML <button> 으로 렌더하고
-#      st.session_state + query_params 없이
-#      Streamlit form + submit 방식으로 토글.
-#      → 가장 확실한 방법: st.button의 on_click 콜백 사용
-#        (rerun 없이 즉시 state 변경 후 자동 rerun)
-#   2. 간격: column 내부 gap은 CSS로 제어,
-#      추가로 각 이벤트 블록을 st.container()로 감싸
-#      내부 요소들의 gap을 격리
-# =========================================================
 def _toggle_wm(key):
     st.session_state.wm_expanded[key] = not st.session_state.wm_expanded.get(key, False)
+
 
 def render_week_month_event(row, prefix=""):
     c         = get_color(safe_str(row.get("Category", "기타")))
@@ -837,77 +784,13 @@ def render_week_month_event(row, prefix=""):
     tkey      = f"wm_toggle_{prefix}_{row_id}"
     is_open   = st.session_state.wm_expanded.get(tkey, False)
 
-    # ── 버튼 컬러: 각 버튼 key는 페이지에서 유일 ──
-    # Streamlit은 st.button의 label을 <p> 안에 렌더링하므로
-    # key 기반 선택자는 없지만,
-    # 버튼 직전에 주입한 <style> 블록에서
-    # "이 스타일 블록 직후에 렌더되는 버튼"을 타겟팅할 수 없음.
-    # → 해결: 버튼의 label 텍스트를 포함하는 p 태그를 :has()로 찾되
-    #   label이 길고 특수문자가 있어 CSS attribute selector로 쓰기 어려움.
-    # → 최종 해결: on_click 콜백으로 rerun 없이 즉시 토글 +
-    #   버튼 스타일은 label 앞에 삽입한 숨김 HTML marker의
-    #   다음 형제로 타겟팅하는 대신,
-    #   Streamlit container() 를 활용해
-    #   컨테이너 내 첫 번째 button 을 nth-child 로 타겟팅.
-    #   단, nth-child는 같은 컨테이너 내 순서에 의존하므로
-    #   컨테이너를 독립적으로 격리해야 함.
-    # → 실용적 최종안: 버튼마다 고유한 CSS class 역할을 하는
-    #   data-* 속성 없이, 전역 <style>에서
-    #   각 tkey에 해당하는 버튼을 찾는 유일한 방법은
-    #   버튼 label의 일부를 활용한 :has(p) 선택자인데
-    #   label에 이모지·특수문자가 많아 신뢰성이 낮음.
-    # ── 결론: 인라인 style 속성을 가진 순수 HTML 버튼으로 렌더,
-    #    클릭은 Streamlit의 st.query_params 또는
-    #    hidden st.button으로 감지. ──
-    # 아래는 가장 안정적인 방법:
-    # 1) HTML로 시각적 버튼 렌더 (클릭 안됨)
-    # 2) 그 위에 투명한 st.button을 겹쳐서 클릭 감지
-    # → 하지만 겹치기는 Streamlit에서 불가능.
-    #
-    # ── 최종 실용안 (실제 작동 보장) ──
-    # st.button + on_click 콜백으로 즉시 토글(rerun 자동),
-    # 버튼 스타일은 전역 CSS에서 tkey를 포함하는
-    # aria-label 또는 data-testid 없이 접근 불가이므로
-    # 버튼 label 앞에 zero-width 고유문자열을 삽입해
-    # CSS [class] 대신 JS로 스타일 주입.
-    # JS는 Streamlit Cloud에서 실행됨(Components API 아님).
-    #
-    # ── 실제 최종 구현 ──
-    # 버튼 직전 st.markdown으로 <style> 주입:
-    # 대상: 해당 tkey를 key로 가진 버튼
-    # Streamlit DOM에서 button의 부모 div는
-    # data-testid="stButton" 을 가지며,
-    # 그 부모의 부모(stVerticalBlockBorderWrapper 또는 stVerticalBlock)
-    # 안에서의 위치로는 특정 불가.
-    # → button 자체에 key 관련 attribute가 없음.
-    #
-    # ── 진짜 최종 해결 ──
-    # Streamlit의 st.button은 렌더 시 내부적으로
-    # data-testid="baseButton-secondary" 를 가진 button을 생성.
-    # 버튼 직전에 특정 class를 가진 빈 div를 마크다운으로 삽입하면
-    # DOM 순서상 해당 div 다음에 stButton div가 위치하는데,
-    # 이 두 요소는 같은 stVerticalBlock의 자식이지만
-    # 각각 별도의 div.stMarkdown, div.stButton으로 감싸져 있어
-    # CSS 인접 형제 선택자가 작동하지 않음.
-    #
-    # ── 최종 확인된 유일한 CSS 방법 ──
-    # 전역 style에 각 tkey 고유 스타일을 추가하되,
-    # 버튼의 label p 텍스트를 :has()로 찾는 것도
-    # 텍스트 내용 기반 CSS 선택자가 없어 불가.
-    #
-    # ✅ 실제로 작동하는 유일한 방법:
-    # 버튼 key를 이용해 JavaScript로 DOM에서 버튼을 찾아 스타일 적용.
-    # Streamlit에서 st.markdown의 <script>는 실행됨.
+    safe_id   = row_id.replace("-","_").replace(".","_").replace(":","_").replace(" ","_")
+    label_td  = "text-decoration:line-through;opacity:0.65;" if is_cancel else ""
+    js_search = label[:20].replace("'", "\\'").replace('"', '\\"').replace("\n", " ").replace("\\", "\\\\")
 
-    label_td = "text-decoration:line-through;opacity:0.65;" if is_cancel else ""
-
-    # JS로 버튼 텍스트 기반 탐색 후 스타일 적용
-    # 버튼 label의 앞 20자를 JS 검색 key로 사용 (충분히 고유함)
-    js_label_prefix = label[:15].replace("'", "\\'").replace('"', '\\"').replace("\n", " ")
-
+    # ── 버튼 컬러: JS로 버튼 텍스트 앞부분으로 탐색 후 스타일 직접 주입 ──
     st.markdown(f"""<style>
-/* tkey={tkey} 전용 스타일 - JS가 클래스를 추가하면 적용됨 */
-.wmevt-{row_id.replace('-','_')} button {{
+.wmevt_{safe_id} button {{
     background: {c['bg']} !important;
     border: 1px solid {c['line']} !important;
     color: {c['text']} !important;
@@ -924,7 +807,7 @@ def render_week_month_event(row, prefix=""):
     width: 100% !important;
     {label_td}
 }}
-.wmevt-{row_id.replace('-','_')} button:hover {{
+.wmevt_{safe_id} button:hover {{
     background: {c['soft']} !important;
     border-color: {c['line']} !important;
     color: {c['text']} !important;
@@ -932,32 +815,22 @@ def render_week_month_event(row, prefix=""):
 </style>
 <script>
 (function(){{
-  function applyWmStyle() {{
-    // label 텍스트로 버튼 탐색
-    var allBtns = document.querySelectorAll('[data-testid="stButton"] button');
-    for (var i = 0; i < allBtns.length; i++) {{
-      var btn = allBtns[i];
-      var txt = btn.innerText || btn.textContent || '';
-      if (txt.indexOf('{js_label_prefix}') === 0) {{
-        var wrapper = btn.closest('[data-testid="stButton"]');
-        if (wrapper && wrapper.parentElement) {{
-          wrapper.parentElement.classList.add('wmevt-{row_id.replace('-','_')}');
-        }}
+  function apply_{{
+    var btns = document.querySelectorAll('[data-testid="stButton"] button');
+    for(var i=0;i<btns.length;i++){{
+      var t = (btns[i].innerText||btns[i].textContent||'').trimStart();
+      if(t.indexOf('{js_search}')===0){{
+        var p = btns[i].closest('[data-testid="stButton"]');
+        if(p && p.parentElement) p.parentElement.classList.add('wmevt_{safe_id}');
         break;
       }}
     }}
   }}
-  if (document.readyState === 'loading') {{
-    document.addEventListener('DOMContentLoaded', function() {{
-      setTimeout(applyWmStyle, 50);
-    }});
-  }} else {{
-    setTimeout(applyWmStyle, 50);
-  }}
+  if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',function(){{setTimeout(apply_,80);}});
+  else {{ setTimeout(apply_,80); }}
 }})();
 </script>""", unsafe_allow_html=True)
 
-    # on_click 콜백으로 즉시 토글 (st.rerun() 불필요 → 빠른 반응)
     st.button(label, key=tkey, use_container_width=True,
               on_click=_toggle_wm, args=(tkey,))
 
@@ -997,6 +870,10 @@ def render_week_month_event(row, prefix=""):
   </div>
 </div>""", unsafe_allow_html=True)
         render_action_buttons_compact(row, prefix=prefix)
+
+    # 주간/월별 박스 간 간격: 원래대로 유지
+    st.markdown('<div style="margin-top:-14px;"></div>', unsafe_allow_html=True)
+    st.markdown('<div style="margin-top:-12px;"></div>', unsafe_allow_html=True)
 
 
 def render_form(mode="new", row_data=None):
@@ -1219,15 +1096,8 @@ if not has_gsheet_config():
 show_flash()
 st.session_state.is_mobile_force_stack = False
 
-# =========================================================
-# 9. 신규 등록
-# =========================================================
 if st.session_state.main_menu == "✍️ 신규 일정 등록":
     render_form(mode="new")
-
-# =========================================================
-# 10. 일정 보기
-# =========================================================
 else:
     st.markdown('<div class="panel">', unsafe_allow_html=True)
     st.markdown("**검색어 · 카테고리 · 일정 현황 · 날짜를 기준으로 일정을 찾을 수 있습니다.**")
@@ -1293,7 +1163,6 @@ else:
 
     tabs = st.tabs(["일별 보기", "주간 보기", "월별 보기", "전체 일정표"])
 
-    # ── 일별 ──
     with tabs[0]:
         st.markdown(f'<div class="section-title">📍 {st.session_state.selected_date.strftime("%Y년 %m월 %d일")} 일정</div>', unsafe_allow_html=True)
         if st.session_state.edit_id:
@@ -1307,7 +1176,6 @@ else:
                 for idx, (_, row) in enumerate(day_df.iterrows()):
                     render_compact_event(row, prefix=f"day_{idx}")
 
-    # ── 주간 ──
     with tabs[1]:
         st.markdown('<div class="section-title">📅 주간 일정</div>', unsafe_allow_html=True)
         wc1, wc2 = st.columns([1.3, 4.7])
@@ -1323,6 +1191,8 @@ else:
 
         for idx, day_obj in enumerate(week_days):
             with cols[idx]:
+                # ── wm-col-wrap 으로 감싸서 gap CSS가 이 column 안에서만 작동 ──
+                st.markdown('<div class="wm-col-wrap">', unsafe_allow_html=True)
                 cls       = weekday_class_by_index(idx)
                 label_cls = "day-head" + (f" {cls}" if cls else "")
                 st.markdown(f'<div class="{label_cls}">{day_obj.month}/{day_obj.day} ({day_names[idx]})</div>', unsafe_allow_html=True)
@@ -1332,10 +1202,10 @@ else:
                     for r_idx, (_, row) in enumerate(daily.iterrows()):
                         st.session_state.is_mobile_force_stack = True
                         render_week_month_event(row, prefix=f"week_{idx}_{r_idx}")
+                st.markdown('</div>', unsafe_allow_html=True)
 
         st.session_state.is_mobile_force_stack = False
 
-    # ── 월별 ──
     with tabs[2]:
         st.markdown('<div class="section-title">🗓️ 월별 일정</div>', unsafe_allow_html=True)
         mc1, mc2, mc3 = st.columns([1, 1, 2])
@@ -1360,6 +1230,7 @@ else:
                 week_cols = st.columns(7)
                 for didx, day_obj in enumerate(week):
                     with week_cols[didx]:
+                        st.markdown('<div class="wm-col-wrap">', unsafe_allow_html=True)
                         if day_obj.month != month_month:
                             st.markdown(day_header_html(day_obj, f"{day_obj.day}일", dim=True), unsafe_allow_html=True)
                             st.caption(" ")
@@ -1371,6 +1242,7 @@ else:
                                 for r_idx, (_, row) in enumerate(daily.iterrows()):
                                     st.session_state.is_mobile_force_stack = True
                                     render_week_month_event(row, prefix=f"month_{didx}_{day_obj}_{r_idx}")
+                        st.markdown('</div>', unsafe_allow_html=True)
             st.session_state.is_mobile_force_stack = False
         else:
             st.caption("화면 폭이 좁을 때는 목록형이 더 보기 편합니다.")
@@ -1388,7 +1260,6 @@ else:
                     for r_idx, (_, row) in enumerate(daily.iterrows()):
                         render_week_month_event(row, prefix=f"month_list_{d}_{r_idx}")
 
-    # ── 전체 일정표 ──
     with tabs[3]:
         st.markdown('<div class="section-title">📋 전체 일정표</div>', unsafe_allow_html=True)
         tc1,tc2,tc3,tc4 = st.columns([1.25,1.3,1.4,2.8])
