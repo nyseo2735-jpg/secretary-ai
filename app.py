@@ -427,8 +427,9 @@ div[data-testid="stTabs"] {
     font-size: 1rem;
     font-weight: 800;
     color: #2F3142;
-    margin-bottom: 6px;
+    margin-bottom: 14px;
 }
+
 
 .day-head.sun { color: #C1121F; }
 .day-head.sat { color: #1D4ED8; }
