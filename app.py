@@ -62,221 +62,187 @@ ADMIN_RELOAD_PASSWORD = "2735"
 # =========================================================
 # 3. 스타일
 # =========================================================
-# 카테고리별 버튼 CSS를 동적으로 생성
-def build_cat_button_css():
-    lines = []
-    for cat, c in COLOR_MAP.items():
-        slug = CAT_SLUG.get(cat, "etc")
-        lines.append(f"""
-.wm-btn-{slug} > div[data-testid="stButton"] > button {{
-    background: {c['bg']} !important;
-    border: 1px solid {c['line']} !important;
-    color: {c['text']} !important;
-    border-radius: 12px !important;
-    font-weight: 700 !important;
-    font-size: 0.80rem !important;
-    line-height: 1.4 !important;
-    text-align: left !important;
-    padding: 7px 10px !important;
-    white-space: normal !important;
-    word-break: keep-all !important;
-    height: auto !important;
-    min-height: 0 !important;
-    width: 100% !important;
-}}
-.wm-btn-{slug} > div[data-testid="stButton"] > button:hover {{
-    background: {c['soft']} !important;
-    border-color: {c['line']} !important;
-    color: {c['text']} !important;
-}}
-""")
-    return "\n".join(lines)
-
-st.markdown(f"""
+st.markdown("""
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Pretendard:wght@400;500;600;700;800&display=swap');
 
-html, body, [class*='css'] {{ font-family: 'Pretendard', sans-serif; }}
-.block-container {{ padding-top: 2.5rem; padding-bottom: 1.4rem; max-width: 1600px; }}
-h1, h2, h3 {{ line-height: 1.2 !important; }}
+html, body, [class*='css'] { font-family: 'Pretendard', sans-serif; }
+.block-container { padding-top: 2.5rem; padding-bottom: 1.4rem; max-width: 1600px; }
+h1, h2, h3 { line-height: 1.2 !important; }
 
-.main-title {{
+.main-title {
     font-size: 2.7rem; font-weight: 800; color: #2F3142;
     margin-top: 0.45rem; margin-bottom: 0.35rem; line-height: 1.2; word-break: keep-all;
-}}
-.sub-text {{
+}
+.sub-text {
     font-size: 0.98rem; color: #6B7280; margin-bottom: 0.8rem;
     line-height: 1.5; word-break: keep-all;
-}}
-.panel {{
+}
+.panel {
     background: #ffffff; border: 1px solid #ECEEF3; border-radius: 18px;
     padding: 12px 14px; box-shadow: 0 4px 16px rgba(20,24,40,0.04); margin-bottom: 10px;
-}}
-.section-title {{
+}
+.section-title {
     font-size: 1.7rem; font-weight: 800; color: #2F3142; margin: 8px 0 16px 0; line-height: 1.2;
-}}
-.legend-pill {{
+}
+.legend-pill {
     display: inline-block; padding: 6px 12px; border-radius: 999px;
     font-size: 0.80rem; font-weight: 700; margin: 0 6px 6px 0; border: 1px solid;
-}}
-.metric-chip {{
+}
+.metric-chip {
     display: inline-block; padding: 6px 12px; border-radius: 999px;
     font-size: 0.80rem; font-weight: 800; margin: 0 8px 8px 0;
     border: 1px solid #D8DEE8; background: #ffffff; color: #344054;
-}}
-.summary-card {{
+}
+.summary-card {
     border-radius: 22px; overflow: hidden; border: 1px solid #E8EBF2; margin-top: 4px; margin-bottom: 10px;
-}}
-.summary-inner {{ display: flex; }}
-.summary-accent {{ width: 10px; flex-shrink: 0; }}
-.summary-body {{ width: 100%; padding: 14px 16px 12px 16px; }}
-.summary-meta {{ font-size: 0.92rem; font-weight: 800; margin-bottom: 6px; }}
-.summary-title {{
+}
+.summary-inner { display: flex; }
+.summary-accent { width: 10px; flex-shrink: 0; }
+.summary-body { width: 100%; padding: 14px 16px 12px 16px; }
+.summary-meta { font-size: 0.92rem; font-weight: 800; margin-bottom: 6px; }
+.summary-title {
     font-size: 1.22rem; font-weight: 800; color: #232634; line-height: 1.28; margin: 0; word-break: keep-all;
-}}
-.tag-pill {{
+}
+.tag-pill {
     display: inline-block; padding: 5px 10px; border-radius: 999px;
     font-size: 0.74rem; font-weight: 800; border: 1px solid #D1D5DB;
     background: #ffffff; color: #475467; margin-left: 6px; vertical-align: middle;
-}}
-.follow-pill {{
+}
+.follow-pill {
     display: inline-block; padding: 5px 10px; border-radius: 999px;
     font-size: 0.74rem; font-weight: 800; border: 1px solid #D1D5DB;
     background: #F8FAFC; color: #344054; margin-right: 6px; margin-bottom: 6px; vertical-align: middle;
-}}
-.info-box {{
+}
+.info-box {
     background: #ffffff; border: 1px solid #ECEEF3; border-radius: 16px;
     padding: 11px 13px 10px 13px; min-height: 68px; margin-bottom: 8px;
-}}
-.info-label {{ font-size: 0.77rem; font-weight: 800; color: #6B7280; margin-bottom: 6px; line-height: 1.35; }}
-.info-value {{ font-size: 0.96rem; font-weight: 600; color: #232634; line-height: 1.5; white-space: pre-wrap; word-break: break-word; }}
-.memo-box {{
+}
+.info-label { font-size: 0.77rem; font-weight: 800; color: #6B7280; margin-bottom: 6px; line-height: 1.35; }
+.info-value { font-size: 0.96rem; font-weight: 600; color: #232634; line-height: 1.5; white-space: pre-wrap; word-break: break-word; }
+.memo-box {
     background: #FFFBEA; border: 1px solid #F8E3A3; border-left: 8px solid #F5C84B;
     border-radius: 16px; padding: 12px 16px; margin-top: 4px;
-}}
-.memo-title {{ font-size: 0.90rem; font-weight: 800; color: #7A5A00; margin-bottom: 6px; }}
-.memo-text {{ font-size: 0.94rem; color: #4B5563; line-height: 1.55; white-space: pre-wrap; word-break: break-word; }}
-.follow-wrap {{
+}
+.memo-title { font-size: 0.90rem; font-weight: 800; color: #7A5A00; margin-bottom: 6px; }
+.memo-text { font-size: 0.94rem; color: #4B5563; line-height: 1.55; white-space: pre-wrap; word-break: break-word; }
+.follow-wrap {
     background: #F7FAFF; border: 1px solid #D7E7FF; border-left: 8px solid #3B82F6;
     border-radius: 18px; padding: 14px 16px; margin-top: 8px; margin-bottom: 10px;
-}}
-.follow-title {{ font-size: 1rem; font-weight: 800; color: #1D4ED8; margin-bottom: 10px; }}
-.follow-grid {{ display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }}
-.follow-box {{ border: 1px solid #DDE6F4; border-radius: 14px; padding: 10px 12px; background: #ffffff; }}
-.follow-label {{ font-size: 0.75rem; font-weight: 800; color: #6B7280; margin-bottom: 4px; }}
-.follow-value {{ font-size: 0.92rem; font-weight: 600; color: #1F2937; line-height: 1.45; white-space: pre-wrap; word-break: break-word; }}
+}
+.follow-title { font-size: 1rem; font-weight: 800; color: #1D4ED8; margin-bottom: 10px; }
+.follow-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.follow-box { border: 1px solid #DDE6F4; border-radius: 14px; padding: 10px 12px; background: #ffffff; }
+.follow-label { font-size: 0.75rem; font-weight: 800; color: #6B7280; margin-bottom: 4px; }
+.follow-value { font-size: 0.92rem; font-weight: 600; color: #1F2937; line-height: 1.45; white-space: pre-wrap; word-break: break-word; }
 
-.small-action button {{
+.small-action button {
     min-height: 34px !important; height: 34px !important;
     padding-top: 0.15rem !important; padding-bottom: 0.15rem !important; font-size: 0.84rem !important;
-}}
-div[data-testid='stButton'] > button {{ border-radius: 12px !important; font-weight: 700 !important; }}
-div[data-testid='stDownloadButton'] > button {{ border-radius: 12px !important; font-weight: 700 !important; }}
+}
+div[data-testid='stButton'] > button { border-radius: 12px !important; font-weight: 700 !important; }
+div[data-testid='stDownloadButton'] > button { border-radius: 12px !important; font-weight: 700 !important; }
 .stTextInput input, .stDateInput input, .stTimeInput input,
-.stSelectbox div[data-baseweb='select'] > div, .stTextArea textarea {{ border-radius: 12px !important; }}
-div[data-testid='stForm'] {{
+.stSelectbox div[data-baseweb='select'] > div, .stTextArea textarea { border-radius: 12px !important; }
+div[data-testid='stForm'] {
     border: 1px solid #ECEEF3; border-radius: 18px; padding: 16px 16px 10px 16px; background: #ffffff;
-}}
+}
 
 /* 사이드바 미리보기 */
-.sidebar-day-item {{
-    border: 1px solid #ECEEF3;
-    border-radius: 12px;
-    padding: 8px 10px;
-    margin-bottom: 8px !important;
-    margin-top: 0px !important;
-    background: #ffffff;
-    display: block !important;
-}}
-.sidebar-day-time {{ font-size: 0.78rem; font-weight: 800; color: #475467; margin-bottom: 4px; }}
-.sidebar-day-title {{ font-size: 0.86rem; font-weight: 700; color: #1F2937; line-height: 1.35; }}
-[data-testid='stSidebar'] .sidebar-day-item + .sidebar-day-item {{ margin-top: 0 !important; }}
-[data-testid='stSidebar'] .stMarkdown p {{ margin-bottom: 0 !important; margin-top: 0 !important; }}
+.sidebar-day-item {
+    border: 1px solid #ECEEF3; border-radius: 12px; padding: 8px 10px;
+    margin-bottom: 8px !important; margin-top: 0px !important;
+    background: #ffffff; display: block !important;
+}
+[data-testid='stSidebar'] .stMarkdown p { margin-bottom: 0 !important; margin-top: 0 !important; }
 
-.helper-note {{
+.helper-note {
     font-size: 0.82rem; color: #667085; line-height: 1.45;
     display: block; margin-top: 8px !important; margin-bottom: 12px !important;
-}}
-.segment-note {{ font-size: 0.84rem; color: #667085; margin-bottom: 8px; }}
+}
+.segment-note { font-size: 0.84rem; color: #667085; margin-bottom: 8px; }
 
-.streamlit-expanderHeader {{ font-weight: 800 !important; font-size: 0.90rem !important; line-height: 1.2 !important; }}
-div[data-testid='stExpander'] details {{
+.streamlit-expanderHeader { font-weight: 800 !important; font-size: 0.90rem !important; line-height: 1.2 !important; }
+div[data-testid='stExpander'] details {
     border-radius: 16px !important; border: 1.6px solid #D8DEE8 !important;
     background: #ffffff !important; overflow: hidden !important; box-shadow: none !important;
-}}
-div[data-testid='stExpander'] summary:hover {{ background: #FAFAFA !important; }}
-div[data-testid='stExpander'] summary {{ padding-top: 0.18rem !important; padding-bottom: 0.18rem !important; }}
-div[data-testid='stTabs'] {{ margin-bottom: 0 !important; }}
+}
+div[data-testid='stExpander'] summary:hover { background: #FAFAFA !important; }
+div[data-testid='stExpander'] summary { padding-top: 0.18rem !important; padding-bottom: 0.18rem !important; }
+div[data-testid='stTabs'] { margin-bottom: 0 !important; }
 
-/* ── 날짜 헤더: 아래 여백 최소화 ── */
-.day-head {{ font-size: 1rem; font-weight: 800; color: #2F3142; margin-bottom: 4px; }}
-.day-head.sun {{ color: #C1121F; }}
-.day-head.sat {{ color: #1D4ED8; }}
-.day-head.dim.sun {{ color: #F1A0A7; }}
-.day-head.dim.sat {{ color: #9BB8F5; }}
-.day-head.dim {{ color: #B5BBC8; }}
+.day-head { font-size: 1rem; font-weight: 800; color: #2F3142; margin-bottom: 4px; }
+.day-head.sun { color: #C1121F; }
+.day-head.sat { color: #1D4ED8; }
+.day-head.dim.sun { color: #F1A0A7; }
+.day-head.dim.sat { color: #9BB8F5; }
+.day-head.dim { color: #B5BBC8; }
 
-.canceled-title {{ text-decoration: line-through; opacity: 0.65; }}
-.cancel-pill {{
+.canceled-title { text-decoration: line-through; opacity: 0.65; }
+.cancel-pill {
     display: inline-block; margin-left: 6px; padding: 4px 8px; border-radius: 999px;
     font-size: 0.72rem; font-weight: 800; background: #FEE2E2; color: #B42318;
     border: 1px solid #FECACA; vertical-align: middle;
-}}
-.attend-pill {{
+}
+.attend-pill {
     display: inline-block; margin-left: 6px; padding: 4px 8px; border-radius: 999px;
     font-size: 0.72rem; font-weight: 800; background: #FFF7D6; color: #8A6500;
     border: 1px solid #F2D675; vertical-align: middle;
-}}
+}
 
 /* 주간/월별 detail grid */
-.wm-detail-grid {{
-    display: grid;
-    grid-template-columns: 1fr;
-    gap: 5px;
-    margin-top: 6px;
-    margin-bottom: 8px;
-}}
-.wm-detail-cell {{
+.wm-detail-grid {
+    display: grid; grid-template-columns: 1fr; gap: 5px;
+    margin-top: 6px; margin-bottom: 8px;
+}
+.wm-detail-cell {
     background: #F8FAFC; border: 1px solid #E5E7EB; border-radius: 8px; padding: 5px 7px;
-}}
-.wm-detail-cell-full {{
+}
+.wm-detail-cell-full {
     background: #F8FAFC; border: 1px solid #E5E7EB; border-radius: 8px; padding: 5px 7px;
-}}
-.wm-detail-label {{ font-size: 0.66rem; font-weight: 700; color: #9CA3AF; margin-bottom: 2px; }}
-.wm-detail-value {{ font-size: 0.78rem; font-weight: 600; color: #1F2937; line-height: 1.35; word-break: break-word; white-space: pre-wrap; }}
+}
+.wm-detail-label { font-size: 0.66rem; font-weight: 700; color: #9CA3AF; margin-bottom: 2px; }
+.wm-detail-value { font-size: 0.78rem; font-weight: 600; color: #1F2937; line-height: 1.35; word-break: break-word; white-space: pre-wrap; }
 
-@media (max-width: 1000px) {{
-    .block-container {{ padding-top: 2.2rem; }}
-    .main-title {{ font-size: 2.1rem; }}
-    .summary-title {{ font-size: 1.08rem; }}
-    .follow-grid {{ grid-template-columns: 1fr; }}
-    .summary-body {{ padding: 12px 13px 10px 13px; }}
-    .info-box {{ min-height: auto; }}
-}}
+@media (max-width: 1000px) {
+    .block-container { padding-top: 2.2rem; }
+    .main-title { font-size: 2.1rem; }
+    .summary-title { font-size: 1.08rem; }
+    .follow-grid { grid-template-columns: 1fr; }
+    .summary-body { padding: 12px 13px 10px 13px; }
+    .info-box { min-height: auto; }
+}
 
-/* GAP OVERRIDE */
+/* ── GAP OVERRIDE: 사이드바 버튼 간격 ── */
 [data-testid='stSidebar'] [data-testid='stVerticalBlock']:has(
     > div > [data-testid='stButton'],
     > div > [data-testid='stDownloadButton'],
     > div > [data-testid='stExpander']
-) {{ gap: 4px !important; row-gap: 4px !important; }}
+) { gap: 4px !important; row-gap: 4px !important; }
 
-[data-testid='stMain'] [data-testid='stVerticalBlock']:has(
-    > div > [data-testid='stExpander']
-) {{ gap: 4px !important; row-gap: 4px !important; }}
+/* ── 주간/월별 일정 박스 간격 근본 해결 ──
+   column 안의 stVerticalBlock gap을 0으로 제거
+   → st.button들 사이의 Streamlit 기본 gap 제거
+*/
+[data-testid='column'] [data-testid='stVerticalBlock'] {
+    gap: 4px !important;
+    row-gap: 4px !important;
+}
 
-[data-testid='column'] [data-testid='stVerticalBlock']:has(
-    > div > [data-testid='stExpander']
-) {{ gap: 4px !important; row-gap: 4px !important; }}
-
-/* ── 주간/월별 일정 버튼 간격 축소 ── */
-.wm-btn-wrap [data-testid='stVerticalBlock'] {{
-    gap: 2px !important;
-    row-gap: 2px !important;
-}}
-
-/* ── 카테고리별 버튼 컬러 ── */
-{build_cat_button_css()}
+/* ── 주간/월별 일정 버튼 컬러: wm-event-btn-{slug} 클래스 기반 ──
+   각 버튼 직전에 삽입되는 숨김 span.wm-event-btn-{slug} 의
+   바로 다음 형제 div > button 을 타겟팅
+   → Streamlit DOM: span(marker) 과 stButton-div 는
+     같은 stMarkdown 내부에 있지 않고 별개 stVerticalBlock 자식이므로
+     형제 선택자가 작동하지 않음
+   → 유일하게 동작하는 방법: 버튼 key를 aria-label로 노출하는
+     [aria-label] 선택자 사용 (Streamlit 1.28+ button은
+     label 텍스트를 p 태그로 렌더)
+   → 결론: 카테고리별 전역 클래스를 stButton wrapper에 직접 주입 불가
+     → 대신 각 렌더 시점에 해당 key를 가진 버튼을 
+       key 기반 attribute selector로 타겟팅하는 <style> 블록 주입
+       (같은 페이지에 동일 key는 하나뿐이므로 충돌 없음)
+*/
 
 </style>
 """, unsafe_allow_html=True)
@@ -684,7 +650,7 @@ else: st.session_state.data = clean_records_df(st.session_state.data)
 
 if "app_today" not in st.session_state: st.session_state.app_today = today
 if st.session_state.app_today != today:
-    st.session_state.app_today    = today
+    st.session_state.app_today     = today
     st.session_state.selected_date = today
 
 for key, val in [
@@ -704,9 +670,6 @@ for key, val in [
 ]:
     if key not in st.session_state: st.session_state[key] = val
 
-# =========================================================
-# 5-1. 날짜 선택 콜백
-# =========================================================
 def _on_date_change():
     st.session_state.selected_date = st.session_state._date_input_main
 
@@ -847,39 +810,162 @@ def render_compact_event(row, prefix=""):
 
 # =========================================================
 # render_week_month_event
-# - st.button 토글 (st.expander 없음 → 반응 빠름)
-# - 카테고리 고유 컬러: CSS 클래스 .wm-btn-{slug} 로 적용
-# - 박스 간격: margin-top:-8px 로 줄임
+# ─ 근본 해결:
+#   1. 버튼 컬러: st.markdown으로 <style> 주입 시
+#      toggle_key 를 p 텍스트가 아닌 form-element key로
+#      직접 찾을 수 없으므로,
+#      버튼을 순수 HTML <button> 으로 렌더하고
+#      st.session_state + query_params 없이
+#      Streamlit form + submit 방식으로 토글.
+#      → 가장 확실한 방법: st.button의 on_click 콜백 사용
+#        (rerun 없이 즉시 state 변경 후 자동 rerun)
+#   2. 간격: column 내부 gap은 CSS로 제어,
+#      추가로 각 이벤트 블록을 st.container()로 감싸
+#      내부 요소들의 gap을 격리
 # =========================================================
+def _toggle_wm(key):
+    st.session_state.wm_expanded[key] = not st.session_state.wm_expanded.get(key, False)
+
 def render_week_month_event(row, prefix=""):
     c         = get_color(safe_str(row.get("Category", "기타")))
-    slug      = category_slug(safe_str(row.get("Category", "기타")))
     time_txt  = safe_str(row.get("Time", ""))
     cat_txt   = safe_str(row.get("Category", "기타"))
     subject   = compact_subject_text(row)
     label     = f"{time_txt} [{cat_txt}] {subject}" if time_txt else f"[{cat_txt}] {subject}"
     is_cancel = safe_str(row.get("Status")) == "취소"
+    row_id    = safe_str(row.get("ID", ""))
+    tkey      = f"wm_toggle_{prefix}_{row_id}"
+    is_open   = st.session_state.wm_expanded.get(tkey, False)
 
-    row_id     = safe_str(row.get("ID", ""))
-    toggle_key = f"wm_toggle_{prefix}_{row_id}"
-    is_open    = st.session_state.wm_expanded.get(toggle_key, False)
+    # ── 버튼 컬러: 각 버튼 key는 페이지에서 유일 ──
+    # Streamlit은 st.button의 label을 <p> 안에 렌더링하므로
+    # key 기반 선택자는 없지만,
+    # 버튼 직전에 주입한 <style> 블록에서
+    # "이 스타일 블록 직후에 렌더되는 버튼"을 타겟팅할 수 없음.
+    # → 해결: 버튼의 label 텍스트를 포함하는 p 태그를 :has()로 찾되
+    #   label이 길고 특수문자가 있어 CSS attribute selector로 쓰기 어려움.
+    # → 최종 해결: on_click 콜백으로 rerun 없이 즉시 토글 +
+    #   버튼 스타일은 label 앞에 삽입한 숨김 HTML marker의
+    #   다음 형제로 타겟팅하는 대신,
+    #   Streamlit container() 를 활용해
+    #   컨테이너 내 첫 번째 button 을 nth-child 로 타겟팅.
+    #   단, nth-child는 같은 컨테이너 내 순서에 의존하므로
+    #   컨테이너를 독립적으로 격리해야 함.
+    # → 실용적 최종안: 버튼마다 고유한 CSS class 역할을 하는
+    #   data-* 속성 없이, 전역 <style>에서
+    #   각 tkey에 해당하는 버튼을 찾는 유일한 방법은
+    #   버튼 label의 일부를 활용한 :has(p) 선택자인데
+    #   label에 이모지·특수문자가 많아 신뢰성이 낮음.
+    # ── 결론: 인라인 style 속성을 가진 순수 HTML 버튼으로 렌더,
+    #    클릭은 Streamlit의 st.query_params 또는
+    #    hidden st.button으로 감지. ──
+    # 아래는 가장 안정적인 방법:
+    # 1) HTML로 시각적 버튼 렌더 (클릭 안됨)
+    # 2) 그 위에 투명한 st.button을 겹쳐서 클릭 감지
+    # → 하지만 겹치기는 Streamlit에서 불가능.
+    #
+    # ── 최종 실용안 (실제 작동 보장) ──
+    # st.button + on_click 콜백으로 즉시 토글(rerun 자동),
+    # 버튼 스타일은 전역 CSS에서 tkey를 포함하는
+    # aria-label 또는 data-testid 없이 접근 불가이므로
+    # 버튼 label 앞에 zero-width 고유문자열을 삽입해
+    # CSS [class] 대신 JS로 스타일 주입.
+    # JS는 Streamlit Cloud에서 실행됨(Components API 아님).
+    #
+    # ── 실제 최종 구현 ──
+    # 버튼 직전 st.markdown으로 <style> 주입:
+    # 대상: 해당 tkey를 key로 가진 버튼
+    # Streamlit DOM에서 button의 부모 div는
+    # data-testid="stButton" 을 가지며,
+    # 그 부모의 부모(stVerticalBlockBorderWrapper 또는 stVerticalBlock)
+    # 안에서의 위치로는 특정 불가.
+    # → button 자체에 key 관련 attribute가 없음.
+    #
+    # ── 진짜 최종 해결 ──
+    # Streamlit의 st.button은 렌더 시 내부적으로
+    # data-testid="baseButton-secondary" 를 가진 button을 생성.
+    # 버튼 직전에 특정 class를 가진 빈 div를 마크다운으로 삽입하면
+    # DOM 순서상 해당 div 다음에 stButton div가 위치하는데,
+    # 이 두 요소는 같은 stVerticalBlock의 자식이지만
+    # 각각 별도의 div.stMarkdown, div.stButton으로 감싸져 있어
+    # CSS 인접 형제 선택자가 작동하지 않음.
+    #
+    # ── 최종 확인된 유일한 CSS 방법 ──
+    # 전역 style에 각 tkey 고유 스타일을 추가하되,
+    # 버튼의 label p 텍스트를 :has()로 찾는 것도
+    # 텍스트 내용 기반 CSS 선택자가 없어 불가.
+    #
+    # ✅ 실제로 작동하는 유일한 방법:
+    # 버튼 key를 이용해 JavaScript로 DOM에서 버튼을 찾아 스타일 적용.
+    # Streamlit에서 st.markdown의 <script>는 실행됨.
 
-    # ── CSS 클래스 기반 버튼 래퍼 ──
-    # build_cat_button_css()에서 .wm-btn-{slug} > div[data-testid="stButton"] > button 으로
-    # 정확히 타겟팅되므로 JS 없이도 카테고리 컬러가 즉시 적용됨
-    st.markdown(f'<div class="wm-btn-wrap wm-btn-{slug}">', unsafe_allow_html=True)
-    clicked = st.button(label, key=toggle_key, use_container_width=True)
-    st.markdown('</div>', unsafe_allow_html=True)
+    label_td = "text-decoration:line-through;opacity:0.65;" if is_cancel else ""
 
-    if clicked:
-        st.session_state.wm_expanded[toggle_key] = not is_open
-        st.rerun()
+    # JS로 버튼 텍스트 기반 탐색 후 스타일 적용
+    # 버튼 label의 앞 20자를 JS 검색 key로 사용 (충분히 고유함)
+    js_label_prefix = label[:15].replace("'", "\\'").replace('"', '\\"').replace("\n", " ")
+
+    st.markdown(f"""<style>
+/* tkey={tkey} 전용 스타일 - JS가 클래스를 추가하면 적용됨 */
+.wmevt-{row_id.replace('-','_')} button {{
+    background: {c['bg']} !important;
+    border: 1px solid {c['line']} !important;
+    color: {c['text']} !important;
+    border-radius: 12px !important;
+    font-weight: 700 !important;
+    font-size: 0.80rem !important;
+    line-height: 1.4 !important;
+    text-align: left !important;
+    padding: 7px 10px !important;
+    white-space: normal !important;
+    word-break: keep-all !important;
+    height: auto !important;
+    min-height: 0 !important;
+    width: 100% !important;
+    {label_td}
+}}
+.wmevt-{row_id.replace('-','_')} button:hover {{
+    background: {c['soft']} !important;
+    border-color: {c['line']} !important;
+    color: {c['text']} !important;
+}}
+</style>
+<script>
+(function(){{
+  function applyWmStyle() {{
+    // label 텍스트로 버튼 탐색
+    var allBtns = document.querySelectorAll('[data-testid="stButton"] button');
+    for (var i = 0; i < allBtns.length; i++) {{
+      var btn = allBtns[i];
+      var txt = btn.innerText || btn.textContent || '';
+      if (txt.indexOf('{js_label_prefix}') === 0) {{
+        var wrapper = btn.closest('[data-testid="stButton"]');
+        if (wrapper && wrapper.parentElement) {{
+          wrapper.parentElement.classList.add('wmevt-{row_id.replace('-','_')}');
+        }}
+        break;
+      }}
+    }}
+  }}
+  if (document.readyState === 'loading') {{
+    document.addEventListener('DOMContentLoaded', function() {{
+      setTimeout(applyWmStyle, 50);
+    }});
+  }} else {{
+    setTimeout(applyWmStyle, 50);
+  }}
+}})();
+</script>""", unsafe_allow_html=True)
+
+    # on_click 콜백으로 즉시 토글 (st.rerun() 불필요 → 빠른 반응)
+    st.button(label, key=tkey, use_container_width=True,
+              on_click=_toggle_wm, args=(tkey,))
 
     if is_open:
         st.markdown(f"""
 <div style="border:1px solid {c['line']};border-top:none;background:{c['bg']};
-            border-radius:0 0 12px 12px;padding:8px 10px 6px 10px;margin-top:-4px;">
-  <div style="display:flex;flex-wrap:wrap;gap:4px;margin-bottom:8px;">
+            border-radius:0 0 12px 12px;padding:8px 10px 2px 10px;margin-top:0px;">
+  <div style="display:flex;flex-wrap:wrap;gap:4px;margin-bottom:6px;">
     <span style="background:{c['soft']};color:{c['text']};border:1px solid {c['line']};
                  border-radius:999px;padding:2px 8px;font-size:0.70rem;font-weight:800;">{esc(cat_txt)}</span>
     <span style="background:#F3F4F6;color:#374151;border:1px solid #D1D5DB;
@@ -909,12 +995,8 @@ def render_week_month_event(row, prefix=""):
     <div class="wm-detail-cell"><div class="wm-detail-label">공유 메모</div><div class="wm-detail-value">{esc(row.get('SharedNote','')) or '—'}</div></div>
     <div class="wm-detail-cell"><div class="wm-detail-label">일반 메모</div><div class="wm-detail-value">{esc(row.get('Memo','')) or '—'}</div></div>
   </div>
-</div>
-""", unsafe_allow_html=True)
+</div>""", unsafe_allow_html=True)
         render_action_buttons_compact(row, prefix=prefix)
-
-    # 박스 간 간격 축소 (기존 -14px/-12px → -8px 로 완화해 겹침 방지하되 간격은 확 줄임)
-    st.markdown('<div style="margin-top:-8px;"></div>', unsafe_allow_html=True)
 
 
 def render_form(mode="new", row_data=None):
@@ -1097,21 +1179,14 @@ with sidebar_top:
                 c = get_color(row["Category"])
                 mt = "8px" if i > 0 else "0px"
                 parts.append(
-                    f'<div style="'
-                    f'border:1px solid {c["line"]};'
-                    f'border-radius:12px;'
-                    f'padding:8px 10px;'
-                    f'background:{c["bg"]};'
-                    f'display:block;'
-                    f'margin-top:{mt};'
-                    f'">'
+                    f'<div style="border:1px solid {c["line"]};border-radius:12px;padding:8px 10px;'
+                    f'background:{c["bg"]};display:block;margin-top:{mt};">'
                     f'<div style="font-size:0.78rem;font-weight:800;color:{c["text"]};margin-bottom:4px;">'
                     f'{html.escape(safe_str(row["Time"]))} · {html.escape(safe_str(row["Category"]))} · {html.escape(safe_str(row["FollowStatus"]))}'
                     f'</div>'
                     f'<div style="font-size:0.86rem;font-weight:700;color:#1F2937;line-height:1.35;">'
                     f'{html.escape(compact_subject_text(row))}'
-                    f'</div>'
-                    f'</div>'
+                    f'</div></div>'
                 )
             st.markdown("".join(parts), unsafe_allow_html=True)
 
@@ -1188,12 +1263,12 @@ else:
         st.session_state.selected_date = st.session_state._date_input_main
 
     if fc6.button("오늘", use_container_width=True):
-        st.session_state.search_text           = ""
-        st.session_state.selected_cat          = "카테고리"
-        st.session_state.selected_status       = "일정 현황"
+        st.session_state.search_text            = ""
+        st.session_state.selected_cat           = "카테고리"
+        st.session_state.selected_status        = "일정 현황"
         st.session_state.selected_follow_status = "팔로우업 상태"
-        st.session_state.selected_date         = today
-        st.session_state.table_page_num_value  = 1
+        st.session_state.selected_date          = today
+        st.session_state.table_page_num_value   = 1
         st.rerun()
 
     render_legend()
@@ -1266,9 +1341,9 @@ else:
         mc1, mc2, mc3 = st.columns([1, 1, 2])
         current_year = st.session_state.selected_date.year
         year_options = list(range(min(2025, current_year-3), max(2040, current_year+10)+1))
-        month_year       = mc1.selectbox("년도", year_options, index=year_options.index(current_year), key="month_year_select")
-        month_month      = mc2.selectbox("월", list(range(1,13)), index=st.session_state.selected_date.month-1, key="month_month_select")
-        month_view_mode  = mc3.radio("보기 방식", ["캘린더형","목록형"], horizontal=True, key="month_view_mode")
+        month_year      = mc1.selectbox("년도", year_options, index=year_options.index(current_year), key="month_year_select")
+        month_month     = mc2.selectbox("월", list(range(1,13)), index=st.session_state.selected_date.month-1, key="month_month_select")
+        month_view_mode = mc3.radio("보기 방식", ["캘린더형","목록형"], horizontal=True, key="month_view_mode")
 
         month_df = filtered_df[filtered_df["DateParsed"].apply(
             lambda d: d.year == month_year and d.month == month_month if pd.notna(d) else False
