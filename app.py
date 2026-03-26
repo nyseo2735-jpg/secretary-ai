@@ -144,17 +144,23 @@ h1, h2, h3 {
 }
 
 .legend-pill {
-    display: inline-block;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
     padding: 6px 12px;
     border-radius: 999px;
     font-size: 0.80rem;
     font-weight: 700;
     margin: 0 6px 6px 0;
     border: 1px solid;
+    line-height: 1.4;
+    vertical-align: middle;
 }
 
 .metric-chip {
-    display: inline-block;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
     padding: 6px 12px;
     border-radius: 999px;
     font-size: 0.80rem;
@@ -163,6 +169,8 @@ h1, h2, h3 {
     border: 1px solid #D8DEE8;
     background: #ffffff;
     color: #344054;
+    line-height: 1.4;
+    vertical-align: middle;
 }
 
 .summary-card {
@@ -203,7 +211,9 @@ h1, h2, h3 {
 }
 
 .tag-pill {
-    display: inline-block;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
     padding: 5px 10px;
     border-radius: 999px;
     font-size: 0.74rem;
@@ -213,10 +223,13 @@ h1, h2, h3 {
     color: #475467;
     margin-left: 6px;
     vertical-align: middle;
+    line-height: 1.4;
 }
 
 .follow-pill {
-    display: inline-block;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
     padding: 5px 10px;
     border-radius: 999px;
     font-size: 0.74rem;
@@ -227,6 +240,7 @@ h1, h2, h3 {
     margin-right: 6px;
     margin-bottom: 6px;
     vertical-align: middle;
+    line-height: 1.4;
 }
 
 .info-box {
@@ -333,25 +347,36 @@ h1, h2, h3 {
     font-size: 0.84rem !important;
 }
 
-div[data-testid="stButton"] > button {
+div[data-testid='stButton'] > button {
     border-radius: 12px !important;
     font-weight: 700 !important;
 }
 
-div[data-testid="stDownloadButton"] > button {
+div[data-testid='stDownloadButton'] > button {
     border-radius: 12px !important;
     font-weight: 700 !important;
+}
+
+/* 모든 버튼 텍스트(p태그) 정중앙 정렬 */
+div[data-testid='stButton'] > button p,
+div[data-testid='stDownloadButton'] > button p {
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    line-height: 1.4 !important;
+    margin: 0 !important;
+    padding: 0 !important;
 }
 
 .stTextInput input,
 .stDateInput input,
 .stTimeInput input,
-.stSelectbox div[data-baseweb="select"] > div,
+.stSelectbox div[data-baseweb='select'] > div,
 .stTextArea textarea {
     border-radius: 12px !important;
 }
 
-div[data-testid="stForm"] {
+div[data-testid='stForm'] {
     border: 1px solid #ECEEF3;
     border-radius: 18px;
     padding: 16px 16px 10px 16px;
@@ -402,7 +427,7 @@ div[data-testid="stForm"] {
     text-align: left !important;
 }
 
-div[data-testid="stExpander"] details {
+div[data-testid='stExpander'] details {
     border-radius: 16px !important;
     border: 1.6px solid #D8DEE8 !important;
     background: #ffffff !important;
@@ -410,16 +435,16 @@ div[data-testid="stExpander"] details {
     box-shadow: none !important;
 }
 
-div[data-testid="stExpander"] summary:hover {
+div[data-testid='stExpander'] summary:hover {
     background: #FAFAFA !important;
 }
 
-div[data-testid="stExpander"] summary {
+div[data-testid='stExpander'] summary {
     padding-top: 0.18rem !important;
     padding-bottom: 0.18rem !important;
 }
 
-div[data-testid="stTabs"] {
+div[data-testid='stTabs'] {
     margin-bottom: 0 !important;
 }
 
@@ -442,7 +467,9 @@ div[data-testid="stTabs"] {
 }
 
 .cancel-pill {
-    display: inline-block;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
     margin-left: 6px;
     padding: 4px 8px;
     border-radius: 999px;
@@ -452,10 +479,13 @@ div[data-testid="stTabs"] {
     color: #B42318;
     border: 1px solid #FECACA;
     vertical-align: middle;
+    line-height: 1.4;
 }
 
 .attend-pill {
-    display: inline-block;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
     margin-left: 6px;
     padding: 4px 8px;
     border-radius: 999px;
@@ -465,6 +495,7 @@ div[data-testid="stTabs"] {
     color: #8A6500;
     border: 1px solid #F2D675;
     vertical-align: middle;
+    line-height: 1.4;
 }
 
 @media (max-width: 1000px) {
@@ -479,54 +510,40 @@ div[data-testid="stTabs"] {
         line-height: 1.18 !important;
     }
 }
+
 /* =============================================
-   GAP OVERRIDE – 반드시 </style> 바로 앞에 위치
+   GAP OVERRIDE
    ============================================= */
-.main [data-testid="stVerticalBlock"],
-section.main [data-testid="stVerticalBlock"],
-[data-testid="stMain"] [data-testid="stVerticalBlock"] {
+
+/* 메인 일정 박스 간격 */
+.main [data-testid='stVerticalBlock'],
+section.main [data-testid='stVerticalBlock'],
+[data-testid='stMain'] [data-testid='stVerticalBlock'] {
     gap: 4px !important;
     row-gap: 4px !important;
 }
-[data-testid="stSidebar"] [data-testid="stVerticalBlock"] {
+
+/* 사이드바 버튼 간격 */
+[data-testid='stSidebar'] [data-testid='stVerticalBlock'] {
     gap: 2px !important;
     row-gap: 2px !important;
 }
 
+/* 주간/월별 컬럼 내부 박스 간격 */
+[data-testid='column'] [data-testid='stVerticalBlock'] {
+    gap: 4px !important;
+    row-gap: 4px !important;
+}
+
+/* expander 자체 마진 제거 */
+[data-testid='stExpander'] {
+    margin-top: 0 !important;
+    margin-bottom: 0 !important;
+}
+
 </style>
 """, unsafe_allow_html=True)
-st.html("""
-<script>
-(function() {
-    // 사이드바 버튼 4개 + 일별/주간/월별 일정 박스 간격만 조정
-    // 대상: stExpander를 직접 자식으로 가진 stVerticalBlock만 선택
-    function fixGap() {
-        document.querySelectorAll('[data-testid="stVerticalBlock"]').forEach(el => {
-            // 직접 자식 중 stExpander가 있는 경우만 (일정 박스 목록)
-            const hasExpander = el.querySelector(':scope > div > [data-testid="stExpander"]');
-            // 직접 자식 중 stButton/stDownloadButton이 있는 경우만 (사이드바 버튼)
-            const hasButton = el.querySelector(':scope > div > [data-testid="stButton"], :scope > div > [data-testid="stDownloadButton"], :scope > div > [data-testid="stExpander"]');
 
-            const inSidebar = el.closest('[data-testid="stSidebar"]');
-
-            if (inSidebar && hasButton) {
-                el.style.setProperty('gap', '2px', 'important');
-            } else if (!inSidebar && hasExpander) {
-                el.style.setProperty('gap', '4px', 'important');
-            }
-        });
-    }
-
-    setTimeout(fixGap, 200);
-    setTimeout(fixGap, 600);
-    setTimeout(fixGap, 1500);
-
-    new MutationObserver(function(mutations) {
-        fixGap();
-    }).observe(document.body, {childList: true, subtree: true});
-})();
-</script>
-""")
 
 # =========================================================
 # 4. 유틸
