@@ -508,8 +508,8 @@ div[data-testid="stTabs"] {
 [data-testid='stMain'] [data-testid='stVerticalBlock']:has(
     > div > [data-testid='stExpander']
 ) {
-    gap: 6px !important;
-    row-gap: 6px !important;
+    gap: 4px !important;
+    row-gap: 4px !important;
 }
 
 /* 주간/월별 보기 — 각 요일 컬럼 안 일정 박스 간격
