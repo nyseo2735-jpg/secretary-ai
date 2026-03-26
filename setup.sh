@@ -4,11 +4,11 @@ STREAMLIT_HTML=$(python3 -c "import streamlit, os; print(os.path.join(os.path.di
 
 if [ -f "$STREAMLIT_HTML" ]; then
     if ! grep -q "kvma-gap-fix" "$STREAMLIT_HTML"; then
-        sed -i "s|</head>|<style id='kvma-gap-fix'>.main [data-testid='stVerticalBlock'],section.main [data-testid='stVerticalBlock'],[data-testid='stMain'] [data-testid='stVerticalBlock']{gap:4px!important;row-gap:4px!important;}[data-testid='stSidebar'] [data-testid='stVerticalBlock']{gap:2px!important;row-gap:2px!important;}</style></head>|" "$STREAMLIT_HTML"
+        sed -i "s|</head>|<style id='kvma-gap-fix'>.main [data-testid='stVerticalBlock'],section.main [data-testid='stVerticalBlock'],[data-testid='stMain'] [data-testid='stVerticalBlock'],[data-testid='column'] [data-testid='stVerticalBlock']{gap:4px!important;row-gap:4px!important;}[data-testid='stSidebar'] [data-testid='stVerticalBlock']{gap:2px!important;row-gap:2px!important;}[data-testid='stExpander']{margin-top:0!important;margin-bottom:0!important;}</style></head>|" "$STREAMLIT_HTML"
         echo "kvma-gap-fix 주입 완료"
     else
-        echo "이미 적용됨 – 스킵"
+        echo "이미 적용됨 - 스킵"
     fi
 else
-    echo "index.html 경로를 찾을 수 없음: $STREAMLIT_HTML"
+    echo "index.html 경로를 찾을 수 없음"
 fi
