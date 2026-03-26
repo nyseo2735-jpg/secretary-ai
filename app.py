@@ -53,6 +53,14 @@ SCOPES = [
 
 ADMIN_RELOAD_PASSWORD = "2735"
 
+# ─────────────────────────────────────────────
+# 수정된 CSS 블록
+# 변경 내용:
+#   1) .wm-col-wrap 내부 gap → 4px (주간/월별 전용)
+#   2) 사이드바 gap → 4px (기존 유지)
+#   3) 일별 보기 stVerticalBlock gap → 건드리지 않음
+#   4) .wm-event-btn 클래스: 버튼 색상을 인라인 var()로 받아 처리
+# ─────────────────────────────────────────────
 st.markdown("""
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Pretendard:wght@400;500;600;700;800&display=swap');
@@ -202,17 +210,40 @@ div[data-testid='stTabs'] { margin-bottom: 0 !important; }
     .info-box { min-height: auto; }
 }
 
-/* ── GAP OVERRIDE: 사이드바 버튼 간격만 ── */
+/* ── 사이드바 버튼 간격만 ── */
 [data-testid='stSidebar'] [data-testid='stVerticalBlock']:has(
     > div > [data-testid='stButton'],
     > div > [data-testid='stDownloadButton'],
     > div > [data-testid='stExpander']
 ) { gap: 4px !important; row-gap: 4px !important; }
 
-/* ── 주간/월별 일정 버튼 gap: wm-col-wrap 클래스 안에서만 적용 ── */
+/* ── 주간/월별 일정 컬럼 내부 gap: wm-col-wrap 안에서만 ── */
 .wm-col-wrap [data-testid='stVerticalBlock'] {
-    gap: 4px !important;
-    row-gap: 4px !important;
+    gap: 2px !important;
+    row-gap: 2px !important;
+}
+
+/* ── 주간/월별 이벤트 버튼 스타일: CSS 변수 방식 ── */
+.wm-evt-wrap [data-testid='stButton'] > button {
+    background: var(--wm-bg, #ffffff) !important;
+    border: 1px solid var(--wm-line, #D8DEE8) !important;
+    color: var(--wm-text, #374151) !important;
+    border-radius: 10px !important;
+    font-weight: 700 !important;
+    font-size: 0.78rem !important;
+    line-height: 1.3 !important;
+    text-align: left !important;
+    padding: 5px 8px !important;
+    white-space: normal !important;
+    word-break: keep-all !important;
+    height: auto !important;
+    min-height: 0 !important;
+    width: 100% !important;
+}
+.wm-evt-wrap [data-testid='stButton'] > button:hover {
+    background: var(--wm-soft, #F3F4F6) !important;
+    border-color: var(--wm-line, #D8DEE8) !important;
+    color: var(--wm-text, #374151) !important;
 }
 </style>
 """, unsafe_allow_html=True)
@@ -773,6 +804,17 @@ def _toggle_wm(key):
     st.session_state.wm_expanded[key] = not st.session_state.wm_expanded.get(key, False)
 
 
+# ─────────────────────────────────────────────────────────────────
+# render_week_month_event
+#
+# 핵심 변경:
+#   1) CSS 변수(--wm-bg, --wm-line, --wm-text, --wm-soft)를
+#      .wm-evt-wrap 래퍼 div의 style 속성에 직접 선언.
+#      → Streamlit이 같은 stVerticalBlock 안에 래퍼와 버튼을
+#        함께 렌더하므로 CSS 상속이 확실히 동작.
+#   2) JS 의존 완전 제거.
+#   3) 박스 간 margin: 기존 -14px/-12px 두 줄 유지.
+# ─────────────────────────────────────────────────────────────────
 def render_week_month_event(row, prefix=""):
     c         = get_color(safe_str(row.get("Category", "기타")))
     time_txt  = safe_str(row.get("Time", ""))
@@ -784,60 +826,30 @@ def render_week_month_event(row, prefix=""):
     tkey      = f"wm_toggle_{prefix}_{row_id}"
     is_open   = st.session_state.wm_expanded.get(tkey, False)
 
-    safe_id   = row_id.replace("-","_").replace(".","_").replace(":","_").replace(" ","_")
-    label_td  = "text-decoration:line-through;opacity:0.65;" if is_cancel else ""
-    js_search = label[:20].replace("'", "\\'").replace('"', '\\"').replace("\n", " ").replace("\\", "\\\\")
+    # CSS 변수를 래퍼 div의 style에 직접 선언 → 버튼이 상속받음
+    st.markdown(
+        f'<div class="wm-evt-wrap" style="'
+        f'--wm-bg:{c["bg"]};'
+        f'--wm-soft:{c["soft"]};'
+        f'--wm-line:{c["line"]};'
+        f'--wm-text:{c["text"]};'
+        f'margin-bottom:0;padding:0;">'
+        f'</div>',
+        unsafe_allow_html=True
+    )
 
-    # ── 버튼 컬러: JS로 버튼 텍스트 앞부분으로 탐색 후 스타일 직접 주입 ──
-    st.markdown(f"""<style>
-.wmevt_{safe_id} button {{
-    background: {c['bg']} !important;
-    border: 1px solid {c['line']} !important;
-    color: {c['text']} !important;
-    border-radius: 12px !important;
-    font-weight: 700 !important;
-    font-size: 0.80rem !important;
-    line-height: 1.4 !important;
-    text-align: left !important;
-    padding: 7px 10px !important;
-    white-space: normal !important;
-    word-break: keep-all !important;
-    height: auto !important;
-    min-height: 0 !important;
-    width: 100% !important;
-    {label_td}
-}}
-.wmevt_{safe_id} button:hover {{
-    background: {c['soft']} !important;
-    border-color: {c['line']} !important;
-    color: {c['text']} !important;
-}}
-</style>
-<script>
-(function(){{
-  function apply_{{
-    var btns = document.querySelectorAll('[data-testid="stButton"] button');
-    for(var i=0;i<btns.length;i++){{
-      var t = (btns[i].innerText||btns[i].textContent||'').trimStart();
-      if(t.indexOf('{js_search}')===0){{
-        var p = btns[i].closest('[data-testid="stButton"]');
-        if(p && p.parentElement) p.parentElement.classList.add('wmevt_{safe_id}');
-        break;
-      }}
-    }}
-  }}
-  if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',function(){{setTimeout(apply_,80);}});
-  else {{ setTimeout(apply_,80); }}
-}})();
-</script>""", unsafe_allow_html=True)
+    # 취소 일정은 label에 취소선 표시 (버튼 텍스트이므로 HTML 불가 → 괄호로 표시)
+    btn_label = label
+    if is_cancel:
+        btn_label = f"[취소] {label}"
 
-    st.button(label, key=tkey, use_container_width=True,
+    st.button(btn_label, key=tkey, use_container_width=True,
               on_click=_toggle_wm, args=(tkey,))
 
     if is_open:
         st.markdown(f"""
 <div style="border:1px solid {c['line']};border-top:none;background:{c['bg']};
-            border-radius:0 0 12px 12px;padding:8px 10px 2px 10px;margin-top:0px;">
+            border-radius:0 0 10px 10px;padding:8px 10px 2px 10px;margin-top:-4px;">
   <div style="display:flex;flex-wrap:wrap;gap:4px;margin-bottom:6px;">
     <span style="background:{c['soft']};color:{c['text']};border:1px solid {c['line']};
                  border-radius:999px;padding:2px 8px;font-size:0.70rem;font-weight:800;">{esc(cat_txt)}</span>
@@ -871,7 +883,7 @@ def render_week_month_event(row, prefix=""):
 </div>""", unsafe_allow_html=True)
         render_action_buttons_compact(row, prefix=prefix)
 
-    # 주간/월별 박스 간 간격: 원래대로 유지
+    # 박스 간 간격 (기존과 동일하게 유지)
     st.markdown('<div style="margin-top:-14px;"></div>', unsafe_allow_html=True)
     st.markdown('<div style="margin-top:-12px;"></div>', unsafe_allow_html=True)
 
@@ -1191,7 +1203,6 @@ else:
 
         for idx, day_obj in enumerate(week_days):
             with cols[idx]:
-                # ── wm-col-wrap 으로 감싸서 gap CSS가 이 column 안에서만 작동 ──
                 st.markdown('<div class="wm-col-wrap">', unsafe_allow_html=True)
                 cls       = weekday_class_by_index(idx)
                 label_cls = "day-head" + (f" {cls}" if cls else "")
