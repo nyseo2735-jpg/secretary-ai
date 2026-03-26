@@ -430,7 +430,6 @@ div[data-testid="stTabs"] {
     margin-bottom: 16px;
 }
 
-
 .day-head.sun { color: #C1121F; }
 .day-head.sat { color: #1D4ED8; }
 .day-head.dim.sun { color: #F1A0A7; }
@@ -483,16 +482,7 @@ div[data-testid="stTabs"] {
 
 /* =============================================
    GAP OVERRIDE
-   =============================================
-
-   ✅ 사이드바 상단 4개 버튼 간격만 좁힘
-   ✅ 일별/주간/월별 일정 expander 박스 간격만 좁힘
-   ✅ 나머지 앱 전체 간격은 원래대로 유지
    ============================================= */
-
-/* 사이드바 버튼 4개 간격만 타겟
-   — stSidebar 안의 stVerticalBlock 중
-     직접 자식에 stButton/stDownloadButton/stExpander가 있는 것만 */
 [data-testid='stSidebar'] [data-testid='stVerticalBlock']:has(
     > div > [data-testid='stButton'],
     > div > [data-testid='stDownloadButton'],
@@ -502,9 +492,6 @@ div[data-testid="stTabs"] {
     row-gap: 4px !important;
 }
 
-/* 일별 보기 — 일정 expander 박스 간격만 타겟
-   — stMain 안의 stVerticalBlock 중
-     직접 자식에 stExpander가 있는 것만 */
 [data-testid='stMain'] [data-testid='stVerticalBlock']:has(
     > div > [data-testid='stExpander']
 ) {
@@ -512,9 +499,6 @@ div[data-testid="stTabs"] {
     row-gap: 4px !important;
 }
 
-/* 주간/월별 보기 — 각 요일 컬럼 안 일정 박스 간격
-   — column 안의 stVerticalBlock 중
-     직접 자식에 stExpander가 있는 것만 */
 [data-testid='column'] [data-testid='stVerticalBlock']:has(
     > div > [data-testid='stExpander']
 ) {
@@ -1135,6 +1119,12 @@ if "table_page_num_value" not in st.session_state:
     st.session_state.table_page_num_value = 1
 
 # =========================================================
+# 5-1. 날짜 선택 콜백 (최상단 정의)
+# =========================================================
+def _on_date_change():
+    st.session_state.selected_date = st.session_state._date_input_main
+
+# =========================================================
 # 6. 렌더 함수
 # =========================================================
 def render_followup_section(row):
@@ -1299,8 +1289,6 @@ def render_compact_event(row, prefix="", add_gap=True):
         render_action_buttons(row, prefix=prefix)
 
     st.markdown('<div style="margin-top:-14px;"></div>', unsafe_allow_html=True)
-    
-    # expander 사이 간격을 직접 음수 마진으로 당겨붙임
     st.markdown('<div style="margin-top:-12px;"></div>', unsafe_allow_html=True)
 
 def render_form(mode="new", row_data=None):
@@ -1651,20 +1639,15 @@ else:
     )
     st.session_state.selected_follow_status = selected_follow_status
 
-# 수정 후
-def _on_date_change():
-    st.session_state.selected_date = st.session_state._date_input_main
-    st.rerun()
-
-selected_date = fc5.date_input(
-    "",
-    value=st.session_state.selected_date,
-    key="_date_input_main",
-    label_visibility="collapsed",
-    on_change=_on_date_change
-)
-st.session_state.selected_date = st.session_state._date_input_main
-
+    with fc5:
+        st.date_input(
+            "",
+            value=st.session_state.selected_date,
+            key="_date_input_main",
+            label_visibility="collapsed",
+            on_change=_on_date_change,
+        )
+        st.session_state.selected_date = st.session_state._date_input_main
 
     if fc6.button("오늘", use_container_width=True):
         st.session_state.search_text = ""
