@@ -13,7 +13,7 @@ from google.oauth2.service_account import Credentials
 # 1. 페이지 설정
 # =========================================================
 st.set_page_config(
-    page_title="KVMA 회장님 일정",
+    page_title="KVMA President Schedule",
     layout="wide",
     initial_sidebar_state="expanded"
 )
@@ -1514,7 +1514,7 @@ def render_form(mode="new", row_data=None):
 # =========================================================
 # 7. 사이드바
 # =========================================================
-st.sidebar.markdown("# 🏢 KVMA 비서실")
+st.sidebar.markdown("# 🏢 KVMA Secretary")
 
 selected_day_sidebar = get_active_df(st.session_state.data).copy()
 selected_day_sidebar["DateParsed"] = pd.to_datetime(selected_day_sidebar["Date"], errors="coerce").dt.date
@@ -1588,7 +1588,7 @@ if st.session_state.show_reload_password:
 # =========================================================
 # 8. 상단
 # =========================================================
-st.markdown('<div class="main-title">📒 KVMA 회장님 일정</div>', unsafe_allow_html=True)
+st.markdown('<div class="main-title">📒 KVMA President Schedule</div>', unsafe_allow_html=True)
 st.markdown(
     '<div class="sub-text">회장님 일정 등록 · 조회 · 수정 · 취소 · 삭제와 함께, 직원들이 후속 준비사항을 공유할 수 있는 스케줄러입니다.</div>',
     unsafe_allow_html=True
