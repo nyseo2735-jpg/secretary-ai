@@ -62,96 +62,124 @@ ADMIN_RELOAD_PASSWORD = "2735"
 # =========================================================
 # 3. 스타일
 # =========================================================
-st.markdown("""
+# 카테고리별 버튼 CSS를 동적으로 생성
+def build_cat_button_css():
+    lines = []
+    for cat, c in COLOR_MAP.items():
+        slug = CAT_SLUG.get(cat, "etc")
+        lines.append(f"""
+.wm-btn-{slug} > div[data-testid="stButton"] > button {{
+    background: {c['bg']} !important;
+    border: 1px solid {c['line']} !important;
+    color: {c['text']} !important;
+    border-radius: 12px !important;
+    font-weight: 700 !important;
+    font-size: 0.80rem !important;
+    line-height: 1.4 !important;
+    text-align: left !important;
+    padding: 7px 10px !important;
+    white-space: normal !important;
+    word-break: keep-all !important;
+    height: auto !important;
+    min-height: 0 !important;
+    width: 100% !important;
+}}
+.wm-btn-{slug} > div[data-testid="stButton"] > button:hover {{
+    background: {c['soft']} !important;
+    border-color: {c['line']} !important;
+    color: {c['text']} !important;
+}}
+""")
+    return "\n".join(lines)
+
+st.markdown(f"""
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Pretendard:wght@400;500;600;700;800&display=swap');
 
-html, body, [class*='css'] { font-family: 'Pretendard', sans-serif; }
-.block-container { padding-top: 2.5rem; padding-bottom: 1.4rem; max-width: 1600px; }
-h1, h2, h3 { line-height: 1.2 !important; }
+html, body, [class*='css'] {{ font-family: 'Pretendard', sans-serif; }}
+.block-container {{ padding-top: 2.5rem; padding-bottom: 1.4rem; max-width: 1600px; }}
+h1, h2, h3 {{ line-height: 1.2 !important; }}
 
-.main-title {
+.main-title {{
     font-size: 2.7rem; font-weight: 800; color: #2F3142;
     margin-top: 0.45rem; margin-bottom: 0.35rem; line-height: 1.2; word-break: keep-all;
-}
-.sub-text {
+}}
+.sub-text {{
     font-size: 0.98rem; color: #6B7280; margin-bottom: 0.8rem;
     line-height: 1.5; word-break: keep-all;
-}
-.panel {
+}}
+.panel {{
     background: #ffffff; border: 1px solid #ECEEF3; border-radius: 18px;
     padding: 12px 14px; box-shadow: 0 4px 16px rgba(20,24,40,0.04); margin-bottom: 10px;
-}
-.section-title {
+}}
+.section-title {{
     font-size: 1.7rem; font-weight: 800; color: #2F3142; margin: 8px 0 16px 0; line-height: 1.2;
-}
-.legend-pill {
+}}
+.legend-pill {{
     display: inline-block; padding: 6px 12px; border-radius: 999px;
     font-size: 0.80rem; font-weight: 700; margin: 0 6px 6px 0; border: 1px solid;
-}
-.metric-chip {
+}}
+.metric-chip {{
     display: inline-block; padding: 6px 12px; border-radius: 999px;
     font-size: 0.80rem; font-weight: 800; margin: 0 8px 8px 0;
     border: 1px solid #D8DEE8; background: #ffffff; color: #344054;
-}
-.summary-card {
+}}
+.summary-card {{
     border-radius: 22px; overflow: hidden; border: 1px solid #E8EBF2; margin-top: 4px; margin-bottom: 10px;
-}
-.summary-inner { display: flex; }
-.summary-accent { width: 10px; flex-shrink: 0; }
-.summary-body { width: 100%; padding: 14px 16px 12px 16px; }
-.summary-meta { font-size: 0.92rem; font-weight: 800; margin-bottom: 6px; }
-.summary-title {
+}}
+.summary-inner {{ display: flex; }}
+.summary-accent {{ width: 10px; flex-shrink: 0; }}
+.summary-body {{ width: 100%; padding: 14px 16px 12px 16px; }}
+.summary-meta {{ font-size: 0.92rem; font-weight: 800; margin-bottom: 6px; }}
+.summary-title {{
     font-size: 1.22rem; font-weight: 800; color: #232634; line-height: 1.28; margin: 0; word-break: keep-all;
-}
-.tag-pill {
+}}
+.tag-pill {{
     display: inline-block; padding: 5px 10px; border-radius: 999px;
     font-size: 0.74rem; font-weight: 800; border: 1px solid #D1D5DB;
     background: #ffffff; color: #475467; margin-left: 6px; vertical-align: middle;
-}
-.follow-pill {
+}}
+.follow-pill {{
     display: inline-block; padding: 5px 10px; border-radius: 999px;
     font-size: 0.74rem; font-weight: 800; border: 1px solid #D1D5DB;
     background: #F8FAFC; color: #344054; margin-right: 6px; margin-bottom: 6px; vertical-align: middle;
-}
-.info-box {
+}}
+.info-box {{
     background: #ffffff; border: 1px solid #ECEEF3; border-radius: 16px;
     padding: 11px 13px 10px 13px; min-height: 68px; margin-bottom: 8px;
-}
-.info-label { font-size: 0.77rem; font-weight: 800; color: #6B7280; margin-bottom: 6px; line-height: 1.35; }
-.info-value { font-size: 0.96rem; font-weight: 600; color: #232634; line-height: 1.5; white-space: pre-wrap; word-break: break-word; }
-.memo-box {
+}}
+.info-label {{ font-size: 0.77rem; font-weight: 800; color: #6B7280; margin-bottom: 6px; line-height: 1.35; }}
+.info-value {{ font-size: 0.96rem; font-weight: 600; color: #232634; line-height: 1.5; white-space: pre-wrap; word-break: break-word; }}
+.memo-box {{
     background: #FFFBEA; border: 1px solid #F8E3A3; border-left: 8px solid #F5C84B;
     border-radius: 16px; padding: 12px 16px; margin-top: 4px;
-}
-.memo-title { font-size: 0.90rem; font-weight: 800; color: #7A5A00; margin-bottom: 6px; }
-.memo-text { font-size: 0.94rem; color: #4B5563; line-height: 1.55; white-space: pre-wrap; word-break: break-word; }
-.follow-wrap {
+}}
+.memo-title {{ font-size: 0.90rem; font-weight: 800; color: #7A5A00; margin-bottom: 6px; }}
+.memo-text {{ font-size: 0.94rem; color: #4B5563; line-height: 1.55; white-space: pre-wrap; word-break: break-word; }}
+.follow-wrap {{
     background: #F7FAFF; border: 1px solid #D7E7FF; border-left: 8px solid #3B82F6;
     border-radius: 18px; padding: 14px 16px; margin-top: 8px; margin-bottom: 10px;
-}
-.follow-title { font-size: 1rem; font-weight: 800; color: #1D4ED8; margin-bottom: 10px; }
-.follow-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
-.follow-box { border: 1px solid #DDE6F4; border-radius: 14px; padding: 10px 12px; background: #ffffff; }
-.follow-label { font-size: 0.75rem; font-weight: 800; color: #6B7280; margin-bottom: 4px; }
-.follow-value { font-size: 0.92rem; font-weight: 600; color: #1F2937; line-height: 1.45; white-space: pre-wrap; word-break: break-word; }
+}}
+.follow-title {{ font-size: 1rem; font-weight: 800; color: #1D4ED8; margin-bottom: 10px; }}
+.follow-grid {{ display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }}
+.follow-box {{ border: 1px solid #DDE6F4; border-radius: 14px; padding: 10px 12px; background: #ffffff; }}
+.follow-label {{ font-size: 0.75rem; font-weight: 800; color: #6B7280; margin-bottom: 4px; }}
+.follow-value {{ font-size: 0.92rem; font-weight: 600; color: #1F2937; line-height: 1.45; white-space: pre-wrap; word-break: break-word; }}
 
-.small-action button {
+.small-action button {{
     min-height: 34px !important; height: 34px !important;
     padding-top: 0.15rem !important; padding-bottom: 0.15rem !important; font-size: 0.84rem !important;
-}
-div[data-testid='stButton'] > button { border-radius: 12px !important; font-weight: 700 !important; }
-div[data-testid='stDownloadButton'] > button { border-radius: 12px !important; font-weight: 700 !important; }
+}}
+div[data-testid='stButton'] > button {{ border-radius: 12px !important; font-weight: 700 !important; }}
+div[data-testid='stDownloadButton'] > button {{ border-radius: 12px !important; font-weight: 700 !important; }}
 .stTextInput input, .stDateInput input, .stTimeInput input,
-.stSelectbox div[data-baseweb='select'] > div, .stTextArea textarea { border-radius: 12px !important; }
-div[data-testid='stForm'] {
+.stSelectbox div[data-baseweb='select'] > div, .stTextArea textarea {{ border-radius: 12px !important; }}
+div[data-testid='stForm'] {{
     border: 1px solid #ECEEF3; border-radius: 18px; padding: 16px 16px 10px 16px; background: #ffffff;
-}
+}}
 
-/* ──────────────────────────────────────────
-   사이드바 미리보기 박스 간격 (강제 적용)
-────────────────────────────────────────── */
-.sidebar-day-item {
+/* 사이드바 미리보기 */
+.sidebar-day-item {{
     border: 1px solid #ECEEF3;
     border-radius: 12px;
     padding: 8px 10px;
@@ -159,90 +187,96 @@ div[data-testid='stForm'] {
     margin-top: 0px !important;
     background: #ffffff;
     display: block !important;
-}
-.sidebar-day-time { font-size: 0.78rem; font-weight: 800; color: #475467; margin-bottom: 4px; }
-.sidebar-day-title { font-size: 0.86rem; font-weight: 700; color: #1F2937; line-height: 1.35; }
+}}
+.sidebar-day-time {{ font-size: 0.78rem; font-weight: 800; color: #475467; margin-bottom: 4px; }}
+.sidebar-day-title {{ font-size: 0.86rem; font-weight: 700; color: #1F2937; line-height: 1.35; }}
+[data-testid='stSidebar'] .sidebar-day-item + .sidebar-day-item {{ margin-top: 0 !important; }}
+[data-testid='stSidebar'] .stMarkdown p {{ margin-bottom: 0 !important; margin-top: 0 !important; }}
 
-/* 사이드바 미리보기 컨테이너 내부 p 태그 margin 제거 */
-[data-testid='stSidebar'] .sidebar-day-item + .sidebar-day-item { margin-top: 0 !important; }
-[data-testid='stSidebar'] .stMarkdown p { margin-bottom: 0 !important; margin-top: 0 !important; }
-
-.helper-note {
+.helper-note {{
     font-size: 0.82rem; color: #667085; line-height: 1.45;
     display: block; margin-top: 8px !important; margin-bottom: 12px !important;
-}
-.segment-note { font-size: 0.84rem; color: #667085; margin-bottom: 8px; }
+}}
+.segment-note {{ font-size: 0.84rem; color: #667085; margin-bottom: 8px; }}
 
-.streamlit-expanderHeader { font-weight: 800 !important; font-size: 0.90rem !important; line-height: 1.2 !important; }
-div[data-testid='stExpander'] details {
+.streamlit-expanderHeader {{ font-weight: 800 !important; font-size: 0.90rem !important; line-height: 1.2 !important; }}
+div[data-testid='stExpander'] details {{
     border-radius: 16px !important; border: 1.6px solid #D8DEE8 !important;
     background: #ffffff !important; overflow: hidden !important; box-shadow: none !important;
-}
-div[data-testid='stExpander'] summary:hover { background: #FAFAFA !important; }
-div[data-testid='stExpander'] summary { padding-top: 0.18rem !important; padding-bottom: 0.18rem !important; }
-div[data-testid='stTabs'] { margin-bottom: 0 !important; }
+}}
+div[data-testid='stExpander'] summary:hover {{ background: #FAFAFA !important; }}
+div[data-testid='stExpander'] summary {{ padding-top: 0.18rem !important; padding-bottom: 0.18rem !important; }}
+div[data-testid='stTabs'] {{ margin-bottom: 0 !important; }}
 
-.day-head { font-size: 1rem; font-weight: 800; color: #2F3142; margin-bottom: 16px; }
-.day-head.sun { color: #C1121F; }
-.day-head.sat { color: #1D4ED8; }
-.day-head.dim.sun { color: #F1A0A7; }
-.day-head.dim.sat { color: #9BB8F5; }
-.day-head.dim { color: #B5BBC8; }
+/* ── 날짜 헤더: 아래 여백 최소화 ── */
+.day-head {{ font-size: 1rem; font-weight: 800; color: #2F3142; margin-bottom: 4px; }}
+.day-head.sun {{ color: #C1121F; }}
+.day-head.sat {{ color: #1D4ED8; }}
+.day-head.dim.sun {{ color: #F1A0A7; }}
+.day-head.dim.sat {{ color: #9BB8F5; }}
+.day-head.dim {{ color: #B5BBC8; }}
 
-.canceled-title { text-decoration: line-through; opacity: 0.65; }
-.cancel-pill {
+.canceled-title {{ text-decoration: line-through; opacity: 0.65; }}
+.cancel-pill {{
     display: inline-block; margin-left: 6px; padding: 4px 8px; border-radius: 999px;
     font-size: 0.72rem; font-weight: 800; background: #FEE2E2; color: #B42318;
     border: 1px solid #FECACA; vertical-align: middle;
-}
-.attend-pill {
+}}
+.attend-pill {{
     display: inline-block; margin-left: 6px; padding: 4px 8px; border-radius: 999px;
     font-size: 0.72rem; font-weight: 800; background: #FFF7D6; color: #8A6500;
     border: 1px solid #F2D675; vertical-align: middle;
-}
+}}
 
-/* ──────────────────────────────────────────
-   주간/월별 이벤트 detail grid: 한 줄 한 항목
-────────────────────────────────────────── */
-.wm-detail-grid {
+/* 주간/월별 detail grid */
+.wm-detail-grid {{
     display: grid;
     grid-template-columns: 1fr;
     gap: 5px;
     margin-top: 6px;
     margin-bottom: 8px;
-}
-.wm-detail-cell {
+}}
+.wm-detail-cell {{
     background: #F8FAFC; border: 1px solid #E5E7EB; border-radius: 8px; padding: 5px 7px;
-}
-.wm-detail-cell-full {
+}}
+.wm-detail-cell-full {{
     background: #F8FAFC; border: 1px solid #E5E7EB; border-radius: 8px; padding: 5px 7px;
-}
-.wm-detail-label { font-size: 0.66rem; font-weight: 700; color: #9CA3AF; margin-bottom: 2px; }
-.wm-detail-value { font-size: 0.78rem; font-weight: 600; color: #1F2937; line-height: 1.35; word-break: break-word; white-space: pre-wrap; }
+}}
+.wm-detail-label {{ font-size: 0.66rem; font-weight: 700; color: #9CA3AF; margin-bottom: 2px; }}
+.wm-detail-value {{ font-size: 0.78rem; font-weight: 600; color: #1F2937; line-height: 1.35; word-break: break-word; white-space: pre-wrap; }}
 
-@media (max-width: 1000px) {
-    .block-container { padding-top: 2.2rem; }
-    .main-title { font-size: 2.1rem; }
-    .summary-title { font-size: 1.08rem; }
-    .follow-grid { grid-template-columns: 1fr; }
-    .summary-body { padding: 12px 13px 10px 13px; }
-    .info-box { min-height: auto; }
-}
+@media (max-width: 1000px) {{
+    .block-container {{ padding-top: 2.2rem; }}
+    .main-title {{ font-size: 2.1rem; }}
+    .summary-title {{ font-size: 1.08rem; }}
+    .follow-grid {{ grid-template-columns: 1fr; }}
+    .summary-body {{ padding: 12px 13px 10px 13px; }}
+    .info-box {{ min-height: auto; }}
+}}
 
-/* ── GAP OVERRIDE ── */
+/* GAP OVERRIDE */
 [data-testid='stSidebar'] [data-testid='stVerticalBlock']:has(
     > div > [data-testid='stButton'],
     > div > [data-testid='stDownloadButton'],
     > div > [data-testid='stExpander']
-) { gap: 4px !important; row-gap: 4px !important; }
+) {{ gap: 4px !important; row-gap: 4px !important; }}
 
 [data-testid='stMain'] [data-testid='stVerticalBlock']:has(
     > div > [data-testid='stExpander']
-) { gap: 4px !important; row-gap: 4px !important; }
+) {{ gap: 4px !important; row-gap: 4px !important; }}
 
 [data-testid='column'] [data-testid='stVerticalBlock']:has(
     > div > [data-testid='stExpander']
-) { gap: 4px !important; row-gap: 4px !important; }
+) {{ gap: 4px !important; row-gap: 4px !important; }}
+
+/* ── 주간/월별 일정 버튼 간격 축소 ── */
+.wm-btn-wrap [data-testid='stVerticalBlock'] {{
+    gap: 2px !important;
+    row-gap: 2px !important;
+}}
+
+/* ── 카테고리별 버튼 컬러 ── */
+{build_cat_button_css()}
 
 </style>
 """, unsafe_allow_html=True)
@@ -813,13 +847,13 @@ def render_compact_event(row, prefix=""):
 
 # =========================================================
 # render_week_month_event
-# - st.expander 제거, st.button 토글 방식
-# - 카테고리 고유 컬러를 JavaScript로 직접 DOM에 주입
-# - > 화살표 없음 (st.button이므로)
-# - 기존 margin-top 간격 그대로 유지
+# - st.button 토글 (st.expander 없음 → 반응 빠름)
+# - 카테고리 고유 컬러: CSS 클래스 .wm-btn-{slug} 로 적용
+# - 박스 간격: margin-top:-8px 로 줄임
 # =========================================================
 def render_week_month_event(row, prefix=""):
     c         = get_color(safe_str(row.get("Category", "기타")))
+    slug      = category_slug(safe_str(row.get("Category", "기타")))
     time_txt  = safe_str(row.get("Time", ""))
     cat_txt   = safe_str(row.get("Category", "기타"))
     subject   = compact_subject_text(row)
@@ -830,75 +864,21 @@ def render_week_month_event(row, prefix=""):
     toggle_key = f"wm_toggle_{prefix}_{row_id}"
     is_open    = st.session_state.wm_expanded.get(toggle_key, False)
 
-    # 버튼 DOM 타겟팅용 고유 key (data-testid 기반 nth 방식 대신 key 텍스트 매칭)
-    # Streamlit button의 key는 aria-label 또는 내부 p 텍스트로 노출되지 않으므로
-    # JavaScript로 버튼 생성 직후 스타일을 주입하는 방식 사용
-    btn_js_id = "wmbtn_" + "".join(ch if ch.isalnum() else "_" for ch in toggle_key)
+    # ── CSS 클래스 기반 버튼 래퍼 ──
+    # build_cat_button_css()에서 .wm-btn-{slug} > div[data-testid="stButton"] > button 으로
+    # 정확히 타겟팅되므로 JS 없이도 카테고리 컬러가 즉시 적용됨
+    st.markdown(f'<div class="wm-btn-wrap wm-btn-{slug}">', unsafe_allow_html=True)
+    clicked = st.button(label, key=toggle_key, use_container_width=True)
+    st.markdown('</div>', unsafe_allow_html=True)
 
-    label_style = "text-decoration:line-through;opacity:0.65;" if is_cancel else ""
-
-    # ── JavaScript로 해당 버튼만 정확히 스타일 적용 ──
-    # Streamlit에서 st.button의 key는 data-testid에 노출되지 않지만
-    # 버튼 텍스트(innerText)로 찾을 수 있음.
-    # 단, 같은 텍스트 버튼이 여럿일 수 있으므로
-    # 마커 div(data-btnid)를 먼저 렌더하고
-    # 그 다음 형제 stButton을 JS로 찾아 스타일 적용
-    st.markdown(f"""
-<div data-btnid="{btn_js_id}" style="display:none;height:0;margin:0;padding:0;overflow:hidden;"></div>
-<script>
-(function(){{
-  function applyStyle(){{
-    var marker = document.querySelector('div[data-btnid="{btn_js_id}"]');
-    if(!marker) return;
-    // marker의 부모(stMarkdown wrap) 다음 형제들 중 stButton을 찾음
-    var parent = marker.closest('[data-testid="stMarkdown"]') || marker.parentElement;
-    var sib = parent;
-    var btn = null;
-    var limit = 8;
-    while(sib && limit > 0){{
-      sib = sib.nextElementSibling;
-      limit--;
-      if(!sib) break;
-      var b = sib.querySelector('button');
-      if(b){{ btn = b; break; }}
-    }}
-    if(!btn) return;
-    btn.style.setProperty('background', '{c["bg"]}', 'important');
-    btn.style.setProperty('border', '1px solid {c["line"]}', 'important');
-    btn.style.setProperty('color', '{c["text"]}', 'important');
-    btn.style.setProperty('border-radius', '12px', 'important');
-    btn.style.setProperty('font-weight', '700', 'important');
-    btn.style.setProperty('font-size', '0.80rem', 'important');
-    btn.style.setProperty('text-align', 'left', 'important');
-    btn.style.setProperty('padding', '7px 10px', 'important');
-    btn.style.setProperty('white-space', 'normal', 'important');
-    btn.style.setProperty('word-break', 'keep-all', 'important');
-    btn.style.setProperty('height', 'auto', 'important');
-    btn.style.setProperty('line-height', '1.4', 'important');
-    if('{label_style}'){{
-      btn.style.setProperty('text-decoration', 'line-through', 'important');
-      btn.style.setProperty('opacity', '0.65', 'important');
-    }}
-  }}
-  if(document.readyState === 'loading'){{
-    document.addEventListener('DOMContentLoaded', applyStyle);
-  }} else {{
-    setTimeout(applyStyle, 0);
-    setTimeout(applyStyle, 100);
-    setTimeout(applyStyle, 300);
-  }}
-}})();
-</script>
-""", unsafe_allow_html=True)
-
-    if st.button(label, key=toggle_key, use_container_width=True):
+    if clicked:
         st.session_state.wm_expanded[toggle_key] = not is_open
         st.rerun()
 
     if is_open:
         st.markdown(f"""
 <div style="border:1px solid {c['line']};border-top:none;background:{c['bg']};
-            border-radius:0 0 12px 12px;padding:8px 10px 6px 10px;margin-top:-6px;">
+            border-radius:0 0 12px 12px;padding:8px 10px 6px 10px;margin-top:-4px;">
   <div style="display:flex;flex-wrap:wrap;gap:4px;margin-bottom:8px;">
     <span style="background:{c['soft']};color:{c['text']};border:1px solid {c['line']};
                  border-radius:999px;padding:2px 8px;font-size:0.70rem;font-weight:800;">{esc(cat_txt)}</span>
@@ -933,8 +913,8 @@ def render_week_month_event(row, prefix=""):
 """, unsafe_allow_html=True)
         render_action_buttons_compact(row, prefix=prefix)
 
-    st.markdown('<div style="margin-top:-14px;"></div>', unsafe_allow_html=True)
-    st.markdown('<div style="margin-top:-12px;"></div>', unsafe_allow_html=True)
+    # 박스 간 간격 축소 (기존 -14px/-12px → -8px 로 완화해 겹침 방지하되 간격은 확 줄임)
+    st.markdown('<div style="margin-top:-8px;"></div>', unsafe_allow_html=True)
 
 
 def render_form(mode="new", row_data=None):
@@ -1112,10 +1092,6 @@ with sidebar_top:
         if selected_day_sidebar.empty:
             st.caption("선택한 날짜의 일정이 없습니다.")
         else:
-            # ── 사이드바 미리보기: 모든 박스를 단일 HTML로 묶어 출력 ──
-            # Streamlit이 각 st.markdown() 호출마다 stMarkdown wrapper를 삽입해
-            # 박스 사이에 기본 gap이 생기는 문제를 해결하기 위해
-            # 전체를 하나의 HTML 블록으로 출력하고 margin-top으로 간격 제어
             parts = []
             for i, (_, row) in enumerate(selected_day_sidebar.iterrows()):
                 c = get_color(row["Category"])
