@@ -144,23 +144,17 @@ h1, h2, h3 {
 }
 
 .legend-pill {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
+    display: inline-block;
     padding: 6px 12px;
     border-radius: 999px;
     font-size: 0.80rem;
     font-weight: 700;
     margin: 0 6px 6px 0;
     border: 1px solid;
-    line-height: 1.4;
-    vertical-align: middle;
 }
 
 .metric-chip {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
+    display: inline-block;
     padding: 6px 12px;
     border-radius: 999px;
     font-size: 0.80rem;
@@ -169,8 +163,6 @@ h1, h2, h3 {
     border: 1px solid #D8DEE8;
     background: #ffffff;
     color: #344054;
-    line-height: 1.4;
-    vertical-align: middle;
 }
 
 .summary-card {
@@ -211,9 +203,7 @@ h1, h2, h3 {
 }
 
 .tag-pill {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
+    display: inline-block;
     padding: 5px 10px;
     border-radius: 999px;
     font-size: 0.74rem;
@@ -223,13 +213,10 @@ h1, h2, h3 {
     color: #475467;
     margin-left: 6px;
     vertical-align: middle;
-    line-height: 1.4;
 }
 
 .follow-pill {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
+    display: inline-block;
     padding: 5px 10px;
     border-radius: 999px;
     font-size: 0.74rem;
@@ -240,7 +227,6 @@ h1, h2, h3 {
     margin-right: 6px;
     margin-bottom: 6px;
     vertical-align: middle;
-    line-height: 1.4;
 }
 
 .info-box {
@@ -347,36 +333,25 @@ h1, h2, h3 {
     font-size: 0.84rem !important;
 }
 
-div[data-testid='stButton'] > button {
+div[data-testid="stButton"] > button {
     border-radius: 12px !important;
     font-weight: 700 !important;
 }
 
-div[data-testid='stDownloadButton'] > button {
+div[data-testid="stDownloadButton"] > button {
     border-radius: 12px !important;
     font-weight: 700 !important;
-}
-
-/* 모든 버튼 텍스트(p태그) 정중앙 정렬 */
-div[data-testid='stButton'] > button p,
-div[data-testid='stDownloadButton'] > button p {
-    display: flex !important;
-    align-items: center !important;
-    justify-content: center !important;
-    line-height: 1.4 !important;
-    margin: 0 !important;
-    padding: 0 !important;
 }
 
 .stTextInput input,
 .stDateInput input,
 .stTimeInput input,
-.stSelectbox div[data-baseweb='select'] > div,
+.stSelectbox div[data-baseweb="select"] > div,
 .stTextArea textarea {
     border-radius: 12px !important;
 }
 
-div[data-testid='stForm'] {
+div[data-testid="stForm"] {
     border: 1px solid #ECEEF3;
     border-radius: 18px;
     padding: 16px 16px 10px 16px;
@@ -427,7 +402,7 @@ div[data-testid='stForm'] {
     text-align: left !important;
 }
 
-div[data-testid='stExpander'] details {
+div[data-testid="stExpander"] details {
     border-radius: 16px !important;
     border: 1.6px solid #D8DEE8 !important;
     background: #ffffff !important;
@@ -435,16 +410,16 @@ div[data-testid='stExpander'] details {
     box-shadow: none !important;
 }
 
-div[data-testid='stExpander'] summary:hover {
+div[data-testid="stExpander"] summary:hover {
     background: #FAFAFA !important;
 }
 
-div[data-testid='stExpander'] summary {
+div[data-testid="stExpander"] summary {
     padding-top: 0.18rem !important;
     padding-bottom: 0.18rem !important;
 }
 
-div[data-testid='stTabs'] {
+div[data-testid="stTabs"] {
     margin-bottom: 0 !important;
 }
 
@@ -467,9 +442,7 @@ div[data-testid='stTabs'] {
 }
 
 .cancel-pill {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
+    display: inline-block;
     margin-left: 6px;
     padding: 4px 8px;
     border-radius: 999px;
@@ -479,13 +452,10 @@ div[data-testid='stTabs'] {
     color: #B42318;
     border: 1px solid #FECACA;
     vertical-align: middle;
-    line-height: 1.4;
 }
 
 .attend-pill {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
+    display: inline-block;
     margin-left: 6px;
     padding: 4px 8px;
     border-radius: 999px;
@@ -495,7 +465,6 @@ div[data-testid='stTabs'] {
     color: #8A6500;
     border: 1px solid #F2D675;
     vertical-align: middle;
-    line-height: 1.4;
 }
 
 @media (max-width: 1000px) {
@@ -513,36 +482,48 @@ div[data-testid='stTabs'] {
 
 /* =============================================
    GAP OVERRIDE
+   =============================================
+
+   ✅ 사이드바 상단 4개 버튼 간격만 좁힘
+   ✅ 일별/주간/월별 일정 expander 박스 간격만 좁힘
+   ✅ 나머지 앱 전체 간격은 원래대로 유지
    ============================================= */
 
-/* 메인 일정 박스 간격 */
-.main [data-testid='stVerticalBlock'],
-section.main [data-testid='stVerticalBlock'],
-[data-testid='stMain'] [data-testid='stVerticalBlock'] {
+/* 사이드바 버튼 4개 간격만 타겟
+   — stSidebar 안의 stVerticalBlock 중
+     직접 자식에 stButton/stDownloadButton/stExpander가 있는 것만 */
+[data-testid='stSidebar'] [data-testid='stVerticalBlock']:has(
+    > div > [data-testid='stButton'],
+    > div > [data-testid='stDownloadButton'],
+    > div > [data-testid='stExpander']
+) {
     gap: 4px !important;
     row-gap: 4px !important;
 }
 
-/* 사이드바 버튼 간격 */
-[data-testid='stSidebar'] [data-testid='stVerticalBlock'] {
-    gap: 2px !important;
-    row-gap: 2px !important;
+/* 일별 보기 — 일정 expander 박스 간격만 타겟
+   — stMain 안의 stVerticalBlock 중
+     직접 자식에 stExpander가 있는 것만 */
+[data-testid='stMain'] [data-testid='stVerticalBlock']:has(
+    > div > [data-testid='stExpander']
+) {
+    gap: 6px !important;
+    row-gap: 6px !important;
 }
 
-/* 주간/월별 컬럼 내부 박스 간격 */
-[data-testid='column'] [data-testid='stVerticalBlock'] {
-    gap: 4px !important;
-    row-gap: 4px !important;
-}
-
-/* expander 자체 마진 제거 */
-[data-testid='stExpander'] {
-    margin-top: 0 !important;
-    margin-bottom: 0 !important;
+/* 주간/월별 보기 — 각 요일 컬럼 안 일정 박스 간격
+   — column 안의 stVerticalBlock 중
+     직접 자식에 stExpander가 있는 것만 */
+[data-testid='column'] [data-testid='stVerticalBlock']:has(
+    > div > [data-testid='stExpander']
+) {
+    gap: 8px !important;
+    row-gap: 8px !important;
 }
 
 </style>
 """, unsafe_allow_html=True)
+
 
 
 # =========================================================
