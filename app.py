@@ -1651,12 +1651,20 @@ else:
     )
     st.session_state.selected_follow_status = selected_follow_status
 
-    selected_date = fc5.date_input(
-        "",
-        value=st.session_state.selected_date,
-        label_visibility="collapsed"
-    )
-    st.session_state.selected_date = selected_date
+# 수정 후
+def _on_date_change():
+    st.session_state.selected_date = st.session_state._date_input_main
+    st.rerun()
+
+selected_date = fc5.date_input(
+    "",
+    value=st.session_state.selected_date,
+    key="_date_input_main",
+    label_visibility="collapsed",
+    on_change=_on_date_change
+)
+st.session_state.selected_date = st.session_state._date_input_main
+
 
     if fc6.button("오늘", use_container_width=True):
         st.session_state.search_text = ""
