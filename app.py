@@ -479,6 +479,20 @@ div[data-testid="stTabs"] {
         line-height: 1.18 !important;
     }
 }
+/* =============================================
+   GAP OVERRIDE – 반드시 </style> 바로 앞에 위치
+   ============================================= */
+.main [data-testid="stVerticalBlock"],
+section.main [data-testid="stVerticalBlock"],
+[data-testid="stMain"] [data-testid="stVerticalBlock"] {
+    gap: 4px !important;
+    row-gap: 4px !important;
+}
+[data-testid="stSidebar"] [data-testid="stVerticalBlock"] {
+    gap: 2px !important;
+    row-gap: 2px !important;
+}
+
 </style>
 """, unsafe_allow_html=True)
 st.html("""
