@@ -427,7 +427,7 @@ div[data-testid="stTabs"] {
     font-size: 1rem;
     font-weight: 800;
     color: #2F3142;
-    margin-bottom: 14px;
+    margin-bottom: 16px;
 }
 
 
