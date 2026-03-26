@@ -139,7 +139,7 @@ h1, h2, h3 {
     font-size: 1.7rem;
     font-weight: 800;
     color: #2F3142;
-    margin: 8px 0 10px 0;
+    margin: 8px 0 16px 0;
     line-height: 1.2;
 }
 
