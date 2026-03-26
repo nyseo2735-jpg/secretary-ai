@@ -66,20 +66,13 @@ st.markdown("""
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Pretendard:wght@400;500;600;700;800&display=swap');
 
-html, body, [class*='css'] {
-    font-family: 'Pretendard', sans-serif;
-}
-.block-container {
-    padding-top: 2.5rem;
-    padding-bottom: 1.4rem;
-    max-width: 1600px;
-}
+html, body, [class*='css'] { font-family: 'Pretendard', sans-serif; }
+.block-container { padding-top: 2.5rem; padding-bottom: 1.4rem; max-width: 1600px; }
 h1, h2, h3 { line-height: 1.2 !important; }
 
 .main-title {
     font-size: 2.7rem; font-weight: 800; color: #2F3142;
-    margin-top: 0.45rem; margin-bottom: 0.35rem;
-    line-height: 1.2; word-break: keep-all;
+    margin-top: 0.45rem; margin-bottom: 0.35rem; line-height: 1.2; word-break: keep-all;
 }
 .sub-text {
     font-size: 0.98rem; color: #6B7280; margin-bottom: 0.8rem;
@@ -87,12 +80,10 @@ h1, h2, h3 { line-height: 1.2 !important; }
 }
 .panel {
     background: #ffffff; border: 1px solid #ECEEF3; border-radius: 18px;
-    padding: 12px 14px; box-shadow: 0 4px 16px rgba(20,24,40,0.04);
-    margin-bottom: 10px;
+    padding: 12px 14px; box-shadow: 0 4px 16px rgba(20,24,40,0.04); margin-bottom: 10px;
 }
 .section-title {
-    font-size: 1.7rem; font-weight: 800; color: #2F3142;
-    margin: 8px 0 16px 0; line-height: 1.2;
+    font-size: 1.7rem; font-weight: 800; color: #2F3142; margin: 8px 0 16px 0; line-height: 1.2;
 }
 .legend-pill {
     display: inline-block; padding: 6px 12px; border-radius: 999px;
@@ -104,16 +95,14 @@ h1, h2, h3 { line-height: 1.2 !important; }
     border: 1px solid #D8DEE8; background: #ffffff; color: #344054;
 }
 .summary-card {
-    border-radius: 22px; overflow: hidden;
-    border: 1px solid #E8EBF2; margin-top: 4px; margin-bottom: 10px;
+    border-radius: 22px; overflow: hidden; border: 1px solid #E8EBF2; margin-top: 4px; margin-bottom: 10px;
 }
 .summary-inner { display: flex; }
 .summary-accent { width: 10px; flex-shrink: 0; }
 .summary-body { width: 100%; padding: 14px 16px 12px 16px; }
 .summary-meta { font-size: 0.92rem; font-weight: 800; margin-bottom: 6px; }
 .summary-title {
-    font-size: 1.22rem; font-weight: 800; color: #232634;
-    line-height: 1.28; margin: 0; word-break: keep-all;
+    font-size: 1.22rem; font-weight: 800; color: #232634; line-height: 1.28; margin: 0; word-break: keep-all;
 }
 .tag-pill {
     display: inline-block; padding: 5px 10px; border-radius: 999px;
@@ -123,8 +112,7 @@ h1, h2, h3 { line-height: 1.2 !important; }
 .follow-pill {
     display: inline-block; padding: 5px 10px; border-radius: 999px;
     font-size: 0.74rem; font-weight: 800; border: 1px solid #D1D5DB;
-    background: #F8FAFC; color: #344054;
-    margin-right: 6px; margin-bottom: 6px; vertical-align: middle;
+    background: #F8FAFC; color: #344054; margin-right: 6px; margin-bottom: 6px; vertical-align: middle;
 }
 .info-box {
     background: #ffffff; border: 1px solid #ECEEF3; border-radius: 16px;
@@ -133,16 +121,14 @@ h1, h2, h3 { line-height: 1.2 !important; }
 .info-label { font-size: 0.77rem; font-weight: 800; color: #6B7280; margin-bottom: 6px; line-height: 1.35; }
 .info-value { font-size: 0.96rem; font-weight: 600; color: #232634; line-height: 1.5; white-space: pre-wrap; word-break: break-word; }
 .memo-box {
-    background: #FFFBEA; border: 1px solid #F8E3A3;
-    border-left: 8px solid #F5C84B; border-radius: 16px;
-    padding: 12px 16px; margin-top: 4px;
+    background: #FFFBEA; border: 1px solid #F8E3A3; border-left: 8px solid #F5C84B;
+    border-radius: 16px; padding: 12px 16px; margin-top: 4px;
 }
 .memo-title { font-size: 0.90rem; font-weight: 800; color: #7A5A00; margin-bottom: 6px; }
 .memo-text { font-size: 0.94rem; color: #4B5563; line-height: 1.55; white-space: pre-wrap; word-break: break-word; }
 .follow-wrap {
-    background: #F7FAFF; border: 1px solid #D7E7FF;
-    border-left: 8px solid #3B82F6; border-radius: 18px;
-    padding: 14px 16px; margin-top: 8px; margin-bottom: 10px;
+    background: #F7FAFF; border: 1px solid #D7E7FF; border-left: 8px solid #3B82F6;
+    border-radius: 18px; padding: 14px 16px; margin-top: 8px; margin-bottom: 10px;
 }
 .follow-title { font-size: 1rem; font-weight: 800; color: #1D4ED8; margin-bottom: 10px; }
 .follow-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
@@ -152,37 +138,20 @@ h1, h2, h3 { line-height: 1.2 !important; }
 
 .small-action button {
     min-height: 34px !important; height: 34px !important;
-    padding-top: 0.15rem !important; padding-bottom: 0.15rem !important;
-    font-size: 0.84rem !important;
+    padding-top: 0.15rem !important; padding-bottom: 0.15rem !important; font-size: 0.84rem !important;
 }
 div[data-testid='stButton'] > button { border-radius: 12px !important; font-weight: 700 !important; }
 div[data-testid='stDownloadButton'] > button { border-radius: 12px !important; font-weight: 700 !important; }
 .stTextInput input, .stDateInput input, .stTimeInput input,
-.stSelectbox div[data-baseweb='select'] > div, .stTextArea textarea {
-    border-radius: 12px !important;
-}
+.stSelectbox div[data-baseweb='select'] > div, .stTextArea textarea { border-radius: 12px !important; }
 div[data-testid='stForm'] {
-    border: 1px solid #ECEEF3; border-radius: 18px;
-    padding: 16px 16px 10px 16px; background: #ffffff;
+    border: 1px solid #ECEEF3; border-radius: 18px; padding: 16px 16px 10px 16px; background: #ffffff;
 }
 
-/* 사이드바 미리보기 커스텀 토글 */
-.sb-preview-toggle {
-    display: flex; align-items: center; justify-content: space-between;
-    background: #ffffff; border: 1px solid #ECEEF3; border-radius: 12px;
-    padding: 10px 14px; cursor: pointer; margin-bottom: 2px;
-    font-size: 0.86rem; font-weight: 700; color: #1F2937;
-}
-.sb-preview-toggle .preview-title { font-size: 0.86rem; font-weight: 700; color: #1F2937; }
-.sb-preview-toggle .preview-date  { font-size: 0.78rem; font-weight: 600; color: #9CA3AF; margin-top: 2px; }
-.sb-preview-body {
-    background: #F8FAFC; border: 1px solid #ECEEF3; border-radius: 12px;
-    padding: 10px; margin-bottom: 4px;
-}
-
+/* 사이드바 미리보기 */
 .sidebar-day-item {
     border: 1px solid #ECEEF3; border-radius: 12px;
-    padding: 8px 10px; margin-bottom: 4px; background: #ffffff;
+    padding: 8px 10px; margin-bottom: 6px; background: #ffffff;
 }
 .sidebar-day-time { font-size: 0.78rem; font-weight: 800; color: #475467; margin-bottom: 4px; }
 .sidebar-day-title { font-size: 0.86rem; font-weight: 700; color: #1F2937; line-height: 1.35; }
@@ -193,18 +162,13 @@ div[data-testid='stForm'] {
 }
 .segment-note { font-size: 0.84rem; color: #667085; margin-bottom: 8px; }
 
-.streamlit-expanderHeader {
-    font-weight: 800 !important; font-size: 0.90rem !important;
-    line-height: 1.2 !important; text-align: left !important;
-}
+.streamlit-expanderHeader { font-weight: 800 !important; font-size: 0.90rem !important; line-height: 1.2 !important; }
 div[data-testid='stExpander'] details {
     border-radius: 16px !important; border: 1.6px solid #D8DEE8 !important;
     background: #ffffff !important; overflow: hidden !important; box-shadow: none !important;
 }
 div[data-testid='stExpander'] summary:hover { background: #FAFAFA !important; }
-div[data-testid='stExpander'] summary {
-    padding-top: 0.18rem !important; padding-bottom: 0.18rem !important;
-}
+div[data-testid='stExpander'] summary { padding-top: 0.18rem !important; padding-bottom: 0.18rem !important; }
 div[data-testid='stTabs'] { margin-bottom: 0 !important; }
 
 .day-head { font-size: 1rem; font-weight: 800; color: #2F3142; margin-bottom: 16px; }
@@ -217,42 +181,31 @@ div[data-testid='stTabs'] { margin-bottom: 0 !important; }
 .canceled-title { text-decoration: line-through; opacity: 0.65; }
 .cancel-pill {
     display: inline-block; margin-left: 6px; padding: 4px 8px; border-radius: 999px;
-    font-size: 0.72rem; font-weight: 800; background: #FEE2E2;
-    color: #B42318; border: 1px solid #FECACA; vertical-align: middle;
+    font-size: 0.72rem; font-weight: 800; background: #FEE2E2; color: #B42318;
+    border: 1px solid #FECACA; vertical-align: middle;
 }
 .attend-pill {
     display: inline-block; margin-left: 6px; padding: 4px 8px; border-radius: 999px;
-    font-size: 0.72rem; font-weight: 800; background: #FFF7D6;
-    color: #8A6500; border: 1px solid #F2D675; vertical-align: middle;
+    font-size: 0.72rem; font-weight: 800; background: #FFF7D6; color: #8A6500;
+    border: 1px solid #F2D675; vertical-align: middle;
 }
 
-/* 주간/월별 이벤트 카드 — expander 화살표 완전 제거 */
-.wm-event-wrap div[data-testid='stExpander'] details > summary > div > div[data-testid='stExpanderToggleIcon'] {
-    display: none !important;
-}
-.wm-event-wrap div[data-testid='stExpander'] details > summary::marker { display: none !important; }
-.wm-event-wrap div[data-testid='stExpander'] details > summary::-webkit-details-marker { display: none !important; }
-.wm-event-wrap div[data-testid='stExpander'] details > summary {
-    padding-left: 8px !important;
-}
-/* 주간/월별 카드 내부 detail grid */
-.detail-grid {
+/* 주간/월별 이벤트 detail grid */
+.wm-detail-grid {
     display: grid; grid-template-columns: 1fr 1fr; gap: 5px; margin-top: 6px; margin-bottom: 8px;
 }
-.detail-cell {
-    background: #F8FAFC; border: 1px solid #E5E7EB;
-    border-radius: 8px; padding: 5px 7px;
-}
-.detail-cell-label { font-size: 0.66rem; font-weight: 700; color: #9CA3AF; margin-bottom: 2px; }
-.detail-cell-value { font-size: 0.76rem; font-weight: 600; color: #1F2937; line-height: 1.3; word-break: break-word; }
-.detail-cell-full { grid-column: span 2; }
+.wm-detail-cell { background: #F8FAFC; border: 1px solid #E5E7EB; border-radius: 8px; padding: 5px 7px; }
+.wm-detail-cell-full { grid-column: span 2; background: #F8FAFC; border: 1px solid #E5E7EB; border-radius: 8px; padding: 5px 7px; }
+.wm-detail-label { font-size: 0.66rem; font-weight: 700; color: #9CA3AF; margin-bottom: 2px; }
+.wm-detail-value { font-size: 0.78rem; font-weight: 600; color: #1F2937; line-height: 1.35; word-break: break-word; white-space: pre-wrap; }
 
 @media (max-width: 1000px) {
     .block-container { padding-top: 2.2rem; }
     .main-title { font-size: 2.1rem; }
     .summary-title { font-size: 1.08rem; }
     .follow-grid { grid-template-columns: 1fr; }
-    .detail-grid { grid-template-columns: 1fr; }
+    .wm-detail-grid { grid-template-columns: 1fr; }
+    .wm-detail-cell-full { grid-column: span 1; }
     .summary-body { padding: 12px 13px 10px 13px; }
     .info-box { min-height: auto; }
 }
@@ -281,30 +234,21 @@ div[data-testid='stTabs'] { margin-bottom: 0 !important; }
 # =========================================================
 KST = ZoneInfo("Asia/Seoul")
 
-def now_kst():
-    return datetime.now(KST)
-
-def now_kst_str():
-    return now_kst().strftime("%Y-%m-%d %H:%M")
+def now_kst(): return datetime.now(KST)
+def now_kst_str(): return now_kst().strftime("%Y-%m-%d %H:%M")
 
 def safe_str(v):
-    if v is None:
-        return ""
+    if v is None: return ""
     try:
-        if pd.isna(v):
-            return ""
-    except Exception:
-        pass
+        if pd.isna(v): return ""
+    except Exception: pass
     return str(v).strip()
 
 def normalize_cell(v):
-    if v is None:
-        return ""
+    if v is None: return ""
     try:
-        if pd.isna(v):
-            return ""
-    except Exception:
-        pass
+        if pd.isna(v): return ""
+    except Exception: pass
     if isinstance(v, pd.Timestamp):
         if pd.isna(v): return ""
         return v.strftime("%Y-%m-%d %H:%M:%S")
@@ -319,21 +263,14 @@ def ensure_columns(df: pd.DataFrame) -> pd.DataFrame:
         return pd.DataFrame(columns=DATA_COLUMNS)
     df = df.copy()
     for col in DATA_COLUMNS:
-        if col not in df.columns:
-            df[col] = ""
+        if col not in df.columns: df[col] = ""
     df = df[DATA_COLUMNS].copy()
-    for col in DATA_COLUMNS:
-        df[col] = df[col].apply(normalize_cell)
+    for col in DATA_COLUMNS: df[col] = df[col].apply(normalize_cell)
     return df
 
-def empty_df():
-    return pd.DataFrame(columns=DATA_COLUMNS)
-
-def get_color(cat: str):
-    return COLOR_MAP.get(cat, COLOR_MAP["기타"])
-
-def category_slug(cat: str) -> str:
-    return CAT_SLUG.get(cat, "etc")
+def empty_df(): return pd.DataFrame(columns=DATA_COLUMNS)
+def get_color(cat: str): return COLOR_MAP.get(cat, COLOR_MAP["기타"])
+def category_slug(cat: str) -> str: return CAT_SLUG.get(cat, "etc")
 
 def to_date_safe(v):
     text = safe_str(v)
@@ -346,29 +283,21 @@ def parse_time_safe(v, default_str="09:00"):
     text = safe_str(v)
     if not text: text = default_str
     for fmt in ["%H:%M", "%H:%M:%S"]:
-        try:
-            return datetime.strptime(text, fmt).time()
-        except Exception:
-            continue
+        try: return datetime.strptime(text, fmt).time()
+        except Exception: continue
     return datetime.strptime(default_str, "%H:%M").time()
 
 def esc(v):
     value = safe_str(v)
     return html.escape(value if value else "-")
 
-def is_president_attend(row):
-    return safe_str(row.get("PresidentAttend", "")).upper() == "Y"
-
-def attend_prefix(row):
-    return "👑 " if is_president_attend(row) else ""
-
-def attend_label(row):
-    return "회장 직접 참석" if is_president_attend(row) else "직원 대참/회장 미참석"
+def is_president_attend(row): return safe_str(row.get("PresidentAttend", "")).upper() == "Y"
+def attend_prefix(row): return "👑 " if is_president_attend(row) else ""
+def attend_label(row): return "회장 직접 참석" if is_president_attend(row) else "직원 대참/회장 미참석"
 
 def compact_subject_text(row):
     subject = f"{attend_prefix(row)}{safe_str(row.get('Subject'))}"
-    if safe_str(row.get("Status")) == "취소":
-        subject = f"{subject} (취소)"
+    if safe_str(row.get("Status")) == "취소": subject = f"{subject} (취소)"
     return subject
 
 def compact_line_text(row):
@@ -387,8 +316,7 @@ def excel_download_bytes(df: pd.DataFrame) -> bytes:
     return output.getvalue()
 
 def get_secret_value(key: str, default=""):
-    if key in st.secrets:
-        return str(st.secrets.get(key, default)).strip()
+    if key in st.secrets: return str(st.secrets.get(key, default)).strip()
     if "app_config" in st.secrets and key in st.secrets["app_config"]:
         return str(st.secrets["app_config"].get(key, default)).strip()
     return default
@@ -411,9 +339,8 @@ LAST_COL_LETTER = column_letter(len(DATA_COLUMNS))
 
 @st.cache_resource
 def get_gspread_client():
-    if "gcp_service_account" not in st.secrets:
-        raise KeyError("gcp_service_account")
-    creds_info = dict(st.secrets["gcp_service_account"])
+    if "gcp_service_account" not in st.secrets: raise KeyError("gcp_service_account")
+    creds_info  = dict(st.secrets["gcp_service_account"])
     credentials = Credentials.from_service_account_info(creds_info, scopes=SCOPES)
     return gspread.authorize(credentials)
 
@@ -433,12 +360,10 @@ def get_worksheet():
 def ensure_sheet_header(ws):
     values = ws.get_all_values()
     if not values:
-        ws.update(range_name=f"A1:{LAST_COL_LETTER}1", values=[DATA_COLUMNS])
-        return
+        ws.update(range_name=f"A1:{LAST_COL_LETTER}1", values=[DATA_COLUMNS]); return
     first_row = values[0]
-    if first_row[:len(first_row)] == DATA_COLUMNS:
-        return
-    data_rows = values[1:] if len(values) > 1 else []
+    if first_row[:len(first_row)] == DATA_COLUMNS: return
+    data_rows        = values[1:] if len(values) > 1 else []
     old_header_index = {col: idx for idx, col in enumerate(first_row)}
     rebuilt_rows = []
     for row in data_rows:
@@ -446,8 +371,7 @@ def ensure_sheet_header(ws):
         for col in DATA_COLUMNS:
             if col in old_header_index and old_header_index[col] < len(row):
                 new_row.append(row[old_header_index[col]])
-            else:
-                new_row.append("")
+            else: new_row.append("")
         rebuilt_rows.append(new_row)
     new_values = [DATA_COLUMNS] + rebuilt_rows
     ws.clear()
@@ -456,25 +380,23 @@ def ensure_sheet_header(ws):
 def clean_records_df(df: pd.DataFrame) -> pd.DataFrame:
     df = ensure_columns(df)
     if df.empty: return df
-    non_id_cols = [c for c in DATA_COLUMNS if c != "ID"]
+    non_id_cols    = [c for c in DATA_COLUMNS if c != "ID"]
     mask_not_empty = df[non_id_cols].apply(lambda row: any(safe_str(v) for v in row), axis=1)
     df = df[mask_not_empty].copy()
     if df.empty: return ensure_columns(df)
     missing_id_mask = df["ID"].apply(lambda x: safe_str(x) == "")
     if missing_id_mask.any():
-        for idx in df[missing_id_mask].index:
-            df.at[idx, "ID"] = next_id()
-    df["Category"]       = df["Category"].apply(lambda x: x if x in CATEGORIES else "기타")
-    df["Status"]         = df["Status"].apply(lambda x: x if x in STATUS_OPTIONS else "확정")
-    df["Priority"]       = df["Priority"].apply(lambda x: x if x in PRIORITY_OPTIONS else "보통")
-    df["FollowStatus"]   = df["FollowStatus"].apply(lambda x: x if x in FOLLOW_STATUS_OPTIONS else "미착수")
-    df["IsDeleted"]      = df["IsDeleted"].apply(lambda x: "Y" if safe_str(x).upper() == "Y" else "")
-    df["PresidentAttend"]= df["PresidentAttend"].apply(lambda x: "Y" if safe_str(x).upper() == "Y" else "")
-    df["Date"]     = df["Date"].apply(lambda x: to_date_safe(x).strftime("%Y-%m-%d") if to_date_safe(x) else "")
-    df["Time"]     = df["Time"].apply(lambda x: parse_time_safe(x).strftime("%H:%M") if safe_str(x) else "")
-    df["FollowDue"]= df["FollowDue"].apply(lambda x: to_date_safe(x).strftime("%Y-%m-%d") if to_date_safe(x) else "")
-    for col in ["FollowUpdated", "Updated", "UpdatedBy"]:
-        df[col] = df[col].apply(lambda x: safe_str(x))
+        for idx in df[missing_id_mask].index: df.at[idx, "ID"] = next_id()
+    df["Category"]        = df["Category"].apply(lambda x: x if x in CATEGORIES else "기타")
+    df["Status"]          = df["Status"].apply(lambda x: x if x in STATUS_OPTIONS else "확정")
+    df["Priority"]        = df["Priority"].apply(lambda x: x if x in PRIORITY_OPTIONS else "보통")
+    df["FollowStatus"]    = df["FollowStatus"].apply(lambda x: x if x in FOLLOW_STATUS_OPTIONS else "미착수")
+    df["IsDeleted"]       = df["IsDeleted"].apply(lambda x: "Y" if safe_str(x).upper() == "Y" else "")
+    df["PresidentAttend"] = df["PresidentAttend"].apply(lambda x: "Y" if safe_str(x).upper() == "Y" else "")
+    df["Date"]            = df["Date"].apply(lambda x: to_date_safe(x).strftime("%Y-%m-%d") if to_date_safe(x) else "")
+    df["Time"]            = df["Time"].apply(lambda x: parse_time_safe(x).strftime("%H:%M") if safe_str(x) else "")
+    df["FollowDue"]       = df["FollowDue"].apply(lambda x: to_date_safe(x).strftime("%Y-%m-%d") if to_date_safe(x) else "")
+    for col in ["FollowUpdated", "Updated", "UpdatedBy"]: df[col] = df[col].apply(lambda x: safe_str(x))
     df = df.drop_duplicates(subset=["ID"], keep="last").reset_index(drop=True)
     return ensure_columns(df)
 
@@ -486,12 +408,10 @@ def get_active_df(df: pd.DataFrame) -> pd.DataFrame:
 def load_data_from_gsheet():
     try:
         if not has_gsheet_config():
-            if "gcp_service_account" not in st.secrets:
-                st.info("구글 시트 연결 정보가 아직 설정되지 않았습니다.")
-            else:
-                st.info("google_sheet_name 또는 google_worksheet_name 설정이 없습니다.")
+            if "gcp_service_account" not in st.secrets: st.info("구글 시트 연결 정보가 아직 설정되지 않았습니다.")
+            else: st.info("google_sheet_name 또는 google_worksheet_name 설정이 없습니다.")
             return empty_df()
-        ws = get_worksheet()
+        ws      = get_worksheet()
         ensure_sheet_header(ws)
         records = ws.get_all_records(default_blank="")
         if not records: return empty_df()
@@ -503,51 +423,41 @@ def load_data_from_gsheet():
 
 def find_row_number_by_id(ws, record_id: str):
     id_col_num = DATA_COLUMNS.index("ID") + 1
-    id_values = ws.col_values(id_col_num)
+    id_values  = ws.col_values(id_col_num)
     for row_num in range(2, len(id_values) + 1):
-        if safe_str(id_values[row_num - 1]) == safe_str(record_id):
-            return row_num
+        if safe_str(id_values[row_num - 1]) == safe_str(record_id): return row_num
     return None
 
 def append_record_to_gsheet(record: dict):
-    ws = get_worksheet()
-    ensure_sheet_header(ws)
+    ws = get_worksheet(); ensure_sheet_header(ws)
     ws.append_row([normalize_cell(record.get(col, "")) for col in DATA_COLUMNS], value_input_option="USER_ENTERED")
 
 def update_record_in_gsheet(record: dict):
-    ws = get_worksheet()
-    ensure_sheet_header(ws)
-    row_num = find_row_number_by_id(ws, record["ID"])
+    ws = get_worksheet(); ensure_sheet_header(ws)
+    row_num    = find_row_number_by_id(ws, record["ID"])
     row_values = [normalize_cell(record.get(col, "")) for col in DATA_COLUMNS]
-    if row_num is None:
-        ws.append_row(row_values, value_input_option="USER_ENTERED")
-    else:
-        ws.update(range_name=f"A{row_num}:{LAST_COL_LETTER}{row_num}", values=[row_values])
+    if row_num is None: ws.append_row(row_values, value_input_option="USER_ENTERED")
+    else: ws.update(range_name=f"A{row_num}:{LAST_COL_LETTER}{row_num}", values=[row_values])
 
 def soft_delete_record_in_gsheet(record_id: str):
-    ws = get_worksheet()
-    ensure_sheet_header(ws)
+    ws = get_worksheet(); ensure_sheet_header(ws)
     row_num = find_row_number_by_id(ws, record_id)
     if row_num is None: return
     row_values = ws.row_values(row_num)
     row_values = row_values[:len(DATA_COLUMNS)] + [""] * max(0, len(DATA_COLUMNS) - len(row_values))
     temp = {col: row_values[idx] if idx < len(row_values) else "" for idx, col in enumerate(DATA_COLUMNS)}
-    temp["IsDeleted"] = "Y"
-    temp["Updated"]   = now_kst_str()
+    temp["IsDeleted"] = "Y"; temp["Updated"] = now_kst_str()
     ws.update(range_name=f"A{row_num}:{LAST_COL_LETTER}{row_num}",
               values=[[normalize_cell(temp.get(col, "")) for col in DATA_COLUMNS]])
 
 def get_filtered_df(df, selected_cat="카테고리", search_text="", status_filter="일정 현황", follow_status_filter="팔로우업 상태"):
     temp = get_active_df(df).copy()
     temp["DateParsed"] = pd.to_datetime(temp["Date"], errors="coerce").dt.date
-    if selected_cat not in ["전체", "카테고리"]:
-        temp = temp[temp["Category"] == selected_cat]
-    if status_filter not in ["전체", "일정 현황"]:
-        temp = temp[temp["Status"] == status_filter]
-    if follow_status_filter not in ["전체", "팔로우업 상태"]:
-        temp = temp[temp["FollowStatus"] == follow_status_filter]
+    if selected_cat not in ["전체", "카테고리"]: temp = temp[temp["Category"] == selected_cat]
+    if status_filter not in ["전체", "일정 현황"]: temp = temp[temp["Status"] == status_filter]
+    if follow_status_filter not in ["전체", "팔로우업 상태"]: temp = temp[temp["FollowStatus"] == follow_status_filter]
     if search_text:
-        q = str(search_text).strip()
+        q    = str(search_text).strip()
         mask = (
             temp["Subject"].fillna("").str.contains(q, case=False, na=False)
             | temp["OrgName"].fillna("").str.contains(q, case=False, na=False)
@@ -573,15 +483,14 @@ def month_calendar_weeks(year: int, month: int):
     cal = calendar.Calendar(firstweekday=6)
     return cal.monthdatescalendar(year, month)
 
-def next_id():
-    return now_kst().strftime("%Y%m%d%H%M%S%f")
+def next_id(): return now_kst().strftime("%Y%m%d%H%M%S%f")
 
 def save_record(record: dict, is_edit=False):
     record = {col: normalize_cell(record.get(col, "")) for col in DATA_COLUMNS}
-    record["Updated"]        = now_kst_str()
-    record["UpdatedBy"]      = safe_str(record.get("UpdatedBy", ""))
-    record["IsDeleted"]      = ""
-    record["PresidentAttend"]= "Y" if safe_str(record.get("PresidentAttend","")).upper()=="Y" else ""
+    record["Updated"]         = now_kst_str()
+    record["UpdatedBy"]       = safe_str(record.get("UpdatedBy", ""))
+    record["IsDeleted"]       = ""
+    record["PresidentAttend"] = "Y" if safe_str(record.get("PresidentAttend", "")).upper() == "Y" else ""
     try:
         if has_gsheet_config():
             if is_edit: update_record_in_gsheet(record)
@@ -592,16 +501,12 @@ def save_record(record: dict, is_edit=False):
         if is_edit:
             mask = current["ID"].astype(str) == str(record["ID"])
             if mask.any():
-                for col in DATA_COLUMNS:
-                    current.loc[mask, col] = record[col]
-            else:
-                current = pd.concat([current, pd.DataFrame([record])], ignore_index=True)
-        else:
-            current = pd.concat([current, pd.DataFrame([record])], ignore_index=True)
+                for col in DATA_COLUMNS: current.loc[mask, col] = record[col]
+            else: current = pd.concat([current, pd.DataFrame([record])], ignore_index=True)
+        else: current = pd.concat([current, pd.DataFrame([record])], ignore_index=True)
         st.session_state.data = clean_records_df(current)
         return True, None
-    except Exception as e:
-        return False, str(e)
+    except Exception as e: return False, str(e)
 
 def soft_delete_record(record_id: str):
     try:
@@ -616,8 +521,7 @@ def soft_delete_record(record_id: str):
             current.loc[mask, "Updated"]   = now_kst_str()
         st.session_state.data = clean_records_df(current)
         return True, None
-    except Exception as e:
-        return False, str(e)
+    except Exception as e: return False, str(e)
 
 def update_follow_status(record_id: str, new_status: str):
     try:
@@ -633,12 +537,10 @@ def update_follow_status(record_id: str, new_status: str):
             st.session_state.data = load_data_from_gsheet()
         else:
             mask = current["ID"].astype(str) == str(record_id)
-            for col in DATA_COLUMNS:
-                current.loc[mask, col] = normalize_cell(row.get(col, ""))
+            for col in DATA_COLUMNS: current.loc[mask, col] = normalize_cell(row.get(col, ""))
             st.session_state.data = clean_records_df(current)
         return True, None
-    except Exception as e:
-        return False, str(e)
+    except Exception as e: return False, str(e)
 
 def contact_text(row):
     parts = []
@@ -712,10 +614,8 @@ def sort_oldest_first(df: pd.DataFrame):
 
 def to_display_dataframe(df: pd.DataFrame) -> pd.DataFrame:
     display_df = ensure_columns(df).copy()
-    if display_df.empty:
-        return display_df.drop(columns=["IsDeleted"], errors="ignore")
-    for col in display_df.columns:
-        display_df[col] = display_df[col].apply(normalize_cell)
+    if display_df.empty: return display_df.drop(columns=["IsDeleted"], errors="ignore")
+    for col in display_df.columns: display_df[col] = display_df[col].apply(normalize_cell)
     display_df = display_df.fillna("")
     display_df = display_df.drop(columns=["IsDeleted","DateParsed"], errors="ignore")
     return display_df
@@ -726,15 +626,12 @@ def to_display_dataframe(df: pd.DataFrame) -> pd.DataFrame:
 # =========================================================
 today = now_kst().date()
 
-if "data" not in st.session_state:
-    st.session_state.data = load_data_from_gsheet()
-else:
-    st.session_state.data = clean_records_df(st.session_state.data)
+if "data" not in st.session_state: st.session_state.data = load_data_from_gsheet()
+else: st.session_state.data = clean_records_df(st.session_state.data)
 
-if "app_today" not in st.session_state:
-    st.session_state.app_today = today
+if "app_today" not in st.session_state: st.session_state.app_today = today
 if st.session_state.app_today != today:
-    st.session_state.app_today   = today
+    st.session_state.app_today    = today
     st.session_state.selected_date = today
 
 for key, val in [
@@ -749,10 +646,9 @@ for key, val in [
     ("reload_password_input", ""),
     ("show_reload_password", False),
     ("table_page_num_value", 1),
-    ("sidebar_preview_open", False),   # ← 사이드바 미리보기 토글 상태
+    ("sidebar_preview_open", False),
 ]:
-    if key not in st.session_state:
-        st.session_state[key] = val
+    if key not in st.session_state: st.session_state[key] = val
 
 # =========================================================
 # 5-1. 날짜 선택 콜백
@@ -830,89 +726,70 @@ def render_detail_blocks(row):
     render_followup_section(row)
     st.markdown(f'<div class="memo-box"><div class="memo-title">📌 일반 메모</div><div class="memo-text">{esc(row["Memo"])}</div></div>', unsafe_allow_html=True)
 
-def render_action_buttons(row, prefix="", compact=False):
-    """
-    compact=True  → 주간/월별용: 버튼을 2행으로 나눠서 좁은 컬럼에서 깨지지 않게
-    compact=False → 일별용: 기존 5열 한 행
-    """
+def render_action_buttons_full(row, prefix=""):
+    """일별 보기용: 수정/일정취소/삭제/진행중/완료 5버튼"""
     st.markdown('<div class="small-action">', unsafe_allow_html=True)
+    c1, c2, c3, c4, c5 = st.columns([0.8, 0.9, 0.8, 1.0, 1.0])
+    if c1.button("수정", key=f"{prefix}_edit_{row['ID']}", use_container_width=True):
+        st.session_state.edit_id = row["ID"]; st.rerun()
+    toggle_label = "일정 취소" if row["Status"] != "취소" else "취소 해제"
+    toggle_next  = "취소"     if row["Status"] != "취소" else "확정"
+    if c2.button(toggle_label, key=f"{prefix}_cancel_{row['ID']}", use_container_width=True):
+        current = clean_records_df(st.session_state.data)
+        target  = current[current["ID"].astype(str) == str(row["ID"])]
+        if not target.empty:
+            new_row = target.iloc[0].to_dict()
+            new_row["Status"] = toggle_next; new_row["Updated"] = now_kst_str()
+            new_row["UpdatedBy"] = safe_str(row["UpdatedBy"])
+            ok, err = save_record(new_row, is_edit=True)
+            st.session_state.flash_message = "상태가 변경되었습니다." if ok else f"변경 실패: {err}"
+            st.rerun()
+    if c3.button("삭제", key=f"{prefix}_delete_{row['ID']}", use_container_width=True):
+        ok, err = soft_delete_record(row["ID"])
+        if st.session_state.edit_id == row["ID"]: st.session_state.edit_id = None
+        st.session_state.flash_message = "삭제되었습니다." if ok else f"삭제 실패: {err}"
+        st.rerun()
+    if c4.button("진행중", key=f"{prefix}_follow_inprogress_{row['ID']}", use_container_width=True):
+        ok, err = update_follow_status(row["ID"], "진행중")
+        st.session_state.flash_message = "팔로우업: 진행중" if ok else f"실패: {err}"
+        st.rerun()
+    if c5.button("완료", key=f"{prefix}_follow_done_{row['ID']}", use_container_width=True):
+        ok, err = update_follow_status(row["ID"], "완료")
+        st.session_state.flash_message = "팔로우업: 완료" if ok else f"실패: {err}"
+        st.rerun()
+    st.markdown('</div>', unsafe_allow_html=True)
 
-    if compact:
-        # 1행: 수정 / 일정취소 / 삭제
-        r1c1, r1c2, r1c3 = st.columns(3)
-        if r1c1.button("수정", key=f"{prefix}_edit_{row['ID']}", use_container_width=True):
-            st.session_state.edit_id = row["ID"]
+def render_action_buttons_compact(row, prefix=""):
+    """주간/월별 보기용: 수정/취소/삭제 3버튼만"""
+    st.markdown('<div class="small-action">', unsafe_allow_html=True)
+    c1, c2, c3 = st.columns(3)
+    if c1.button("수정", key=f"{prefix}_edit_{row['ID']}", use_container_width=True):
+        st.session_state.edit_id = row["ID"]; st.rerun()
+    toggle_label = "취소" if row["Status"] != "취소" else "취소해제"
+    toggle_next  = "취소" if row["Status"] != "취소" else "확정"
+    if c2.button(toggle_label, key=f"{prefix}_cancel_{row['ID']}", use_container_width=True):
+        current = clean_records_df(st.session_state.data)
+        target  = current[current["ID"].astype(str) == str(row["ID"])]
+        if not target.empty:
+            new_row = target.iloc[0].to_dict()
+            new_row["Status"] = toggle_next; new_row["Updated"] = now_kst_str()
+            ok, err = save_record(new_row, is_edit=True)
+            st.session_state.flash_message = "상태가 변경되었습니다." if ok else f"변경 실패: {err}"
             st.rerun()
-        toggle_label = "취소" if row["Status"] != "취소" else "취소해제"
-        toggle_next  = "취소" if row["Status"] != "취소" else "확정"
-        if r1c2.button(toggle_label, key=f"{prefix}_cancel_{row['ID']}", use_container_width=True):
-            current = clean_records_df(st.session_state.data)
-            target  = current[current["ID"].astype(str) == str(row["ID"])]
-            if not target.empty:
-                new_row = target.iloc[0].to_dict()
-                new_row["Status"]  = toggle_next
-                new_row["Updated"] = now_kst_str()
-                ok, err = save_record(new_row, is_edit=True)
-                st.session_state.flash_message = "상태가 변경되었습니다." if ok else f"변경 실패: {err}"
-                st.rerun()
-        if r1c3.button("삭제", key=f"{prefix}_delete_{row['ID']}", use_container_width=True):
-            ok, err = soft_delete_record(row["ID"])
-            if st.session_state.edit_id == row["ID"]:
-                st.session_state.edit_id = None
-            st.session_state.flash_message = "삭제되었습니다." if ok else f"삭제 실패: {err}"
-            st.rerun()
-        # 2행: 진행중 / 완료
-        r2c1, r2c2 = st.columns(2)
-        if r2c1.button("진행중", key=f"{prefix}_follow_inprogress_{row['ID']}", use_container_width=True):
-            ok, err = update_follow_status(row["ID"], "진행중")
-            st.session_state.flash_message = "팔로우업: 진행중" if ok else f"실패: {err}"
-            st.rerun()
-        if r2c2.button("완료", key=f"{prefix}_follow_done_{row['ID']}", use_container_width=True):
-            ok, err = update_follow_status(row["ID"], "완료")
-            st.session_state.flash_message = "팔로우업: 완료" if ok else f"실패: {err}"
-            st.rerun()
-    else:
-        c1, c2, c3, c4, c5 = st.columns([0.8, 0.9, 0.8, 1.0, 1.0])
-        if c1.button("수정", key=f"{prefix}_edit_{row['ID']}", use_container_width=True):
-            st.session_state.edit_id = row["ID"]
-            st.rerun()
-        toggle_label = "일정 취소" if row["Status"] != "취소" else "취소 해제"
-        toggle_next  = "취소"     if row["Status"] != "취소" else "확정"
-        if c2.button(toggle_label, key=f"{prefix}_cancel_{row['ID']}", use_container_width=True):
-            current = clean_records_df(st.session_state.data)
-            target  = current[current["ID"].astype(str) == str(row["ID"])]
-            if not target.empty:
-                new_row = target.iloc[0].to_dict()
-                new_row["Status"]    = toggle_next
-                new_row["Updated"]   = now_kst_str()
-                new_row["UpdatedBy"] = safe_str(row["UpdatedBy"])
-                ok, err = save_record(new_row, is_edit=True)
-                st.session_state.flash_message = "상태가 변경되었습니다." if ok else f"변경 실패: {err}"
-                st.rerun()
-        if c3.button("삭제", key=f"{prefix}_delete_{row['ID']}", use_container_width=True):
-            ok, err = soft_delete_record(row["ID"])
-            if st.session_state.edit_id == row["ID"]:
-                st.session_state.edit_id = None
-            st.session_state.flash_message = "삭제되었습니다." if ok else f"삭제 실패: {err}"
-            st.rerun()
-        if c4.button("진행중", key=f"{prefix}_follow_inprogress_{row['ID']}", use_container_width=True):
-            ok, err = update_follow_status(row["ID"], "진행중")
-            st.session_state.flash_message = "팔로우업: 진행중" if ok else f"실패: {err}"
-            st.rerun()
-        if c5.button("완료", key=f"{prefix}_follow_done_{row['ID']}", use_container_width=True):
-            ok, err = update_follow_status(row["ID"], "완료")
-            st.session_state.flash_message = "팔로우업: 완료" if ok else f"실패: {err}"
-            st.rerun()
-
+    if c3.button("삭제", key=f"{prefix}_delete_{row['ID']}", use_container_width=True):
+        ok, err = soft_delete_record(row["ID"])
+        if st.session_state.edit_id == row["ID"]: st.session_state.edit_id = None
+        st.session_state.flash_message = "삭제되었습니다." if ok else f"삭제 실패: {err}"
+        st.rerun()
     st.markdown('</div>', unsafe_allow_html=True)
 
 def render_compact_event(row, prefix=""):
-    """일별 보기용 — 기존 스타일 그대로"""
+    """일별 보기용"""
     label = compact_line_text(row)
     with st.expander(label, expanded=False):
         render_summary_header(row)
         render_detail_blocks(row)
-        render_action_buttons(row, prefix=prefix, compact=False)
+        render_action_buttons_full(row, prefix=prefix)
     st.markdown('<div style="margin-top:-14px;"></div>', unsafe_allow_html=True)
     st.markdown('<div style="margin-top:-12px;"></div>', unsafe_allow_html=True)
 
@@ -920,77 +797,118 @@ def render_compact_event(row, prefix=""):
 def render_week_month_event(row, prefix=""):
     """
     주간/월별 보기용.
-    - 화살표 없음 (CSS .wm-event-wrap 으로 제어)
-    - 카테고리 컬러로 테두리 + 텍스트
-    - 펼치면 2열 그리드 핵심 정보 + 2행 버튼
+    - expander 라벨: 시간 [카테고리] 회의명
+    - 카테고리 컬러로 테두리·배경·텍스트
+    - 화살표(>) CSS 제거
+    - 펼치면 요청하신 전체 필드 표시
+    - 버튼: 수정/취소/삭제 3개만
     """
     c        = get_color(safe_str(row.get("Category", "기타")))
     time_txt = safe_str(row.get("Time", ""))
     cat_txt  = safe_str(row.get("Category", "기타"))
     subject  = compact_subject_text(row)
-    label    = f"{time_txt}  {subject}" if time_txt else subject
 
-    # 카테고리 컬러 expander 스타일 + 화살표 제거를 위한 wrapper div
-    uid = f"wm_{prefix}_{row['ID']}".replace("-", "_")
+    # 라벨: 시간 [카테고리] 회의명
+    label = f"{time_txt} [{cat_txt}] {subject}" if time_txt else f"[{cat_txt}] {subject}"
+
+    uid = f"wm_{prefix}_{safe_str(row.get('ID',''))}".replace("-","_").replace(".","_").replace(":","_").replace(" ","_")
+
     st.markdown(f"""
     <style>
     #{uid} div[data-testid='stExpander'] details {{
-        border-color: {c['line']} !important;
+        border: 2px solid {c['line']} !important;
         background: {c['bg']} !important;
     }}
-    #{uid} div[data-testid='stExpander'] details summary p {{
+    #{uid} div[data-testid='stExpander'] details summary p,
+    #{uid} div[data-testid='stExpander'] details summary span {{
         color: {c['text']} !important;
         font-weight: 700 !important;
         font-size: 0.80rem !important;
     }}
     #{uid} div[data-testid='stExpander'] details > summary > div > div[data-testid='stExpanderToggleIcon'],
-    #{uid} div[data-testid='stExpander'] details > summary > div > svg {{
+    #{uid} div[data-testid='stExpander'] details > summary > div > svg,
+    #{uid} div[data-testid='stExpander'] details > summary svg {{
         display: none !important;
     }}
+    #{uid} div[data-testid='stExpander'] details > summary {{
+        padding-left: 10px !important;
+    }}
     </style>
-    <div id="{uid}" class="wm-event-wrap">
+    <div id="{uid}">
     """, unsafe_allow_html=True)
 
     with st.expander(label, expanded=False):
-        # 상단 배지
-        attend_txt = "👑 직접참석" if is_president_attend(row) else "대참가능"
+        attend_txt = "👑 회장 직접 참석" if is_president_attend(row) else "대참 가능"
+        is_cancel  = safe_str(row.get("Status")) == "취소"
+
+        # 상단 배지 행
         st.markdown(f"""
-        <div style="margin-bottom:6px;display:flex;flex-wrap:wrap;gap:4px;">
+        <div style="display:flex;flex-wrap:wrap;gap:4px;margin-bottom:8px;">
             <span style="background:{c['soft']};color:{c['text']};border:1px solid {c['line']};
-                  border-radius:999px;padding:2px 8px;font-size:0.68rem;font-weight:800;">{esc(cat_txt)}</span>
+                  border-radius:999px;padding:2px 8px;font-size:0.70rem;font-weight:800;">{esc(cat_txt)}</span>
             <span style="background:#F3F4F6;color:#374151;border:1px solid #D1D5DB;
-                  border-radius:999px;padding:2px 8px;font-size:0.68rem;font-weight:700;">{esc(row.get('Status',''))}</span>
+                  border-radius:999px;padding:2px 8px;font-size:0.70rem;font-weight:700;">{esc(row.get('Status',''))}</span>
             <span style="background:#F3F4F6;color:#374151;border:1px solid #D1D5DB;
-                  border-radius:999px;padding:2px 8px;font-size:0.68rem;font-weight:700;">{attend_txt}</span>
+                  border-radius:999px;padding:2px 8px;font-size:0.70rem;font-weight:700;">우선순위 {esc(row.get('Priority',''))}</span>
+            <span style="background:#F3F4F6;color:#374151;border:1px solid #D1D5DB;
+                  border-radius:999px;padding:2px 8px;font-size:0.70rem;font-weight:700;">{attend_txt}</span>
             <span style="background:#EFF6FF;color:#1D4ED8;border:1px solid #BFDBFE;
-                  border-radius:999px;padding:2px 8px;font-size:0.68rem;font-weight:700;">
-                팔로우 {esc(row.get('FollowStatus',''))}</span>
+                  border-radius:999px;padding:2px 8px;font-size:0.70rem;font-weight:700;">팔로우 {esc(row.get('FollowStatus',''))}</span>
         </div>
-        <div class="detail-grid">
-            <div class="detail-cell">
-                <div class="detail-cell-label">방문기관</div>
-                <div class="detail-cell-value">{esc(row.get('OrgName','')) or '—'}</div>
+
+        <div class="wm-detail-grid">
+            <div class="wm-detail-cell">
+                <div class="wm-detail-label">일정 날짜</div>
+                <div class="wm-detail-value">{esc(row.get('Date',''))}</div>
             </div>
-            <div class="detail-cell">
-                <div class="detail-cell-label">장소</div>
-                <div class="detail-cell-value">{esc(row.get('DetailPlace','')) or '—'}</div>
+            <div class="wm-detail-cell">
+                <div class="wm-detail-label">일정 시간</div>
+                <div class="wm-detail-value">{esc(row.get('Time',''))}</div>
             </div>
-            <div class="detail-cell">
-                <div class="detail-cell-label">동행</div>
-                <div class="detail-cell-value">{esc(row.get('Companion','')) or '—'}</div>
+            <div class="wm-detail-cell-full">
+                <div class="wm-detail-label">회의명</div>
+                <div class="wm-detail-value" style="font-size:0.88rem;font-weight:700;{'text-decoration:line-through;opacity:0.65;' if is_cancel else ''}">{esc(row.get('Subject',''))}</div>
             </div>
-            <div class="detail-cell">
-                <div class="detail-cell-label">수행직원</div>
-                <div class="detail-cell-value">{esc(row.get('Staff','')) or '—'}</div>
+            <div class="wm-detail-cell">
+                <div class="wm-detail-label">방문기관명</div>
+                <div class="wm-detail-value">{esc(row.get('OrgName','')) or '—'}</div>
             </div>
-            <div class="detail-cell detail-cell-full">
-                <div class="detail-cell-label">회의 목적</div>
-                <div class="detail-cell-value">{esc(row.get('Purpose','')) or '—'}</div>
+            <div class="wm-detail-cell">
+                <div class="wm-detail-label">회장님 외 동행인</div>
+                <div class="wm-detail-value">{esc(row.get('Companion','')) or '—'}</div>
+            </div>
+            <div class="wm-detail-cell">
+                <div class="wm-detail-label">주 담당자</div>
+                <div class="wm-detail-value">{esc(row.get('FollowOwner','')) or '—'}</div>
+            </div>
+            <div class="wm-detail-cell">
+                <div class="wm-detail-label">팔로우업 상태</div>
+                <div class="wm-detail-value">{esc(row.get('FollowStatus',''))}</div>
+            </div>
+            <div class="wm-detail-cell-full">
+                <div class="wm-detail-label">회의 목적</div>
+                <div class="wm-detail-value">{esc(row.get('Purpose','')) or '—'}</div>
+            </div>
+            <div class="wm-detail-cell-full">
+                <div class="wm-detail-label">후속/준비사항</div>
+                <div class="wm-detail-value">{esc(row.get('FollowTask','')) or '—'}</div>
+            </div>
+            <div class="wm-detail-cell-full">
+                <div class="wm-detail-label">진행 메모</div>
+                <div class="wm-detail-value">{esc(row.get('FollowProgressMemo','')) or '—'}</div>
+            </div>
+            <div class="wm-detail-cell-full">
+                <div class="wm-detail-label">공유 메모</div>
+                <div class="wm-detail-value">{esc(row.get('SharedNote','')) or '—'}</div>
+            </div>
+            <div class="wm-detail-cell-full">
+                <div class="wm-detail-label">일반 메모</div>
+                <div class="wm-detail-value">{esc(row.get('Memo','')) or '—'}</div>
             </div>
         </div>
         """, unsafe_allow_html=True)
 
-        render_action_buttons(row, prefix=prefix, compact=True)
+        render_action_buttons_compact(row, prefix=prefix)
 
     st.markdown('</div>', unsafe_allow_html=True)
     st.markdown('<div style="margin-top:-14px;"></div>', unsafe_allow_html=True)
@@ -1017,14 +935,14 @@ def render_form(mode="new", row_data=None):
         input_date     = r1c1.date_input("일정 날짜", value=to_date_safe(row_data["Date"]) or now_kst().date())
         input_time     = r1c2.time_input("일정 시간", value=parse_time_safe(row_data["Time"]))
         input_category = r1c3.selectbox("카테고리", CATEGORIES,
-                                        index=CATEGORIES.index(row_data["Category"]) if row_data["Category"] in CATEGORIES else 0)
+                            index=CATEGORIES.index(row_data["Category"]) if row_data["Category"] in CATEGORIES else 0)
 
         r2c1,r2c2,r2c3,r2c4,r2c5 = st.columns([2.1,1.0,1.0,1.2,1.1])
         input_subject  = r2c1.text_input("회의명", value=safe_str(row_data["Subject"]))
         input_status   = r2c2.selectbox("일정 현황", STATUS_OPTIONS,
-                                        index=STATUS_OPTIONS.index(row_data["Status"]) if row_data["Status"] in STATUS_OPTIONS else 0)
+                            index=STATUS_OPTIONS.index(row_data["Status"]) if row_data["Status"] in STATUS_OPTIONS else 0)
         input_priority = r2c3.selectbox("우선순위", PRIORITY_OPTIONS,
-                                        index=PRIORITY_OPTIONS.index(row_data["Priority"]) if row_data["Priority"] in PRIORITY_OPTIONS else 1)
+                            index=PRIORITY_OPTIONS.index(row_data["Priority"]) if row_data["Priority"] in PRIORITY_OPTIONS else 1)
         input_editor_name      = r2c4.text_input("작성자/수정자 이름", value=safe_str(row_data["UpdatedBy"]), placeholder="예: 홍길동")
         input_president_attend = r2c5.checkbox("회장 직접 참석", value=is_president_attend(row_data))
 
@@ -1048,11 +966,10 @@ def render_form(mode="new", row_data=None):
         r6c1,r6c2,r6c3 = st.columns(3)
         input_follow_owner  = r6c1.text_input("주 담당자", value=safe_str(row_data["FollowOwner"]))
         existing_follow_due = to_date_safe(row_data["FollowDue"])
-        input_follow_due    = r6c2.date_input("준비 완료기한",
-                                               value=existing_follow_due or input_date,
+        input_follow_due    = r6c2.date_input("준비 완료기한", value=existing_follow_due or input_date,
                                                key=f"follow_due_date_{mode}_{safe_str(row_data['ID']) or 'new'}")
         input_follow_status = r6c3.selectbox("팔로우업 상태", FOLLOW_STATUS_OPTIONS,
-                                              index=FOLLOW_STATUS_OPTIONS.index(row_data["FollowStatus"]) if row_data["FollowStatus"] in FOLLOW_STATUS_OPTIONS else 0)
+                                  index=FOLLOW_STATUS_OPTIONS.index(row_data["FollowStatus"]) if row_data["FollowStatus"] in FOLLOW_STATUS_OPTIONS else 0)
 
         input_follow_task     = st.text_area("후속/준비사항",  value=safe_str(row_data["FollowTask"]),         height=100)
         input_follow_progress = st.text_area("진행 메모",      value=safe_str(row_data["FollowProgressMemo"]), height=80)
@@ -1066,10 +983,8 @@ def render_form(mode="new", row_data=None):
             submit_view     = b1.form_submit_button("저장 후 일정 보기",  use_container_width=True)
             submit_continue = b2.form_submit_button("저장 후 계속 등록", use_container_width=True)
             if submit_view or submit_continue:
-                if not safe_str(input_subject):
-                    st.warning("회의명은 입력해 주세요.")
-                elif not safe_str(input_editor_name):
-                    st.warning("작성자/수정자 이름은 입력해 주세요.")
+                if not safe_str(input_subject): st.warning("회의명은 입력해 주세요.")
+                elif not safe_str(input_editor_name): st.warning("작성자/수정자 이름은 입력해 주세요.")
                 else:
                     record = {
                         "ID":next_id(),"Date":str(input_date),"Time":input_time.strftime("%H:%M"),
@@ -1098,10 +1013,8 @@ def render_form(mode="new", row_data=None):
             save_btn   = b1.form_submit_button("수정 저장", use_container_width=True)
             cancel_btn = b2.form_submit_button("수정 취소", use_container_width=True)
             if save_btn:
-                if not safe_str(input_subject):
-                    st.warning("회의명은 입력해 주세요.")
-                elif not safe_str(input_editor_name):
-                    st.warning("작성자/수정자 이름은 입력해 주세요.")
+                if not safe_str(input_subject): st.warning("회의명은 입력해 주세요.")
+                elif not safe_str(input_editor_name): st.warning("작성자/수정자 이름은 입력해 주세요.")
                 else:
                     record = {
                         "ID":row_data["ID"],"Date":str(input_date),"Time":input_time.strftime("%H:%M"),
@@ -1125,8 +1038,7 @@ def render_form(mode="new", row_data=None):
                     st.session_state.flash_message = "일정이 수정되었습니다." if ok else f"수정 실패: {err}"
                     st.rerun()
             if cancel_btn:
-                st.session_state.edit_id = None
-                st.rerun()
+                st.session_state.edit_id = None; st.rerun()
 
 
 # =========================================================
@@ -1143,15 +1055,14 @@ sidebar_top = st.sidebar.container()
 
 with sidebar_top:
     if st.button("📅 일정 보기", use_container_width=True):
-        st.session_state.main_menu    = "📅 일정 보기"
+        st.session_state.main_menu     = "📅 일정 보기"
         st.session_state.selected_date = today
-        st.session_state.edit_id      = None
+        st.session_state.edit_id       = None
         st.rerun()
     st.markdown('<div style="margin-top:-14px;"></div>', unsafe_allow_html=True)
 
     if st.button("✍️ 신규 일정 등록", use_container_width=True):
-        st.session_state.main_menu = "✍️ 신규 일정 등록"
-        st.rerun()
+        st.session_state.main_menu = "✍️ 신규 일정 등록"; st.rerun()
     st.markdown('<div style="margin-top:-14px;"></div>', unsafe_allow_html=True)
 
     xlsx_bytes = excel_download_bytes(st.session_state.data)
@@ -1163,9 +1074,9 @@ with sidebar_top:
     )
     st.markdown('<div style="margin-top:-14px;"></div>', unsafe_allow_html=True)
 
-    # ── 사이드바 미리보기: st.expander 대신 버튼 토글 방식 ──
-    preview_open = st.session_state.sidebar_preview_open
-    arrow_icon   = "▲" if preview_open else "▼"
+    # ── 사이드바 미리보기: 버튼 토글 방식 ──
+    preview_open     = st.session_state.sidebar_preview_open
+    arrow_icon       = "▲" if preview_open else "▼"
     preview_date_str = str(st.session_state.selected_date)
 
     if st.button(
@@ -1199,7 +1110,7 @@ if st.session_state.show_reload_password:
     password_input = st.sidebar.text_input("관리자 비밀번호", type="password", key="reload_password_input")
     if st.sidebar.button("🔄 구글 시트에서 다시 불러오기 실행", use_container_width=True):
         if password_input == ADMIN_RELOAD_PASSWORD:
-            st.session_state.data = load_data_from_gsheet()
+            st.session_state.data                = load_data_from_gsheet()
             st.session_state.flash_message       = "구글 시트의 최신 내용을 화면으로 다시 불러왔습니다."
             st.session_state.show_reload_password = False
             st.rerun()
@@ -1262,12 +1173,12 @@ else:
         st.session_state.selected_date = st.session_state._date_input_main
 
     if fc6.button("오늘", use_container_width=True):
-        st.session_state.search_text          = ""
-        st.session_state.selected_cat         = "카테고리"
-        st.session_state.selected_status      = "일정 현황"
+        st.session_state.search_text           = ""
+        st.session_state.selected_cat          = "카테고리"
+        st.session_state.selected_status       = "일정 현황"
         st.session_state.selected_follow_status = "팔로우업 상태"
-        st.session_state.selected_date        = today
-        st.session_state.table_page_num_value = 1
+        st.session_state.selected_date         = today
+        st.session_state.table_page_num_value  = 1
         st.rerun()
 
     render_legend()
@@ -1298,13 +1209,10 @@ else:
         if st.session_state.edit_id:
             current     = get_active_df(st.session_state.data)
             edit_target = ensure_columns(current[current["ID"].astype(str) == str(st.session_state.edit_id)])
-            if not edit_target.empty:
-                render_form(mode="edit", row_data=edit_target.iloc[0].to_dict())
-            else:
-                st.caption("수정할 일정이 존재하지 않습니다.")
+            if not edit_target.empty: render_form(mode="edit", row_data=edit_target.iloc[0].to_dict())
+            else: st.caption("수정할 일정이 존재하지 않습니다.")
         else:
-            if day_df.empty:
-                st.caption("선택한 날짜의 일정이 없습니다.")
+            if day_df.empty: st.caption("선택한 날짜의 일정이 없습니다.")
             else:
                 for idx, (_, row) in enumerate(day_df.iterrows()):
                     render_compact_event(row, prefix=f"day_{idx}")
@@ -1316,8 +1224,7 @@ else:
         week_anchor = wc1.date_input("", value=st.session_state.selected_date,
                                      key="week_anchor_date", label_visibility="collapsed")
         if wc2.button("이 날짜가 포함된 주 보기", key="apply_week_anchor"):
-            st.session_state.selected_date = week_anchor
-            st.rerun()
+            st.session_state.selected_date = week_anchor; st.rerun()
 
         week_days = week_dates_from_any_day(st.session_state.selected_date)
         week_df   = filtered_df[filtered_df["DateParsed"].isin(week_days)].copy()
@@ -1330,8 +1237,7 @@ else:
                 label_cls = "day-head" + (f" {cls}" if cls else "")
                 st.markdown(f'<div class="{label_cls}">{day_obj.month}/{day_obj.day} ({day_names[idx]})</div>', unsafe_allow_html=True)
                 daily = sort_oldest_first(week_df[week_df["DateParsed"] == day_obj].copy())
-                if daily.empty:
-                    st.caption("일정 없음")
+                if daily.empty: st.caption("일정 없음")
                 else:
                     for r_idx, (_, row) in enumerate(daily.iterrows()):
                         st.session_state.is_mobile_force_stack = True
@@ -1345,9 +1251,9 @@ else:
         mc1, mc2, mc3 = st.columns([1, 1, 2])
         current_year = st.session_state.selected_date.year
         year_options = list(range(min(2025, current_year-3), max(2040, current_year+10)+1))
-        month_year  = mc1.selectbox("년도", year_options, index=year_options.index(current_year), key="month_year_select")
-        month_month = mc2.selectbox("월", list(range(1,13)), index=st.session_state.selected_date.month-1, key="month_month_select")
-        month_view_mode = mc3.radio("보기 방식", ["캘린더형","목록형"], horizontal=True, key="month_view_mode")
+        month_year       = mc1.selectbox("년도", year_options, index=year_options.index(current_year), key="month_year_select")
+        month_month      = mc2.selectbox("월", list(range(1,13)), index=st.session_state.selected_date.month-1, key="month_month_select")
+        month_view_mode  = mc3.radio("보기 방식", ["캘린더형","목록형"], horizontal=True, key="month_view_mode")
 
         month_df = filtered_df[filtered_df["DateParsed"].apply(
             lambda d: d.year == month_year and d.month == month_month if pd.notna(d) else False
@@ -1370,8 +1276,7 @@ else:
                         else:
                             st.markdown(day_header_html(day_obj, f"{day_obj.day}일", dim=False), unsafe_allow_html=True)
                             daily = sort_oldest_first(month_df[month_df["DateParsed"] == day_obj].copy())
-                            if daily.empty:
-                                st.caption("일정 없음")
+                            if daily.empty: st.caption("일정 없음")
                             else:
                                 for r_idx, (_, row) in enumerate(daily.iterrows()):
                                     st.session_state.is_mobile_force_stack = True
@@ -1384,13 +1289,11 @@ else:
             flat_days   = [d for week in all_days for d in week if d.month == month_month]
             seen, ordered_days = set(), []
             for d in flat_days:
-                if d not in seen:
-                    seen.add(d); ordered_days.append(d)
+                if d not in seen: seen.add(d); ordered_days.append(d)
             for d in ordered_days:
                 st.markdown(day_header_html(d, f"{d.month}월 {d.day}일", dim=False), unsafe_allow_html=True)
                 daily = month_list[month_list["DateParsed"] == d].copy()
-                if daily.empty:
-                    st.caption("일정 없음")
+                if daily.empty: st.caption("일정 없음")
                 else:
                     for r_idx, (_, row) in enumerate(daily.iterrows()):
                         render_week_month_event(row, prefix=f"month_list_{d}_{r_idx}")
@@ -1406,13 +1309,10 @@ else:
         st.caption("'한 페이지 행 수'는 한 번에 보여줄 일정 데이터 행 개수입니다.")
 
         table_df = filtered_df.copy()
-        if table_follow_filter != "전체":
-            table_df = table_df[table_df["FollowStatus"] == table_follow_filter]
-        if only_open_follow:
-            table_df = table_df[table_df["FollowStatus"].isin(["미착수","진행중","보류"])]
+        if table_follow_filter != "전체": table_df = table_df[table_df["FollowStatus"] == table_follow_filter]
+        if only_open_follow: table_df = table_df[table_df["FollowStatus"].isin(["미착수","진행중","보류"])]
 
-        if table_df.empty:
-            st.caption("표시할 일정이 없습니다.")
+        if table_df.empty: st.caption("표시할 일정이 없습니다.")
         else:
             table_df    = sort_latest_first(table_df) if table_sort_mode == "최신 일정 우선" else sort_oldest_first(table_df)
             total_rows  = len(table_df)
