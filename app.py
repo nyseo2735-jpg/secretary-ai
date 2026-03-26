@@ -244,10 +244,6 @@ div[data-testid='stTabs'] { margin-bottom: 0 !important; }
     > div > [data-testid='stExpander']
 ) { gap: 4px !important; row-gap: 4px !important; }
 
-/* ──────────────────────────────────────────
-   주간/월별 expander 카테고리 컬러 적용용
-   .wm-cat-{slug} 클래스로 동적 주입
-────────────────────────────────────────── */
 </style>
 """, unsafe_allow_html=True)
 
@@ -670,6 +666,7 @@ for key, val in [
     ("show_reload_password", False),
     ("table_page_num_value", 1),
     ("sidebar_preview_open", False),
+    ("wm_expanded", {}),
 ]:
     if key not in st.session_state: st.session_state[key] = val
 
@@ -750,7 +747,6 @@ def render_detail_blocks(row):
     st.markdown(f'<div class="memo-box"><div class="memo-title">📌 일반 메모</div><div class="memo-text">{esc(row["Memo"])}</div></div>', unsafe_allow_html=True)
 
 def render_action_buttons_full(row, prefix=""):
-    """일별 보기용: 수정/일정취소/삭제/진행중/완료 5버튼"""
     st.markdown('<div class="small-action">', unsafe_allow_html=True)
     c1, c2, c3, c4, c5 = st.columns([0.8, 0.9, 0.8, 1.0, 1.0])
     if c1.button("수정", key=f"{prefix}_edit_{row['ID']}", use_container_width=True):
@@ -783,7 +779,6 @@ def render_action_buttons_full(row, prefix=""):
     st.markdown('</div>', unsafe_allow_html=True)
 
 def render_action_buttons_compact(row, prefix=""):
-    """주간/월별 보기용: 수정/취소/삭제 3버튼만"""
     st.markdown('<div class="small-action">', unsafe_allow_html=True)
     c1, c2, c3 = st.columns(3)
     if c1.button("수정", key=f"{prefix}_edit_{row['ID']}", use_container_width=True):
@@ -807,7 +802,6 @@ def render_action_buttons_compact(row, prefix=""):
     st.markdown('</div>', unsafe_allow_html=True)
 
 def render_compact_event(row, prefix=""):
-    """일별 보기용"""
     label = compact_line_text(row)
     with st.expander(label, expanded=False):
         render_summary_header(row)
@@ -818,69 +812,89 @@ def render_compact_event(row, prefix=""):
 
 
 # =========================================================
-# [수정 1/2] render_week_month_event
-# - st.expander 유지
-# - 카테고리 고유 컬러: border 1px + 텍스트 + 배경
-# - > 화살표 완전 제거
-# - 사이드바 미리보기 박스와 동일한 느낌
+# render_week_month_event
+# - st.expander 제거, st.button 토글 방식
+# - 카테고리 고유 컬러를 JavaScript로 직접 DOM에 주입
+# - > 화살표 없음 (st.button이므로)
+# - 기존 margin-top 간격 그대로 유지
 # =========================================================
 def render_week_month_event(row, prefix=""):
-    c        = get_color(safe_str(row.get("Category", "기타")))
-    time_txt = safe_str(row.get("Time", ""))
-    cat_txt  = safe_str(row.get("Category", "기타"))
-    subject  = compact_subject_text(row)
-    label    = f"{time_txt} [{cat_txt}] {subject}" if time_txt else f"[{cat_txt}] {subject}"
+    c         = get_color(safe_str(row.get("Category", "기타")))
+    time_txt  = safe_str(row.get("Time", ""))
+    cat_txt   = safe_str(row.get("Category", "기타"))
+    subject   = compact_subject_text(row)
+    label     = f"{time_txt} [{cat_txt}] {subject}" if time_txt else f"[{cat_txt}] {subject}"
     is_cancel = safe_str(row.get("Status")) == "취소"
 
     row_id     = safe_str(row.get("ID", ""))
     toggle_key = f"wm_toggle_{prefix}_{row_id}"
+    is_open    = st.session_state.wm_expanded.get(toggle_key, False)
 
-    if "wm_expanded" not in st.session_state:
-        st.session_state.wm_expanded = {}
-    is_open = st.session_state.wm_expanded.get(toggle_key, False)
-
-    # ── 버튼 고유 key용 slug ──
-    btn_slug = "".join(ch if ch.isalnum() or ch == "_" else "_" for ch in toggle_key)
+    # 버튼 DOM 타겟팅용 고유 key (data-testid 기반 nth 방식 대신 key 텍스트 매칭)
+    # Streamlit button의 key는 aria-label 또는 내부 p 텍스트로 노출되지 않으므로
+    # JavaScript로 버튼 생성 직후 스타일을 주입하는 방식 사용
+    btn_js_id = "wmbtn_" + "".join(ch if ch.isalnum() else "_" for ch in toggle_key)
 
     label_style = "text-decoration:line-through;opacity:0.65;" if is_cancel else ""
 
-    # ── 카테고리 고유 컬러 버튼 CSS 주입 ──
+    # ── JavaScript로 해당 버튼만 정확히 스타일 적용 ──
+    # Streamlit에서 st.button의 key는 data-testid에 노출되지 않지만
+    # 버튼 텍스트(innerText)로 찾을 수 있음.
+    # 단, 같은 텍스트 버튼이 여럿일 수 있으므로
+    # 마커 div(data-btnid)를 먼저 렌더하고
+    # 그 다음 형제 stButton을 JS로 찾아 스타일 적용
     st.markdown(f"""
-<style>
-div[data-testid="stButton"] > button[kind="secondary"]#btn_{btn_slug},
-div[id="btn_{btn_slug}"] > div[data-testid="stButton"] > button,
-[id="btn_wrap_{btn_slug}"] button {{
-    background: {c['bg']} !important;
-    border: 1px solid {c['line']} !important;
-    color: {c['text']} !important;
-    border-radius: 12px !important;
-    font-weight: 700 !important;
-    font-size: 0.80rem !important;
-    line-height: 1.4 !important;
-    text-align: left !important;
-    padding: 7px 10px !important;
-    white-space: normal !important;
-    word-break: keep-all !important;
-    height: auto !important;
-    min-height: 0 !important;
-    {label_style}
-}}
-[id="btn_wrap_{btn_slug}"] button:hover {{
-    background: {c['soft']} !important;
-    border-color: {c['line']} !important;
-    color: {c['text']} !important;
-}}
-</style>
-<div id="btn_wrap_{btn_slug}">
+<div data-btnid="{btn_js_id}" style="display:none;height:0;margin:0;padding:0;overflow:hidden;"></div>
+<script>
+(function(){{
+  function applyStyle(){{
+    var marker = document.querySelector('div[data-btnid="{btn_js_id}"]');
+    if(!marker) return;
+    // marker의 부모(stMarkdown wrap) 다음 형제들 중 stButton을 찾음
+    var parent = marker.closest('[data-testid="stMarkdown"]') || marker.parentElement;
+    var sib = parent;
+    var btn = null;
+    var limit = 8;
+    while(sib && limit > 0){{
+      sib = sib.nextElementSibling;
+      limit--;
+      if(!sib) break;
+      var b = sib.querySelector('button');
+      if(b){{ btn = b; break; }}
+    }}
+    if(!btn) return;
+    btn.style.setProperty('background', '{c["bg"]}', 'important');
+    btn.style.setProperty('border', '1px solid {c["line"]}', 'important');
+    btn.style.setProperty('color', '{c["text"]}', 'important');
+    btn.style.setProperty('border-radius', '12px', 'important');
+    btn.style.setProperty('font-weight', '700', 'important');
+    btn.style.setProperty('font-size', '0.80rem', 'important');
+    btn.style.setProperty('text-align', 'left', 'important');
+    btn.style.setProperty('padding', '7px 10px', 'important');
+    btn.style.setProperty('white-space', 'normal', 'important');
+    btn.style.setProperty('word-break', 'keep-all', 'important');
+    btn.style.setProperty('height', 'auto', 'important');
+    btn.style.setProperty('line-height', '1.4', 'important');
+    if('{label_style}'){{
+      btn.style.setProperty('text-decoration', 'line-through', 'important');
+      btn.style.setProperty('opacity', '0.65', 'important');
+    }}
+  }}
+  if(document.readyState === 'loading'){{
+    document.addEventListener('DOMContentLoaded', applyStyle);
+  }} else {{
+    setTimeout(applyStyle, 0);
+    setTimeout(applyStyle, 100);
+    setTimeout(applyStyle, 300);
+  }}
+}})();
+</script>
 """, unsafe_allow_html=True)
 
     if st.button(label, key=toggle_key, use_container_width=True):
         st.session_state.wm_expanded[toggle_key] = not is_open
         st.rerun()
 
-    st.markdown("</div>", unsafe_allow_html=True)
-
-    # ── 펼쳐진 상세 영역 ──
     if is_open:
         st.markdown(f"""
 <div style="border:1px solid {c['line']};border-top:none;background:{c['bg']};
@@ -1098,24 +1112,23 @@ with sidebar_top:
         if selected_day_sidebar.empty:
             st.caption("선택한 날짜의 일정이 없습니다.")
         else:
-            # =========================================================
-            # [수정 2/2] 사이드바 미리보기 박스 간격
-            # - 각 항목 사이에 st.markdown 으로 6px 높이 spacer 삽입
-            # - HTML 박스 자체의 margin-bottom 도 인라인으로 명시
-            # =========================================================
-            sidebar_html_parts = []
+            # ── 사이드바 미리보기: 모든 박스를 단일 HTML로 묶어 출력 ──
+            # Streamlit이 각 st.markdown() 호출마다 stMarkdown wrapper를 삽입해
+            # 박스 사이에 기본 gap이 생기는 문제를 해결하기 위해
+            # 전체를 하나의 HTML 블록으로 출력하고 margin-top으로 간격 제어
+            parts = []
             for i, (_, row) in enumerate(selected_day_sidebar.iterrows()):
                 c = get_color(row["Category"])
-                margin_top = "8px" if i > 0 else "0px"
-                sidebar_html_parts.append(
+                mt = "8px" if i > 0 else "0px"
+                parts.append(
                     f'<div style="'
                     f'border:1px solid {c["line"]};'
                     f'border-radius:12px;'
                     f'padding:8px 10px;'
                     f'background:{c["bg"]};'
                     f'display:block;'
-                    f'margin-top:{margin_top};'
-                    f'margin-bottom:0px;">'
+                    f'margin-top:{mt};'
+                    f'">'
                     f'<div style="font-size:0.78rem;font-weight:800;color:{c["text"]};margin-bottom:4px;">'
                     f'{html.escape(safe_str(row["Time"]))} · {html.escape(safe_str(row["Category"]))} · {html.escape(safe_str(row["FollowStatus"]))}'
                     f'</div>'
@@ -1124,6 +1137,7 @@ with sidebar_top:
                     f'</div>'
                     f'</div>'
                 )
+            st.markdown("".join(parts), unsafe_allow_html=True)
 
 st.sidebar.markdown("---")
 st.sidebar.markdown('<div class="helper-note">구글 시트 다시 불러오기는 맨 아래에서 비밀번호 입력 후 실행할 수 있습니다.</div>', unsafe_allow_html=True)
