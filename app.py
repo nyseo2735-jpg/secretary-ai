@@ -517,8 +517,8 @@ div[data-testid="stTabs"] {
 [data-testid='column'] [data-testid='stVerticalBlock']:has(
     > div > [data-testid='stExpander']
 ) {
-    gap: 8px !important;
-    row-gap: 8px !important;
+    gap: 6px !important;
+    row-gap: 6px !important;
 }
 
 </style>
