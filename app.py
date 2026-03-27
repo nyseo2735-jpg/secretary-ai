@@ -1323,7 +1323,7 @@ else:
                       on_change=_on_date_change)
         st.session_state.selected_date = st.session_state._date_input_main
 
-    if fc6.button("오늘", use_container_width=True):
+    if fc6.button("오늘", use_container_width=True, type="primary"):
         st.session_state.search_text           = ""
         st.session_state.selected_cat          = "카테고리"
         st.session_state.selected_status       = "일정 현황"
