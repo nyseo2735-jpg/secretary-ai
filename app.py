@@ -324,7 +324,28 @@ div[data-testid='stTabs'] { margin-bottom: 0 !important; }
     margin: 0 !important;
     padding: 0 !important;
 }
-    
+
+    * ── 일별 보기 하단 액션 버튼 원복 ── */
+.small-action [data-testid='stBaseButton-secondary'] {
+    all: revert !important;
+    border-radius: 12px !important;
+    font-weight: 700 !important;
+    font-size: 0.84rem !important;
+    min-height: 34px !important;
+    height: 34px !important;
+    padding-top: 0.15rem !important;
+    padding-bottom: 0.15rem !important;
+    width: 100% !important;
+    cursor: pointer !important;
+}
+.small-action [data-testid='stBaseButton-secondary'] div,
+.small-action [data-testid='stBaseButton-secondary'] span,
+.small-action [data-testid='stBaseButton-secondary'] p {
+    all: revert !important;
+    font-size: 0.84rem !important;
+    font-weight: 700 !important;
+}
+
 </style>
 """, unsafe_allow_html=True)
 
