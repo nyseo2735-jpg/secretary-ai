@@ -999,7 +999,7 @@ def render_list_view_event(row, prefix=""):
     # ── 상세 버튼 (인라인 HTML로 극소형 — CSS 불필요) ──
     arrow = "▲" if is_open else "▼"
     btn_margin_top = "0px"                                     # ← 박스↔버튼 간격
-    btn_margin_bottom = "-35px"                                  # ← 버튼↔다음 박스 간격
+    btn_margin_bottom = "-45px"                                  # ← 버튼↔다음 박스 간격
     arrow = "▲" if is_open else "▼"
     _col_btn, = st.columns([1])
     with _col_btn:
