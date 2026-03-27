@@ -909,7 +909,7 @@ def render_week_month_event(row, prefix=""):
     row_id    = safe_str(row.get("ID", ""))
     attend_icon = "👑 " if is_president_attend(row) else ""
     subj = safe_str(row.get("Subject", ""))
-    toggle_key = f"wm_tog_{prefix}_{row_id}"
+    toggle_key = f"lv_tog_{prefix}_{row_id}"
 
     # ── 상태 관리 ──
     if toggle_key not in st.session_state.wm_expanded:
