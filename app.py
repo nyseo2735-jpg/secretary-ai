@@ -237,13 +237,18 @@ div[data-testid='stTabs'] { margin-bottom: 0 !important; }
 }
 
 /* ── 주간/월별 컬럼 내 간격 최소화 ── */
-[data-testid='column'] [data-testid='stVerticalBlock'] {
+[data-testid='column'] [data-testid='stVerticalBlock'],
+[data-testid='stColumn'] [data-testid='stVerticalBlock'] {
     gap: 0px !important;
     row-gap: 0px !important;
 }
 [data-testid='column'] [data-testid='stMarkdown'] {
     margin-top: 0px !important;
     margin-bottom: 0px !important;
+}
+[data-testid='stColumn'] .stElementContainer:has([data-testid='stBaseButton-secondary']) {
+    margin-top: -6px !important;
+    margin-bottom: -4px !important;
 }
 /* ── 주간/월별 컬럼 내 버튼 극소형화 ── */
 [data-testid='stColumn'] [data-testid='stBaseButton-secondary'] {
