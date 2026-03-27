@@ -775,7 +775,9 @@ for key, val in [
 # 5-1. 날짜 선택 콜백
 # =========================================================
 def _on_date_change():
-    st.session_state.selected_date = st.session_state._date_input_main
+    if not st.session_state.get("_week_btn_clicked", False):
+        st.session_state.selected_date = st.session_state._date_input_main
+    st.session_state._week_btn_clicked = False
 
 # =========================================================
 # 6. 렌더 함수
@@ -1322,7 +1324,8 @@ else:
         st.date_input("", value=st.session_state.selected_date,
                       key="_date_input_main", label_visibility="collapsed",
                       on_change=_on_date_change)
-        st.session_state.selected_date = st.session_state._date_input_main
+        if not st.session_state.get("_week_btn_clicked", False):
+            st.session_state.selected_date = st.session_state._date_input_main
 
     with fc6:
         st.markdown('<p style="font-size:0.12rem;">&nbsp;</p>', unsafe_allow_html=True)
@@ -1387,8 +1390,8 @@ else:
         with wc2:
             st.markdown('<p style="font-size:0.12rem;">&nbsp;</p>', unsafe_allow_html=True)
             if st.button("이 날짜가 포함된 주 보기", key="apply_week_anchor", use_container_width=True, type="primary"):
+                st.session_state._week_btn_clicked = True
                 st.session_state.selected_date = st.session_state.week_anchor_value
-                st.session_state._date_input_main = st.session_state.week_anchor_value
                 st.rerun()
 
         week_days = week_dates_from_any_day(st.session_state.selected_date)
