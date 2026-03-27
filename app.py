@@ -856,66 +856,35 @@ def render_week_month_event(row, prefix=""):
     toggle_key = f"wm_toggle_{prefix}_{row_id}"
     is_open    = st.session_state.wm_expanded.get(toggle_key, False)
 
-    # ── 컬러 버튼을 순수 HTML로 렌더링 (시간 + 카테고리 + 제목 분리) ──
+    # ── 컬러 박스 (순수 HTML, 클릭 불가) ──
     cancel_style = "text-decoration:line-through;opacity:0.65;" if is_cancel else ""
     attend_icon  = "👑 " if is_president_attend(row) else ""
     time_html    = f'<div style="font-size:0.73rem;font-weight:800;color:{c["text"]};margin-bottom:2px;">{esc(time_txt)} [{esc(cat_txt)}]</div>' if time_txt else f'<div style="font-size:0.73rem;font-weight:800;color:{c["text"]};margin-bottom:2px;">[{esc(cat_txt)}]</div>'
     subject_html = f'<div style="font-size:0.84rem;font-weight:700;color:{c["text"]};line-height:1.4;word-break:keep-all;{cancel_style}">{html.escape(attend_icon)}{esc(safe_str(row.get("Subject","")))}</div>'
 
-    btn_js_id = "wmbtn_" + "".join(ch if ch.isalnum() else "_" for ch in toggle_key)
-
-    # 컬러 박스 HTML + 숨겨진 버튼을 클릭하는 JS
     st.markdown(f"""
-<div data-btnid="{btn_js_id}"
-     style="
-        background:{c['bg']};
-        border:1.5px solid {c['line']};
-        border-radius:10px;
-        padding:5px 8px;
-        margin-bottom:2px;
-        margin-top:0px;
-        cursor:pointer;
-        transition:filter 0.12s;
-     "
-     onmouseover="this.style.filter='brightness(0.96)'"
-     onmouseout="this.style.filter='brightness(1)'"
->
+<div style="
+    background:{c['bg']};
+    border:1.5px solid {c['line']};
+    border-radius:10px;
+    padding:5px 8px;
+    margin-bottom:0px;
+    margin-top:0px;
+">
     {time_html}
     {subject_html}
 </div>
-<script>
-(function(){{
-  var marker = document.querySelector('div[data-btnid="{btn_js_id}"]');
-  if(!marker) return;
-  marker.addEventListener('click', function(){{
-    var sib = marker.closest('[data-testid="stMarkdown"]') || marker.parentElement;
-    var limit = 8;
-    while(sib && limit > 0){{
-      sib = sib.nextElementSibling;
-      limit--;
-      if(!sib) break;
-      var b = sib.querySelector('button');
-      if(b){{ b.click(); break; }}
-    }}
-  }});
-}})();
-</script>
 """, unsafe_allow_html=True)
 
-    # ── 숨겨진 토글 버튼 (실제 클릭은 위 JS가 대신 해줌) ──
-    st.markdown(f"""<style>
-    div[data-testid="stButton"]:has(button[key="{toggle_key}"]) {{
-        height: 0px !important;
-        overflow: hidden !important;
-        margin: 0 !important;
-        padding: 0 !important;
-        min-height: 0 !important;
-    }}
-    </style>""", unsafe_allow_html=True)
+    # ── 토글 버튼 (최소 높이, 텍스트 없이 ▼/▲ 만) ──
+    st.markdown('<div style="margin-top:-8px;"></div>', unsafe_allow_html=True)
 
-    if st.button("toggle", key=toggle_key, use_container_width=True):
+    btn_label = "▲" if is_open else "▼"
+    if st.button(btn_label, key=toggle_key, use_container_width=True):
         st.session_state.wm_expanded[toggle_key] = not is_open
         st.rerun()
+
+    st.markdown('<div style="margin-top:-10px;"></div>', unsafe_allow_html=True)
 
     if is_open:
         st.markdown(f"""
