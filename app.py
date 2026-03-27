@@ -991,7 +991,7 @@ def render_list_view_event(row, prefix=""):
     # ── 이벤트 박스 (margin-bottom 으로 박스↔버튼 간격 조정) ──
     st.markdown(
         f'<div style="background:{c["bg"]};border:1.5px solid {c["line"]};border-radius:10px;'
-        f'padding:4px 7px;margin-bottom:-10px;">'               # ← ⓐ 박스 아래 간격
+        f'padding:4px 7px;margin-bottom:-15px;">'               # ← ⓐ 박스 아래 간격
         f'{time_html}{subject_html}</div>',
         unsafe_allow_html=True
     )
