@@ -856,75 +856,31 @@ def render_week_month_event(row, prefix=""):
     toggle_key = f"wm_toggle_{prefix}_{row_id}"
     is_open    = st.session_state.wm_expanded.get(toggle_key, False)
 
-    # ── 버튼 라벨 (두 번째 코드의 time_html/subject_html 내용을 텍스트로) ──
-    attend_icon = "👑 " if is_president_attend(row) else ""
-    if time_txt:
-        label = f"{time_txt} [{cat_txt}]  {attend_icon}{safe_str(row.get('Subject',''))}"
-    else:
-        label = f"[{cat_txt}]  {attend_icon}{safe_str(row.get('Subject',''))}"
-    if is_cancel:
-        label = f"{label} (취소)"
-
-    # ── JS로 버튼에 컬러 스타일 적용 (첫 번째 코드 방식 그대로) ──
-    btn_js_id = "wmbtn_" + "".join(ch if ch.isalnum() else "_" for ch in toggle_key)
-    label_style = "text-decoration:line-through;opacity:0.65;" if is_cancel else ""
+    # ── 컬러 버튼을 순수 HTML로 렌더링 (시간 + 카테고리 + 제목 분리) ──
+    cancel_style = "text-decoration:line-through;opacity:0.65;" if is_cancel else ""
+    attend_icon  = "👑 " if is_president_attend(row) else ""
+    time_html    = f'<div style="font-size:0.73rem;font-weight:800;color:{c["text"]};margin-bottom:3px;">{esc(time_txt)} [{esc(cat_txt)}]</div>' if time_txt else f'<div style="font-size:0.73rem;font-weight:800;color:{c["text"]};margin-bottom:3px;">[{esc(cat_txt)}]</div>'
+    subject_html = f'<div style="font-size:0.84rem;font-weight:700;color:{c["text"]};line-height:1.4;word-break:keep-all;{cancel_style}">{html.escape(attend_icon)}{esc(safe_str(row.get("Subject","")))}</div>'
 
     st.markdown(f"""
-<div data-btnid="{btn_js_id}" style="display:none;height:0;margin:0;padding:0;overflow:hidden;"></div>
-<script>
-(function(){{
-  function applyStyle(){{
-    var marker = document.querySelector('div[data-btnid="{btn_js_id}"]');
-    if(!marker) return;
-    var parent = marker.closest('[data-testid="stMarkdown"]') || marker.parentElement;
-    var sib = parent;
-    var btn = null;
-    var limit = 8;
-    while(sib && limit > 0){{
-      sib = sib.nextElementSibling;
-      limit--;
-      if(!sib) break;
-      var b = sib.querySelector('button');
-      if(b){{ btn = b; break; }}
-    }}
-    if(!btn) return;
-    btn.style.setProperty('background', '{c["bg"]}', 'important');
-    btn.style.setProperty('border', '1.5px solid {c["line"]}', 'important');
-    btn.style.setProperty('color', '{c["text"]}', 'important');
-    btn.style.setProperty('border-radius', '14px', 'important');
-    btn.style.setProperty('font-weight', '700', 'important');
-    btn.style.setProperty('font-size', '0.82rem', 'important');
-    btn.style.setProperty('text-align', 'left', 'important');
-    btn.style.setProperty('padding', '10px 12px', 'important');
-    btn.style.setProperty('white-space', 'normal', 'important');
-    btn.style.setProperty('word-break', 'keep-all', 'important');
-    btn.style.setProperty('height', 'auto', 'important');
-    btn.style.setProperty('line-height', '1.4', 'important');
-    btn.style.setProperty('margin-bottom', '0', 'important');
-    if('{label_style}'){{
-      btn.style.setProperty('text-decoration', 'line-through', 'important');
-      btn.style.setProperty('opacity', '0.65', 'important');
-    }}
-    var wrap = btn.closest('[data-testid="stButton"]');
-    if(wrap){{ wrap.style.setProperty('margin-bottom', '4px', 'important'); }}
-  }}
-  if(document.readyState === 'loading'){{
-    document.addEventListener('DOMContentLoaded', applyStyle);
-  }} else {{
-    setTimeout(applyStyle, 0);
-    setTimeout(applyStyle, 100);
-    setTimeout(applyStyle, 300);
-  }}
-}})();
-</script>
+<div style="
+    background:{c['bg']};
+    border:1.5px solid {c['line']};
+    border-radius:14px;
+    padding:10px 12px;
+    margin-bottom:4px;
+    margin-top:0px;
+">
+    {time_html}
+    {subject_html}
+</div>
 """, unsafe_allow_html=True)
 
-    # ── 컬러 박스 = 토글 버튼 (상세 버튼 없음) ──
-    if st.button(label, key=toggle_key, use_container_width=True):
+    # ── 토글 버튼 (작은 텍스트 버튼) ──
+    if st.button("▼ 상세" if not is_open else "▲ 접기", key=toggle_key, use_container_width=True):
         st.session_state.wm_expanded[toggle_key] = not is_open
         st.rerun()
 
-    # ── 상세 펼침 (두 번째 코드 그대로, 한 글자도 안 바꿈) ──
     if is_open:
         st.markdown(f"""
 <div style="border:1px solid {c['line']};border-top:none;background:{c['bg']};
