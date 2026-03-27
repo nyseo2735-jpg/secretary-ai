@@ -180,6 +180,15 @@ div[data-testid='stExpander'] details {
 }
 div[data-testid='stExpander'] summary:hover { background: #FAFAFA !important; }
 div[data-testid='stExpander'] summary { padding-top: 0.18rem !important; padding-bottom: 0.18rem !important; }
+/* ── 주간/월별 expander 컬러 적용 ── */
+div[data-testid='stExpander'] details > summary {
+    padding-top: 4px !important;
+    padding-bottom: 4px !important;
+    font-size: 0.82rem !important;
+    font-weight: 700 !important;
+    line-height: 1.4 !important;
+    word-break: keep-all !important;
+}
 div[data-testid='stTabs'] { margin-bottom: 0 !important; }
 
 .day-head { font-size: 1rem; font-weight: 800; color: #2F3142; margin-bottom: 4px; }
@@ -850,46 +859,24 @@ def render_week_month_event(row, prefix=""):
     c         = get_color(safe_str(row.get("Category", "기타")))
     time_txt  = safe_str(row.get("Time", ""))
     cat_txt   = safe_str(row.get("Category", "기타"))
-    subject   = compact_subject_text(row)
     is_cancel = safe_str(row.get("Status")) == "취소"
     row_id    = safe_str(row.get("ID", ""))
-    toggle_key = f"wm_toggle_{prefix}_{row_id}"
-    is_open    = st.session_state.wm_expanded.get(toggle_key, False)
 
-    # ── 컬러 박스 (순수 HTML, 클릭 불가) ──
-    cancel_style = "text-decoration:line-through;opacity:0.65;" if is_cancel else ""
-    attend_icon  = "👑 " if is_president_attend(row) else ""
-    time_html    = f'<div style="font-size:0.73rem;font-weight:800;color:{c["text"]};margin-bottom:2px;">{esc(time_txt)} [{esc(cat_txt)}]</div>' if time_txt else f'<div style="font-size:0.73rem;font-weight:800;color:{c["text"]};margin-bottom:2px;">[{esc(cat_txt)}]</div>'
-    subject_html = f'<div style="font-size:0.84rem;font-weight:700;color:{c["text"]};line-height:1.4;word-break:keep-all;{cancel_style}">{html.escape(attend_icon)}{esc(safe_str(row.get("Subject","")))}</div>'
+    attend_icon = "👑 " if is_president_attend(row) else ""
+    subj = safe_str(row.get("Subject", ""))
+    if time_txt:
+        label = f"{time_txt} [{cat_txt}] {attend_icon}{subj}"
+    else:
+        label = f"[{cat_txt}] {attend_icon}{subj}"
+    if is_cancel:
+        label += " (취소)"
 
-    st.markdown(f"""
-<div style="
-    background:{c['bg']};
-    border:1.5px solid {c['line']};
-    border-radius:10px;
-    padding:5px 8px;
-    margin-bottom:0px;
-    margin-top:0px;
-">
-    {time_html}
-    {subject_html}
-</div>
-""", unsafe_allow_html=True)
+    exp_key = f"wm_exp_{prefix}_{row_id}"
 
-    # ── 토글 버튼 (최소 높이, 텍스트 없이 ▼/▲ 만) ──
-    st.markdown('<div style="margin-top:-8px;"></div>', unsafe_allow_html=True)
-
-    btn_label = "▲" if is_open else "▼"
-    if st.button(btn_label, key=toggle_key, use_container_width=True):
-        st.session_state.wm_expanded[toggle_key] = not is_open
-        st.rerun()
-
-    st.markdown('<div style="margin-top:-10px;"></div>', unsafe_allow_html=True)
-
-    if is_open:
+    with st.expander(label, expanded=False):
         st.markdown(f"""
-<div style="border:1px solid {c['line']};border-top:none;background:{c['bg']};
-            border-radius:0 0 12px 12px;padding:8px 10px 6px 10px;margin-top:-6px;">
+<div style="border:1px solid {c['line']};background:{c['bg']};
+            border-radius:12px;padding:8px 10px 6px 10px;">
   <div style="display:flex;flex-wrap:wrap;gap:4px;margin-bottom:8px;">
     <span style="background:{c['soft']};color:{c['text']};border:1px solid {c['line']};
                  border-radius:999px;padding:2px 8px;font-size:0.70rem;font-weight:800;">{esc(cat_txt)}</span>
