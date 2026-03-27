@@ -240,7 +240,7 @@ div[data-testid='stTabs'] { margin-bottom: 0 !important; }
 [data-testid='column'] [data-testid='stVerticalBlock'],
 [data-testid='stColumn'] [data-testid='stVerticalBlock'] {
     gap: 0px !important;
-    row-gap: 0px !important;
+    row-gap: 5px !important;
 }
 [data-testid='column'] [data-testid='stMarkdown'] {
     margin-top: 0px !important;
