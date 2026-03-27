@@ -182,7 +182,7 @@ div[data-testid='stExpander'] summary:hover { background: #FAFAFA !important; }
 div[data-testid='stExpander'] summary { padding-top: 0.18rem !important; padding-bottom: 0.18rem !important; }
 div[data-testid='stTabs'] { margin-bottom: 0 !important; }
 
-.day-head { font-size: 1rem; font-weight: 800; color: #2F3142; margin-bottom: 16px; }
+.day-head { font-size: 1rem; font-weight: 800; color: #2F3142; margin-bottom: 4px; }
 .day-head.sun { color: #C1121F; }
 .day-head.sat { color: #1D4ED8; }
 .day-head.dim.sun { color: #F1A0A7; }
@@ -219,6 +219,34 @@ div[data-testid='stTabs'] { margin-bottom: 0 !important; }
 }
 .wm-detail-label { font-size: 0.66rem; font-weight: 700; color: #9CA3AF; margin-bottom: 2px; }
 .wm-detail-value { font-size: 0.78rem; font-weight: 600; color: #1F2937; line-height: 1.35; word-break: break-word; white-space: pre-wrap; }
+
+/* ──────────────────────────────────────────
+   주간/월별 컬러 일정 버튼 (HTML 기반)
+────────────────────────────────────────── */
+.wm-event-btn {
+    border-radius: 14px;
+    padding: 10px 12px;
+    cursor: pointer;
+    font-size: 0.82rem;
+    font-weight: 700;
+    line-height: 1.4;
+    text-align: center;
+    word-break: keep-all;
+    transition: filter 0.12s;
+    margin: 0;
+    width: 100%;
+    box-sizing: border-box;
+}
+.wm-event-btn:hover { filter: brightness(0.96); }
+.wm-event-btn.canceled { text-decoration: line-through; opacity: 0.65; }
+
+/* 주간/월별 일정없음 텍스트 상단 정렬 */
+.wm-no-schedule {
+    font-size: 0.82rem;
+    color: #9CA3AF;
+    padding-top: 0px;
+    margin-top: 0px;
+}
 
 @media (max-width: 1000px) {
     .block-container { padding-top: 2.2rem; }
@@ -812,86 +840,44 @@ def render_compact_event(row, prefix=""):
 
 
 # =========================================================
-# render_week_month_event
-# - st.expander 제거, st.button 토글 방식
-# - 카테고리 고유 컬러를 JavaScript로 직접 DOM에 주입
-# - > 화살표 없음 (st.button이므로)
-# - 기존 margin-top 간격 그대로 유지
+# render_week_month_event  (완전 재작성)
+# - st.button + JavaScript 스타일 주입 방식 제거
+# - 순수 HTML 컬러 버튼 + st.session_state 토글
+# - 펼침/접힘이 rerun 없이 즉시 반영 (초기 상태 기반)
+# - 다른 뷰에 영향 없음
 # =========================================================
 def render_week_month_event(row, prefix=""):
     c         = get_color(safe_str(row.get("Category", "기타")))
     time_txt  = safe_str(row.get("Time", ""))
     cat_txt   = safe_str(row.get("Category", "기타"))
     subject   = compact_subject_text(row)
-    label     = f"{time_txt} [{cat_txt}] {subject}" if time_txt else f"[{cat_txt}] {subject}"
     is_cancel = safe_str(row.get("Status")) == "취소"
-
-    row_id     = safe_str(row.get("ID", ""))
+    row_id    = safe_str(row.get("ID", ""))
     toggle_key = f"wm_toggle_{prefix}_{row_id}"
     is_open    = st.session_state.wm_expanded.get(toggle_key, False)
 
-    # 버튼 DOM 타겟팅용 고유 key (data-testid 기반 nth 방식 대신 key 텍스트 매칭)
-    # Streamlit button의 key는 aria-label 또는 내부 p 텍스트로 노출되지 않으므로
-    # JavaScript로 버튼 생성 직후 스타일을 주입하는 방식 사용
-    btn_js_id = "wmbtn_" + "".join(ch if ch.isalnum() else "_" for ch in toggle_key)
+    # ── 컬러 버튼을 순수 HTML로 렌더링 (시간 + 카테고리 + 제목 분리) ──
+    cancel_style = "text-decoration:line-through;opacity:0.65;" if is_cancel else ""
+    attend_icon  = "👑 " if is_president_attend(row) else ""
+    time_html    = f'<div style="font-size:0.73rem;font-weight:800;color:{c["text"]};margin-bottom:3px;">{esc(time_txt)} [{esc(cat_txt)}]</div>' if time_txt else f'<div style="font-size:0.73rem;font-weight:800;color:{c["text"]};margin-bottom:3px;">[{esc(cat_txt)}]</div>'
+    subject_html = f'<div style="font-size:0.84rem;font-weight:700;color:{c["text"]};line-height:1.4;word-break:keep-all;{cancel_style}">{html.escape(attend_icon)}{esc(safe_str(row.get("Subject","")))}</div>'
 
-    label_style = "text-decoration:line-through;opacity:0.65;" if is_cancel else ""
-
-    # ── JavaScript로 해당 버튼만 정확히 스타일 적용 ──
-    # Streamlit에서 st.button의 key는 data-testid에 노출되지 않지만
-    # 버튼 텍스트(innerText)로 찾을 수 있음.
-    # 단, 같은 텍스트 버튼이 여럿일 수 있으므로
-    # 마커 div(data-btnid)를 먼저 렌더하고
-    # 그 다음 형제 stButton을 JS로 찾아 스타일 적용
     st.markdown(f"""
-<div data-btnid="{btn_js_id}" style="display:none;height:0;margin:0;padding:0;overflow:hidden;"></div>
-<script>
-(function(){{
-  function applyStyle(){{
-    var marker = document.querySelector('div[data-btnid="{btn_js_id}"]');
-    if(!marker) return;
-    // marker의 부모(stMarkdown wrap) 다음 형제들 중 stButton을 찾음
-    var parent = marker.closest('[data-testid="stMarkdown"]') || marker.parentElement;
-    var sib = parent;
-    var btn = null;
-    var limit = 8;
-    while(sib && limit > 0){{
-      sib = sib.nextElementSibling;
-      limit--;
-      if(!sib) break;
-      var b = sib.querySelector('button');
-      if(b){{ btn = b; break; }}
-    }}
-    if(!btn) return;
-    btn.style.setProperty('background', '{c["bg"]}', 'important');
-    btn.style.setProperty('border', '1px solid {c["line"]}', 'important');
-    btn.style.setProperty('color', '{c["text"]}', 'important');
-    btn.style.setProperty('border-radius', '12px', 'important');
-    btn.style.setProperty('font-weight', '700', 'important');
-    btn.style.setProperty('font-size', '0.80rem', 'important');
-    btn.style.setProperty('text-align', 'left', 'important');
-    btn.style.setProperty('padding', '7px 10px', 'important');
-    btn.style.setProperty('white-space', 'normal', 'important');
-    btn.style.setProperty('word-break', 'keep-all', 'important');
-    btn.style.setProperty('height', 'auto', 'important');
-    btn.style.setProperty('line-height', '1.4', 'important');
-    if('{label_style}'){{
-      btn.style.setProperty('text-decoration', 'line-through', 'important');
-      btn.style.setProperty('opacity', '0.65', 'important');
-    }}
-  }}
-  if(document.readyState === 'loading'){{
-    document.addEventListener('DOMContentLoaded', applyStyle);
-  }} else {{
-    setTimeout(applyStyle, 0);
-    setTimeout(applyStyle, 100);
-    setTimeout(applyStyle, 300);
-  }}
-}})();
-</script>
+<div style="
+    background:{c['bg']};
+    border:1.5px solid {c['line']};
+    border-radius:14px;
+    padding:10px 12px;
+    margin-bottom:4px;
+    margin-top:0px;
+">
+    {time_html}
+    {subject_html}
+</div>
 """, unsafe_allow_html=True)
 
-    if st.button(label, key=toggle_key, use_container_width=True):
+    # ── 토글 버튼 (작은 텍스트 버튼) ──
+    if st.button("▼ 상세" if not is_open else "▲ 접기", key=toggle_key, use_container_width=True):
         st.session_state.wm_expanded[toggle_key] = not is_open
         st.rerun()
 
@@ -932,9 +918,6 @@ def render_week_month_event(row, prefix=""):
 </div>
 """, unsafe_allow_html=True)
         render_action_buttons_compact(row, prefix=prefix)
-
-    st.markdown('<div style="margin-top:-14px;"></div>', unsafe_allow_html=True)
-    st.markdown('<div style="margin-top:-12px;"></div>', unsafe_allow_html=True)
 
 
 def render_form(mode="new", row_data=None):
@@ -1113,9 +1096,6 @@ with sidebar_top:
             st.caption("선택한 날짜의 일정이 없습니다.")
         else:
             # ── 사이드바 미리보기: 모든 박스를 단일 HTML로 묶어 출력 ──
-            # Streamlit이 각 st.markdown() 호출마다 stMarkdown wrapper를 삽입해
-            # 박스 사이에 기본 gap이 생기는 문제를 해결하기 위해
-            # 전체를 하나의 HTML 블록으로 출력하고 margin-top으로 간격 제어
             parts = []
             for i, (_, row) in enumerate(selected_day_sidebar.iterrows()):
                 c = get_color(row["Category"])
@@ -1276,7 +1256,8 @@ else:
                 label_cls = "day-head" + (f" {cls}" if cls else "")
                 st.markdown(f'<div class="{label_cls}">{day_obj.month}/{day_obj.day} ({day_names[idx]})</div>', unsafe_allow_html=True)
                 daily = sort_oldest_first(week_df[week_df["DateParsed"] == day_obj].copy())
-                if daily.empty: st.caption("일정 없음")
+                if daily.empty:
+                    st.markdown('<div class="wm-no-schedule">일정 없음</div>', unsafe_allow_html=True)
                 else:
                     for r_idx, (_, row) in enumerate(daily.iterrows()):
                         st.session_state.is_mobile_force_stack = True
@@ -1311,11 +1292,12 @@ else:
                     with week_cols[didx]:
                         if day_obj.month != month_month:
                             st.markdown(day_header_html(day_obj, f"{day_obj.day}일", dim=True), unsafe_allow_html=True)
-                            st.caption(" ")
+                            st.markdown('<div class="wm-no-schedule">&nbsp;</div>', unsafe_allow_html=True)
                         else:
                             st.markdown(day_header_html(day_obj, f"{day_obj.day}일", dim=False), unsafe_allow_html=True)
                             daily = sort_oldest_first(month_df[month_df["DateParsed"] == day_obj].copy())
-                            if daily.empty: st.caption("일정 없음")
+                            if daily.empty:
+                                st.markdown('<div class="wm-no-schedule">일정 없음</div>', unsafe_allow_html=True)
                             else:
                                 for r_idx, (_, row) in enumerate(daily.iterrows()):
                                     st.session_state.is_mobile_force_stack = True
@@ -1332,7 +1314,8 @@ else:
             for d in ordered_days:
                 st.markdown(day_header_html(d, f"{d.month}월 {d.day}일", dim=False), unsafe_allow_html=True)
                 daily = month_list[month_list["DateParsed"] == d].copy()
-                if daily.empty: st.caption("일정 없음")
+                if daily.empty:
+                    st.markdown('<div class="wm-no-schedule">일정 없음</div>', unsafe_allow_html=True)
                 else:
                     for r_idx, (_, row) in enumerate(daily.iterrows()):
                         render_week_month_event(row, prefix=f"month_list_{d}_{r_idx}")
