@@ -1006,7 +1006,7 @@ def render_list_view_event(row, prefix=""):
       if st.button(f"{arrow} 상세", key=f"{toggle_key}_btn", use_container_width=True):
          st.session_state.wm_expanded[toggle_key] = not is_open
          st.rerun()
-    st.markdown('<div style="margin-bottom:0px;"></div>', unsafe_allow_html=True)
+    st.markdown('<div style="margin-bottom:-15px;"></div>', unsafe_allow_html=True)
     if is_open:
         st.markdown(f"""
 <div style="border:1px solid {c['line']};background:{c['bg']};border-radius:8px;padding:4px 6px 3px 6px;margin-top:0px;">
