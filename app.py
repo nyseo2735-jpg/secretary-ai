@@ -325,40 +325,6 @@ div[data-testid='stTabs'] { margin-bottom: 0 !important; }
     padding: 0 !important;
 }
 
-Copy/* ── 일별 보기 하단 액션 버튼 원복 ── */
-.small-action [data-testid='stBaseButton-secondary'] {
-    all: unset !important;
-    display: inline-flex !important;
-    align-items: center !important;
-    justify-content: center !important;
-    border-radius: 12px !important;
-    font-weight: 700 !important;
-    font-size: 0.84rem !important;
-    min-height: 34px !important;
-    height: 34px !important;
-    padding: 0.15rem 0.75rem !important;
-    width: 100% !important;
-    cursor: pointer !important;
-    background-color: #ffffff !important;
-    color: #31333F !important;
-    border: 1px solid rgba(49,51,63,0.2) !important;
-    box-sizing: border-box !important;
-    line-height: normal !important;
-}
-.small-action [data-testid='stBaseButton-secondary']:hover {
-    border-color: #FF4B4B !important;
-    color: #FF4B4B !important;
-}
-.small-action [data-testid='stBaseButton-secondary'] div,
-.small-action [data-testid='stBaseButton-secondary'] span,
-.small-action [data-testid='stBaseButton-secondary'] p {
-    all: unset !important;
-    font-size: 0.84rem !important;
-    font-weight: 700 !important;
-    color: inherit !important;
-    line-height: normal !important;
-}
-
 </style>
 """, unsafe_allow_html=True)
 
@@ -864,11 +830,11 @@ def render_detail_blocks(row):
 def render_action_buttons_full(row, prefix=""):
     st.markdown('<div class="small-action">', unsafe_allow_html=True)
     c1, c2, c3, c4, c5 = st.columns([0.8, 0.9, 0.8, 1.0, 1.0])
-    if c1.button("수정", key=f"{prefix}_edit_{row['ID']}", use_container_width=True):
+    if c1.button("수정", key=f"{prefix}_edit_{row['ID']}", use_container_width=True, type="primary"):
         st.session_state.edit_id = row["ID"]; st.rerun()
     toggle_label = "일정 취소" if row["Status"] != "취소" else "취소 해제"
     toggle_next  = "취소"     if row["Status"] != "취소" else "확정"
-    if c2.button(toggle_label, key=f"{prefix}_cancel_{row['ID']}", use_container_width=True):
+    if c2.button(toggle_label, key=f"{prefix}_cancel_{row['ID']}", use_container_width=True, type="primary"):
         current = clean_records_df(st.session_state.data)
         target  = current[current["ID"].astype(str) == str(row["ID"])]
         if not target.empty:
@@ -878,16 +844,16 @@ def render_action_buttons_full(row, prefix=""):
             ok, err = save_record(new_row, is_edit=True)
             st.session_state.flash_message = "상태가 변경되었습니다." if ok else f"변경 실패: {err}"
             st.rerun()
-    if c3.button("삭제", key=f"{prefix}_delete_{row['ID']}", use_container_width=True):
+    if c3.button("삭제", key=f"{prefix}_delete_{row['ID']}", use_container_width=True, type="primary"):
         ok, err = soft_delete_record(row["ID"])
         if st.session_state.edit_id == row["ID"]: st.session_state.edit_id = None
         st.session_state.flash_message = "삭제되었습니다." if ok else f"삭제 실패: {err}"
         st.rerun()
-    if c4.button("진행중", key=f"{prefix}_follow_inprogress_{row['ID']}", use_container_width=True):
+    if c4.button("진행중", key=f"{prefix}_follow_inprogress_{row['ID']}", use_container_width=True, type="primary"):
         ok, err = update_follow_status(row["ID"], "진행중")
         st.session_state.flash_message = "팔로우업: 진행중" if ok else f"실패: {err}"
         st.rerun()
-    if c5.button("완료", key=f"{prefix}_follow_done_{row['ID']}", use_container_width=True):
+    if c5.button("완료", key=f"{prefix}_follow_done_{row['ID']}", use_container_width=True, type="primary"):
         ok, err = update_follow_status(row["ID"], "완료")
         st.session_state.flash_message = "팔로우업: 완료" if ok else f"실패: {err}"
         st.rerun()
@@ -896,11 +862,11 @@ def render_action_buttons_full(row, prefix=""):
 def render_action_buttons_compact(row, prefix=""):
     st.markdown('<div class="small-action">', unsafe_allow_html=True)
     c1, c2, c3 = st.columns(3)
-    if c1.button("수정", key=f"{prefix}_edit_{row['ID']}", use_container_width=True):
+    if c1.button("수정", key=f"{prefix}_edit_{row['ID']}", use_container_width=True, type="primary"):
         st.session_state.edit_id = row["ID"]; st.rerun()
     toggle_label = "취소" if row["Status"] != "취소" else "취소해제"
     toggle_next  = "취소" if row["Status"] != "취소" else "확정"
-    if c2.button(toggle_label, key=f"{prefix}_cancel_{row['ID']}", use_container_width=True):
+    if c2.button(toggle_label, key=f"{prefix}_cancel_{row['ID']}", use_container_width=True, type="primary"):
         current = clean_records_df(st.session_state.data)
         target  = current[current["ID"].astype(str) == str(row["ID"])]
         if not target.empty:
@@ -909,7 +875,7 @@ def render_action_buttons_compact(row, prefix=""):
             ok, err = save_record(new_row, is_edit=True)
             st.session_state.flash_message = "상태가 변경되었습니다." if ok else f"변경 실패: {err}"
             st.rerun()
-    if c3.button("삭제", key=f"{prefix}_delete_{row['ID']}", use_container_width=True):
+    if c3.button("삭제", key=f"{prefix}_delete_{row['ID']}", use_container_width=True, type="primary"):
         ok, err = soft_delete_record(row["ID"])
         if st.session_state.edit_id == row["ID"]: st.session_state.edit_id = None
         st.session_state.flash_message = "삭제되었습니다." if ok else f"삭제 실패: {err}"
