@@ -1386,7 +1386,8 @@ else:
                        on_change=_on_week_anchor_change)
         with wc2:
             st.markdown('<p style="font-size:0.12rem;">&nbsp;</p>', unsafe_allow_html=True)
-            if st.button("이 날짜가 포함된 주 보기", key="apply_week_anchor", use_container_width=True, type="primary"):
+            if st.button("이 날짜가 포함된 주 보기", key="apply_week_anchor", use_container_width=True):
+                st.session_state.flash_message = f"버튼 클릭됨: {st.session_state.week_anchor_value}"
                 st.session_state.selected_date = st.session_state.week_anchor_value
                 st.rerun()
 
