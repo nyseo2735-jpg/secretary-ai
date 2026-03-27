@@ -991,7 +991,7 @@ def render_list_view_event(row, prefix=""):
     # ── 이벤트 박스 (margin-bottom 으로 박스↔버튼 간격 조정) ──
     st.markdown(
         f'<div style="background:{c["bg"]};border:1.5px solid {c["line"]};border-radius:10px;'
-        f'padding:4px 7px;margin-bottom:-15px;">'               # ← ⓐ 박스 아래 간격
+        f'padding:4px 7px;margin-bottom:-20px;">'               # ← ⓐ 박스 아래 간격
         f'{time_html}{subject_html}</div>',
         unsafe_allow_html=True
     )
@@ -1006,7 +1006,6 @@ def render_list_view_event(row, prefix=""):
       if st.button(f"{arrow} 상세", key=f"{toggle_key}_btn", use_container_width=True):
          st.session_state.wm_expanded[toggle_key] = not is_open
          st.rerun()
-    st.markdown('<div style="height:0px;"></div>', unsafe_allow_html=True)
     if is_open:
         st.markdown(f"""
 <div style="border:1px solid {c['line']};background:{c['bg']};border-radius:8px;padding:4px 6px 3px 6px;margin-top:0px;">
