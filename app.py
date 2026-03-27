@@ -1005,15 +1005,6 @@ def render_list_view_event(row, prefix=""):
         st.session_state.wm_expanded[toggle_key] = not is_open
         st.rerun()
     st.markdown('</div>', unsafe_allow_html=True)
-    if st.button(f"{arrow} 상세", key=toggle_key, use_container_width=True):
-        st.session_state.wm_expanded[toggle_key] = not is_open
-        st.rerun()
-    # 실제 Streamlit 버튼은 숨기고 위 HTML이 시각적 역할
-    st.markdown(
-        '<style>#' + toggle_key + '_lbl{pointer-events:none;}</style>',
-        unsafe_allow_html=True
-    )
-
     if is_open:
         st.markdown(f"""
 <div style="border:1px solid {c['line']};background:{c['bg']};border-radius:8px;padding:4px 6px 3px 6px;margin-top:0px;">
