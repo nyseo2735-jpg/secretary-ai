@@ -250,8 +250,30 @@ div[data-testid='stTabs'] { margin-bottom: 0 !important; }
     margin-top: 18px !important;
     margin-bottom: 8px !important;
 }
+[data-testid='stTabs'] .stElementContainer:has([data-testid='stBaseButton-secondary']) {
+    margin-top: 18px !important;
+    margin-bottom: 8px !important;
+}
 /* ── 주간/월별 컬럼 내 버튼 극소형화 ── */
 [data-testid='stColumn'] [data-testid='stBaseButton-secondary'] {
+    all: unset !important;
+    display: block !important;
+    width: 100% !important;
+    text-align: center !important;
+    cursor: pointer !important;
+    font-size: 0.50rem !important;
+    line-height: 1 !important;
+    padding: 1px 0px !important;
+    margin: 0 !important;
+    color: #9CA3AF !important;
+    border: 1px solid #E5E7EB !important;
+    border-radius: 4px !important;
+    background: #FAFAFA !important;
+    box-sizing: border-box !important;
+    min-height: 0px !important;
+    height: auto !important;
+}
+[data-testid='stTabs'] [data-testid='stBaseButton-secondary'] {
     all: unset !important;
     display: block !important;
     width: 100% !important;
@@ -272,6 +294,16 @@ div[data-testid='stTabs'] { margin-bottom: 0 !important; }
 [data-testid='stColumn'] [data-testid='stBaseButton-secondary'] div,
 [data-testid='stColumn'] [data-testid='stBaseButton-secondary'] span,
 [data-testid='stColumn'] [data-testid='stBaseButton-secondary'] p {
+    all: unset !important;
+    font-size: 0.50rem !important;
+    line-height: 1 !important;
+    color: #9CA3AF !important;
+    margin: 0 !important;
+    padding: 0 !important;
+}
+[data-testid='stTabs'] [data-testid='stBaseButton-secondary'] div,
+[data-testid='stTabs'] [data-testid='stBaseButton-secondary'] span,
+[data-testid='stTabs'] [data-testid='stBaseButton-secondary'] p {
     all: unset !important;
     font-size: 0.50rem !important;
     line-height: 1 !important;
