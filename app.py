@@ -991,15 +991,15 @@ def render_list_view_event(row, prefix=""):
     # ── 이벤트 박스 (margin-bottom 으로 박스↔버튼 간격 조정) ──
     st.markdown(
         f'<div style="background:{c["bg"]};border:1.5px solid {c["line"]};border-radius:10px;'
-        f'padding:4px 7px;margin-bottom:-20px;">'               # ← ⓐ 박스 아래 간격
+        f'padding:4px 7px;margin-bottom:-15px;">'               # ← ⓐ 박스 아래 간격
         f'{time_html}{subject_html}</div>',
         unsafe_allow_html=True
     )
 
     # ── 상세 버튼 (인라인 HTML로 극소형 — CSS 불필요) ──
     arrow = "▲" if is_open else "▼"
-    btn_margin_top = "2px"                                     # ← 박스↔버튼 간격
-    btn_margin_bottom = "6px"                                  # ← 버튼↔다음 박스 간격
+    btn_margin_top = "0px"                                     # ← 박스↔버튼 간격
+    btn_margin_bottom = "0px"                                  # ← 버튼↔다음 박스 간격
     arrow = "▲" if is_open else "▼"
     _col_btn, = st.columns([1])
     with _col_btn:
