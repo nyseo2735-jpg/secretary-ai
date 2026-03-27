@@ -245,33 +245,33 @@ div[data-testid='stTabs'] { margin-bottom: 0 !important; }
     margin-top: 0px !important;
     margin-bottom: 0px !important;
 }
-/* ── 주간/월별 expander 극소형화 ── */
-[data-testid='column'] [data-testid='stExpander'] {
-    margin-top: -2px !important;
-    margin-bottom: 2px !important;
+/* ── 주간/월별 컬럼 내 버튼 극소형화 ── */
+[data-testid='column'] [data-testid='stButton'] {
+    margin-top: -4px !important;
+    margin-bottom: -2px !important;
 }
-[data-testid='column'] [data-testid='stExpander'] details {
+[data-testid='column'] [data-testid='stButton'] > button {
+    min-height: 0px !important;
+    height: 18px !important;
+    max-height: 18px !important;
+    padding: 0px 6px !important;
+    font-size: 0.50rem !important;
+    line-height: 1 !important;
+    border-radius: 4px !important;
+    margin: 0 !important;
+    box-sizing: border-box !important;
     border: 1px solid #E5E7EB !important;
     background: #FAFAFA !important;
-    border-radius: 6px !important;
-    box-shadow: none !important;
-    overflow: hidden !important;
-}
-[data-testid='column'] [data-testid='stExpander'] summary {
-    padding: 1px 6px !important;
-    min-height: 0px !important;
-    height: auto !important;
-    gap: 0px !important;
-}
-[data-testid='column'] [data-testid='stExpander'] summary span {
-    font-size: 0.55rem !important;
-    font-weight: 600 !important;
     color: #9CA3AF !important;
-    line-height: 1.1 !important;
 }
-[data-testid='column'] [data-testid='stExpander'] summary svg {
-    width: 10px !important;
-    height: 10px !important;
+[data-testid='column'] [data-testid='stButton'] > button p,
+[data-testid='column'] [data-testid='stButton'] > button span,
+[data-testid='column'] [data-testid='stButton'] > button div {
+    font-size: 0.50rem !important;
+    line-height: 1 !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    color: #9CA3AF !important;
 }
 
 /* ── GAP OVERRIDE ── */
@@ -873,6 +873,12 @@ def render_week_month_event(row, prefix=""):
     row_id    = safe_str(row.get("ID", ""))
     attend_icon = "👑 " if is_president_attend(row) else ""
     subj = safe_str(row.get("Subject", ""))
+    toggle_key = f"wm_tog_{prefix}_{row_id}"
+
+    # ── 상태 관리 ──
+    if toggle_key not in st.session_state.wm_expanded:
+        st.session_state.wm_expanded[toggle_key] = False
+    is_open = st.session_state.wm_expanded[toggle_key]
 
     # ── 컬러 박스 (HTML) ──
     cancel_style = "text-decoration:line-through;opacity:0.65;" if is_cancel else ""
@@ -882,18 +888,29 @@ def render_week_month_event(row, prefix=""):
         time_html = f'<div style="font-size:0.70rem;font-weight:800;color:{c["text"]};margin-bottom:1px;">[{esc(cat_txt)}]</div>'
     subject_html = f'<div style="font-size:0.80rem;font-weight:700;color:{c["text"]};line-height:1.3;word-break:keep-all;{cancel_style}">{html.escape(attend_icon)}{esc(subj)}</div>'
 
-    st.markdown(f'<div style="background:{c["bg"]};border:1.5px solid {c["line"]};border-radius:10px;padding:4px 7px;margin-bottom:0px;">{time_html}{subject_html}</div>', unsafe_allow_html=True)
+    st.markdown(
+        f'<div style="background:{c["bg"]};border:1.5px solid {c["line"]};border-radius:10px;'
+        f'padding:4px 7px;margin-bottom:0px;">'
+        f'{time_html}{subject_html}</div>',
+        unsafe_allow_html=True
+    )
 
-    # ── 상세 expander (높이 극소화) ──
-    with st.expander("상세", expanded=False):
+    # ── 토글 버튼 (HTML 마크다운으로 극소형) ──
+    arrow = "▲" if is_open else "▼"
+    if st.button(f"{arrow} 상세", key=toggle_key, use_container_width=True):
+        st.session_state.wm_expanded[toggle_key] = not is_open
+        st.rerun()
+
+    # ── 상세 내용 ──
+    if is_open:
         st.markdown(f"""
-<div style="border:1px solid {c['line']};background:{c['bg']};border-radius:10px;padding:6px 8px 4px 8px;">
-  <div style="display:flex;flex-wrap:wrap;gap:3px;margin-bottom:6px;">
-    <span style="background:{c['soft']};color:{c['text']};border:1px solid {c['line']};border-radius:999px;padding:1px 6px;font-size:0.65rem;font-weight:800;">{esc(cat_txt)}</span>
-    <span style="background:#F3F4F6;color:#374151;border:1px solid #D1D5DB;border-radius:999px;padding:1px 6px;font-size:0.65rem;font-weight:700;">{esc(row.get('Status',''))}</span>
-    <span style="background:#F3F4F6;color:#374151;border:1px solid #D1D5DB;border-radius:999px;padding:1px 6px;font-size:0.65rem;font-weight:700;">우선순위 {esc(row.get('Priority',''))}</span>
-    <span style="background:#F3F4F6;color:#374151;border:1px solid #D1D5DB;border-radius:999px;padding:1px 6px;font-size:0.65rem;font-weight:700;">{'👑 회장참석' if is_president_attend(row) else '대참가능'}</span>
-    <span style="background:#EFF6FF;color:#1D4ED8;border:1px solid #BFDBFE;border-radius:999px;padding:1px 6px;font-size:0.65rem;font-weight:700;">팔로우 {esc(row.get('FollowStatus',''))}</span>
+<div style="border:1px solid {c['line']};background:{c['bg']};border-radius:8px;padding:4px 6px 3px 6px;margin-top:0px;">
+  <div style="display:flex;flex-wrap:wrap;gap:3px;margin-bottom:4px;">
+    <span style="background:{c['soft']};color:{c['text']};border:1px solid {c['line']};border-radius:999px;padding:1px 6px;font-size:0.62rem;font-weight:800;">{esc(cat_txt)}</span>
+    <span style="background:#F3F4F6;color:#374151;border:1px solid #D1D5DB;border-radius:999px;padding:1px 6px;font-size:0.62rem;font-weight:700;">{esc(row.get('Status',''))}</span>
+    <span style="background:#F3F4F6;color:#374151;border:1px solid #D1D5DB;border-radius:999px;padding:1px 6px;font-size:0.62rem;font-weight:700;">우선순위 {esc(row.get('Priority',''))}</span>
+    <span style="background:#F3F4F6;color:#374151;border:1px solid #D1D5DB;border-radius:999px;padding:1px 6px;font-size:0.62rem;font-weight:700;">{'👑 회장참석' if is_president_attend(row) else '대참가능'}</span>
+    <span style="background:#EFF6FF;color:#1D4ED8;border:1px solid #BFDBFE;border-radius:999px;padding:1px 6px;font-size:0.62rem;font-weight:700;">팔로우 {esc(row.get('FollowStatus',''))}</span>
   </div>
   <div class="wm-detail-grid">
     <div class="wm-detail-cell"><div class="wm-detail-label">일정 날짜</div><div class="wm-detail-value">{esc(row.get('Date',''))}</div></div>
@@ -912,7 +929,6 @@ def render_week_month_event(row, prefix=""):
 </div>
 """, unsafe_allow_html=True)
         render_action_buttons_compact(row, prefix=prefix)
-
 
 def render_form(mode="new", row_data=None):
     if row_data is None:
