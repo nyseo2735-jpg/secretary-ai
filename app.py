@@ -163,7 +163,6 @@ div[data-testid='stForm'] {
 .sidebar-day-time { font-size: 0.78rem; font-weight: 800; color: #475467; margin-bottom: 4px; }
 .sidebar-day-title { font-size: 0.86rem; font-weight: 700; color: #1F2937; line-height: 1.35; }
 
-/* 사이드바 미리보기 컨테이너 내부 p 태그 margin 제거 */
 [data-testid='stSidebar'] .sidebar-day-item + .sidebar-day-item { margin-top: 0 !important; }
 [data-testid='stSidebar'] .stMarkdown p { margin-bottom: 0 !important; margin-top: 0 !important; }
 
@@ -182,7 +181,7 @@ div[data-testid='stExpander'] summary:hover { background: #FAFAFA !important; }
 div[data-testid='stExpander'] summary { padding-top: 0.18rem !important; padding-bottom: 0.18rem !important; }
 div[data-testid='stTabs'] { margin-bottom: 0 !important; }
 
-.day-head { font-size: 1rem; font-weight: 800; color: #2F3142; margin-bottom: 4px; }
+.day-head { font-size: 1rem; font-weight: 800; color: #2F3142; margin-bottom: 2px; }
 .day-head.sun { color: #C1121F; }
 .day-head.sat { color: #1D4ED8; }
 .day-head.dim.sun { color: #F1A0A7; }
@@ -202,7 +201,7 @@ div[data-testid='stTabs'] { margin-bottom: 0 !important; }
 }
 
 /* ──────────────────────────────────────────
-   주간/월별 이벤트 detail grid: 한 줄 한 항목
+   주간/월별 이벤트 detail grid
 ────────────────────────────────────────── */
 .wm-detail-grid {
     display: grid;
@@ -220,27 +219,7 @@ div[data-testid='stTabs'] { margin-bottom: 0 !important; }
 .wm-detail-label { font-size: 0.66rem; font-weight: 700; color: #9CA3AF; margin-bottom: 2px; }
 .wm-detail-value { font-size: 0.78rem; font-weight: 600; color: #1F2937; line-height: 1.35; word-break: break-word; white-space: pre-wrap; }
 
-/* ──────────────────────────────────────────
-   주간/월별 컬러 일정 버튼 (HTML 기반)
-────────────────────────────────────────── */
-.wm-event-btn {
-    border-radius: 14px;
-    padding: 10px 12px;
-    cursor: pointer;
-    font-size: 0.82rem;
-    font-weight: 700;
-    line-height: 1.4;
-    text-align: center;
-    word-break: keep-all;
-    transition: filter 0.12s;
-    margin: 0;
-    width: 100%;
-    box-sizing: border-box;
-}
-.wm-event-btn:hover { filter: brightness(0.96); }
-.wm-event-btn.canceled { text-decoration: line-through; opacity: 0.65; }
-
-/* 주간/월별 일정없음 텍스트 상단 정렬 */
+/* 주간/월별 일정없음 텍스트 */
 .wm-no-schedule {
     font-size: 0.82rem;
     color: #9CA3AF;
@@ -257,44 +236,54 @@ div[data-testid='stTabs'] { margin-bottom: 0 !important; }
     .info-box { min-height: auto; }
 }
 
-/* ── 주간/월별 컬럼 내 버튼·마크다운 간격 최소화 ── */
+/* ══════════════════════════════════════════
+   주간/월별 컬럼 내부 간격·expander 스타일
+   ─ 컬러 박스 HTML 없이 expander만 사용
+   ─ expander 헤더 = 일정 요약 (색상은 Python에서 적용)
+   ─ > 화살표 숨김
+   ─ 박스 간 간격 최소화
+══════════════════════════════════════════ */
 [data-testid='column'] [data-testid='stVerticalBlock'] {
-    gap: 0px !important;
-    row-gap: 0px !important;
+    gap: 2px !important;
+    row-gap: 2px !important;
 }
 [data-testid='column'] [data-testid='stMarkdown'] {
     margin-top: 0px !important;
     margin-bottom: 0px !important;
 }
-
-/* ── 주간/월별 expander: 화살표 숨김 + 초소형화 ── */
+/* expander 외부 여백 제거 */
 [data-testid='column'] [data-testid='stExpander'] {
-    margin-top: -4px !important;
-    margin-bottom: -4px !important;
+    margin-top: 0px !important;
+    margin-bottom: 0px !important;
 }
+/* expander 컨테이너: 기본 테두리/배경 제거 (Python에서 인라인으로 덮어씀) */
 [data-testid='column'] [data-testid='stExpander'] details {
     border: none !important;
     background: transparent !important;
     box-shadow: none !important;
-    border-radius: 0 !important;
+    border-radius: 10px !important;
+    overflow: hidden !important;
 }
+/* summary(헤더) 최소화 */
 [data-testid='column'] [data-testid='stExpander'] summary {
-    padding: 0px 4px !important;
+    padding: 4px 8px !important;
     min-height: 0px !important;
     height: auto !important;
     gap: 0px !important;
+    border-radius: 10px !important;
 }
+/* summary 텍스트 */
 [data-testid='column'] [data-testid='stExpander'] summary span {
-    font-size: 0.60rem !important;
-    font-weight: 600 !important;
-    color: #9CA3AF !important;
+    font-size: 0.72rem !important;
+    font-weight: 700 !important;
+    line-height: 1.3 !important;
+    word-break: keep-all !important;
 }
-/* 화살표(>) 아이콘 숨김 */
+/* > 화살표 SVG 숨김 */
 [data-testid='column'] [data-testid='stExpander'] summary svg {
     display: none !important;
-}
-[data-testid='column'] [data-testid='stExpander'] summary::before {
-    display: none !important;
+    width: 0px !important;
+    height: 0px !important;
 }
 [data-testid='column'] [data-testid='stExpander'] summary::marker {
     display: none !important;
@@ -317,7 +306,7 @@ div[data-testid='stTabs'] { margin-bottom: 0 !important; }
 
 [data-testid='column'] [data-testid='stVerticalBlock']:has(
     > div > [data-testid='stExpander']
-) { gap: 4px !important; row-gap: 4px !important; }
+) { gap: 2px !important; row-gap: 2px !important; }
 
 </style>
 """, unsafe_allow_html=True)
@@ -887,11 +876,13 @@ def render_compact_event(row, prefix=""):
 
 
 # =========================================================
-# render_week_month_event  (완전 재작성)
-# - st.button + JavaScript 스타일 주입 방식 제거
-# - 순수 HTML 컬러 버튼 + st.session_state 토글
-# - 펼침/접힘이 rerun 없이 즉시 반영 (초기 상태 기반)
-# - 다른 뷰에 영향 없음
+# render_week_month_event
+# ─ 별도 "상세" 버튼 없음
+# ─ st.expander 하나로 컬러 박스 + 클릭 토글
+# ─ expander 헤더에 시간·카테고리·제목 표시
+# ─ CSS로 > 화살표 숨김, 헤더 배경/테두리/글자색 인라인 적용
+# ─ 컬러는 streamlit_component_util을 사용하지 않고
+#   st.markdown으로 details 태그에 인라인 스타일 주입
 # =========================================================
 def render_week_month_event(row, prefix=""):
     c         = get_color(safe_str(row.get("Category", "기타")))
@@ -902,22 +893,37 @@ def render_week_month_event(row, prefix=""):
     attend_icon = "👑 " if is_president_attend(row) else ""
     subj = safe_str(row.get("Subject", ""))
     cancel_mark = " (취소)" if is_cancel else ""
-    label = f"{time_txt} [{cat_txt}] {attend_icon}{subj}{cancel_mark}" if time_txt else f"[{cat_txt}] {attend_icon}{subj}{cancel_mark}"
 
-    # ── 컬러 박스 (HTML) ──
-    cancel_style = "text-decoration:line-through;opacity:0.65;" if is_cancel else ""
-    time_html = ""
+    # expander 헤더 라벨
     if time_txt:
-        time_html = f'<div style="font-size:0.70rem;font-weight:800;color:{c["text"]};margin-bottom:1px;">{esc(time_txt)} [{esc(cat_txt)}]</div>'
+        exp_label = f"{time_txt} [{cat_txt}] {attend_icon}{subj}{cancel_mark}"
     else:
-        time_html = f'<div style="font-size:0.70rem;font-weight:800;color:{c["text"]};margin-bottom:1px;">[{esc(cat_txt)}]</div>'
-    subject_html = f'<div style="font-size:0.80rem;font-weight:700;color:{c["text"]};line-height:1.3;word-break:keep-all;{cancel_style}">{html.escape(attend_icon)}{esc(subj)}</div>'
+        exp_label = f"[{cat_txt}] {attend_icon}{subj}{cancel_mark}"
 
-    st.markdown(f"""<div style="background:{c['bg']};border:1.5px solid {c['line']};border-radius:10px;padding:4px 7px;margin-bottom:0px;">{time_html}{subject_html}</div>""", unsafe_allow_html=True)
+    # ── 인라인 스타일을 expander details에 주입하는 CSS ──
+    # 각 이벤트마다 고유 class를 부여하여 색상 적용
+    uid = f"wm_{prefix}_{row_id}".replace("-","_").replace(" ","_")
 
-    # ── expander로 상세 (화살표는 CSS로 숨김) ──
-    exp_key = f"wm_exp_{prefix}_{row_id}"
-    with st.expander("상세", expanded=False):
+    # CSS inject: 바로 다음 expander에만 적용되도록 nth-of-type 대신
+    # st.markdown → st.expander 순서를 이용
+    # Streamlit은 같은 컨테이너 안에서 순서대로 렌더링하므로
+    # 직전 markdown의 형제(sibling) expander를 타겟팅
+    st.markdown(f"""<style>
+    [data-testid='column'] .wm-color-{uid} + div [data-testid='stExpander'] details,
+    [data-testid='stMain'] .wm-color-{uid} + div [data-testid='stExpander'] details {{
+        background: {c['bg']} !important;
+        border: 1.5px solid {c['line']} !important;
+        border-radius: 10px !important;
+    }}
+    [data-testid='column'] .wm-color-{uid} + div [data-testid='stExpander'] summary span,
+    [data-testid='stMain'] .wm-color-{uid} + div [data-testid='stExpander'] summary span {{
+        color: {c['text']} !important;
+        font-weight: 700 !important;
+        {"text-decoration: line-through !important; opacity: 0.65 !important;" if is_cancel else ""}
+    }}
+    </style><div class="wm-color-{uid}" style="display:none;"></div>""", unsafe_allow_html=True)
+
+    with st.expander(exp_label, expanded=False):
         st.markdown(f"""
 <div style="border:1px solid {c['line']};background:{c['bg']};border-radius:10px;padding:6px 8px 4px 8px;">
   <div style="display:flex;flex-wrap:wrap;gap:3px;margin-bottom:6px;">
@@ -944,6 +950,7 @@ def render_week_month_event(row, prefix=""):
 </div>
 """, unsafe_allow_html=True)
         render_action_buttons_compact(row, prefix=prefix)
+
 
 def render_form(mode="new", row_data=None):
     if row_data is None:
@@ -1120,7 +1127,6 @@ with sidebar_top:
         if selected_day_sidebar.empty:
             st.caption("선택한 날짜의 일정이 없습니다.")
         else:
-            # ── 사이드바 미리보기: 모든 박스를 단일 HTML로 묶어 출력 ──
             parts = []
             for i, (_, row) in enumerate(selected_day_sidebar.iterrows()):
                 c = get_color(row["Category"])
