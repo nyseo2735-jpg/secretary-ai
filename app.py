@@ -267,11 +267,15 @@ div[data-testid='stTabs'] { margin-bottom: 0 !important; }
     margin-bottom: -4px !important;
 }
 [data-testid='column'] [data-testid='stButton'] > button {
-    min-height: 28px !important;
-    height: 28px !important;
-    padding-top: 0px !important;
-    padding-bottom: 0px !important;
-    font-size: 0.72rem !important;
+    min-height: 0px !important;
+    height: auto !important;
+    padding-top: 1px !important;
+    padding-bottom: 1px !important;
+    padding-left: 6px !important;
+    padding-right: 6px !important;
+    font-size: 0.68rem !important;
+    line-height: 1.2 !important;
+    border-radius: 6px !important;
 }
 [data-testid='column'] [data-testid='stMarkdown'] {
     margin-top: 0px !important;
