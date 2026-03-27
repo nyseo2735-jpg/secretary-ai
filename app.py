@@ -88,6 +88,7 @@ h1, h2, h3 { line-height: 1.2 !important; }
 .legend-pill {
     display: inline-block; padding: 6px 12px; border-radius: 999px;
     font-size: 0.80rem; font-weight: 700; margin: 0 6px 6px 0; border: 1px solid;
+    line-height: 1.4; vertical-align: middle;
 }
 .metric-chip {
     display: inline-block; padding: 6px 12px; border-radius: 999px;
@@ -1324,7 +1325,7 @@ else:
         st.session_state.selected_date = st.session_state._date_input_main
 
     with fc6:
-        st.markdown('<p style="font-size:0.2rem;">&nbsp;</p>', unsafe_allow_html=True)
+        st.markdown('<p style="font-size:0.1rem;">&nbsp;</p>', unsafe_allow_html=True)
         if st.button("오늘", use_container_width=True, type="primary"):
             st.session_state.search_text           = ""
             st.session_state.selected_cat          = "카테고리"
