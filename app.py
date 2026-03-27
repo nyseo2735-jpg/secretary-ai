@@ -325,6 +325,24 @@ div[data-testid='stTabs'] { margin-bottom: 0 !important; }
     padding: 0 !important;
 }
 
+/* ── primary 버튼 배경 흰색 ── */
+[data-testid='stBaseButton-primary'] button,
+[data-testid='stBaseButton-primary'] {
+    background-color: #ffffff !important;
+    background: #ffffff !important;
+}
+/* ── primary 버튼 사이즈 축소 ── */
+[data-testid='stBaseButton-primary'] {
+    min-height: 28px !important;
+    height: 28px !important;
+    font-size: 0.76rem !important;
+}
+[data-testid='stBaseButton-primary'] div,
+[data-testid='stBaseButton-primary'] span,
+[data-testid='stBaseButton-primary'] p {
+    font-size: 0.76rem !important;
+}
+
 </style>
 """, unsafe_allow_html=True)
 
