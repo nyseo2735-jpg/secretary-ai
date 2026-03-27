@@ -247,31 +247,37 @@ div[data-testid='stTabs'] { margin-bottom: 0 !important; }
 }
 /* ── 주간/월별 컬럼 내 버튼 극소형화 ── */
 [data-testid='column'] [data-testid='stButton'] {
-    margin-top: -4px !important;
-    margin-bottom: -2px !important;
+    margin-top: -6px !important;
+    margin-bottom: -4px !important;
 }
-[data-testid='column'] [data-testid='stButton'] > button {
-    min-height: 0px !important;
-    height: 18px !important;
-    max-height: 18px !important;
-    padding: 0px 6px !important;
-    font-size: 0.50rem !important;
+[data-testid='column'] [data-testid='stButton'] > button,
+[data-testid='column'] [data-testid='stButton'] button {
+    all: unset !important;
+    display: block !important;
+    width: 100% !important;
+    text-align: center !important;
+    cursor: pointer !important;
+    font-size: 0.52rem !important;
     line-height: 1 !important;
-    border-radius: 4px !important;
+    padding: 2px 0px !important;
     margin: 0 !important;
-    box-sizing: border-box !important;
-    border: 1px solid #E5E7EB !important;
-    background: #FAFAFA !important;
     color: #9CA3AF !important;
+    border: 1px solid #E5E7EB !important;
+    border-radius: 4px !important;
+    background: #FAFAFA !important;
+    box-sizing: border-box !important;
+    min-height: 0px !important;
+    height: auto !important;
 }
-[data-testid='column'] [data-testid='stButton'] > button p,
-[data-testid='column'] [data-testid='stButton'] > button span,
-[data-testid='column'] [data-testid='stButton'] > button div {
-    font-size: 0.50rem !important;
+[data-testid='column'] [data-testid='stButton'] button p,
+[data-testid='column'] [data-testid='stButton'] button span,
+[data-testid='column'] [data-testid='stButton'] button div {
+    all: unset !important;
+    font-size: 0.52rem !important;
     line-height: 1 !important;
+    color: #9CA3AF !important;
     margin: 0 !important;
     padding: 0 !important;
-    color: #9CA3AF !important;
 }
 
 /* ── GAP OVERRIDE ── */
