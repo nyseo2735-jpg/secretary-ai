@@ -1391,7 +1391,9 @@ else:
                 st.rerun()
 
         week_days = week_dates_from_any_day(st.session_state.selected_date)
-        week_df   = filtered_df[filtered_df["DateParsed"].isin(week_days)].copy()
+        _all_active = get_active_df(st.session_state.data)
+        _all_active["DateParsed"] = pd.to_datetime(_all_active["Date"], errors="coerce").dt.date
+        week_df = _all_active[_all_active["DateParsed"].isin(week_days)].copy()
         day_names = ["일","월","화","수","목","금","토"]
         cols = st.columns(7)
 
