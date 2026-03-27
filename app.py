@@ -262,30 +262,46 @@ div[data-testid='stTabs'] { margin-bottom: 0 !important; }
     gap: 0px !important;
     row-gap: 0px !important;
 }
-[data-testid='column'] [data-testid='stButton'] {
-    margin-top: -6px !important;
-    margin-bottom: -6px !important;
-}
-[data-testid='column'] button {
-    min-height: 0px !important;
-    max-height: 22px !important;
-    height: 22px !important;
-    padding: 0px 6px !important;
-    font-size: 0.55rem !important;
-    line-height: 1 !important;
-    border-radius: 4px !important;
-    margin: 0 !important;
-    box-sizing: border-box !important;
-}
-[data-testid='column'] button * {
-    margin: 0px !important;
-    padding: 0px !important;
-    font-size: 0.55rem !important;
-    line-height: 1 !important;
-}
 [data-testid='column'] [data-testid='stMarkdown'] {
     margin-top: 0px !important;
     margin-bottom: 0px !important;
+}
+
+/* ── 주간/월별 expander: 화살표 숨김 + 초소형화 ── */
+[data-testid='column'] [data-testid='stExpander'] {
+    margin-top: -4px !important;
+    margin-bottom: -4px !important;
+}
+[data-testid='column'] [data-testid='stExpander'] details {
+    border: none !important;
+    background: transparent !important;
+    box-shadow: none !important;
+    border-radius: 0 !important;
+}
+[data-testid='column'] [data-testid='stExpander'] summary {
+    padding: 0px 4px !important;
+    min-height: 0px !important;
+    height: auto !important;
+    gap: 0px !important;
+}
+[data-testid='column'] [data-testid='stExpander'] summary span {
+    font-size: 0.60rem !important;
+    font-weight: 600 !important;
+    color: #9CA3AF !important;
+}
+/* 화살표(>) 아이콘 숨김 */
+[data-testid='column'] [data-testid='stExpander'] summary svg {
+    display: none !important;
+}
+[data-testid='column'] [data-testid='stExpander'] summary::before {
+    display: none !important;
+}
+[data-testid='column'] [data-testid='stExpander'] summary::marker {
+    display: none !important;
+    content: "" !important;
+}
+[data-testid='column'] [data-testid='stExpander'] summary::-webkit-details-marker {
+    display: none !important;
 }
 
 /* ── GAP OVERRIDE ── */
@@ -881,76 +897,40 @@ def render_week_month_event(row, prefix=""):
     c         = get_color(safe_str(row.get("Category", "기타")))
     time_txt  = safe_str(row.get("Time", ""))
     cat_txt   = safe_str(row.get("Category", "기타"))
-    subject   = compact_subject_text(row)
     is_cancel = safe_str(row.get("Status")) == "취소"
     row_id    = safe_str(row.get("ID", ""))
-    toggle_key = f"wm_toggle_{prefix}_{row_id}"
-    is_open    = st.session_state.wm_expanded.get(toggle_key, False)
+    attend_icon = "👑 " if is_president_attend(row) else ""
+    subj = safe_str(row.get("Subject", ""))
+    cancel_mark = " (취소)" if is_cancel else ""
+    label = f"{time_txt} [{cat_txt}] {attend_icon}{subj}{cancel_mark}" if time_txt else f"[{cat_txt}] {attend_icon}{subj}{cancel_mark}"
 
-    # ── 컬러 버튼을 순수 HTML로 렌더링 (시간 + 카테고리 + 제목 분리) ──
+    # ── 컬러 박스 (HTML) ──
     cancel_style = "text-decoration:line-through;opacity:0.65;" if is_cancel else ""
-    attend_icon  = "👑 " if is_president_attend(row) else ""
-    time_html    = f'<div style="font-size:0.73rem;font-weight:800;color:{c["text"]};margin-bottom:1px;">{esc(time_txt)} [{esc(cat_txt)}]</div>' if time_txt else f'<div style="font-size:0.73rem;font-weight:800;color:{c["text"]};margin-bottom:3px;">[{esc(cat_txt)}]</div>'
-    subject_html = f'<div style="font-size:0.84rem;font-weight:700;color:{c["text"]};line-height:1.4;word-break:keep-all;{cancel_style}">{html.escape(attend_icon)}{esc(safe_str(row.get("Subject","")))}</div>'
+    time_html = ""
+    if time_txt:
+        time_html = f'<div style="font-size:0.70rem;font-weight:800;color:{c["text"]};margin-bottom:1px;">{esc(time_txt)} [{esc(cat_txt)}]</div>'
+    else:
+        time_html = f'<div style="font-size:0.70rem;font-weight:800;color:{c["text"]};margin-bottom:1px;">[{esc(cat_txt)}]</div>'
+    subject_html = f'<div style="font-size:0.80rem;font-weight:700;color:{c["text"]};line-height:1.3;word-break:keep-all;{cancel_style}">{html.escape(attend_icon)}{esc(subj)}</div>'
 
-    st.markdown(f"""
-<div style="
-    background:{c['bg']};
-    border:1.5px solid {c['line']};
-    border-radius:14px;
-    padding:4px 6px;
-    margin-bottom:1px;
-    margin-top:0px;
-">
-    {time_html}
-    {subject_html}
-</div>
-""", unsafe_allow_html=True)
+    st.markdown(f"""<div style="background:{c['bg']};border:1.5px solid {c['line']};border-radius:10px;padding:4px 7px;margin-bottom:0px;">{time_html}{subject_html}</div>""", unsafe_allow_html=True)
 
-st.markdown(
-    f"""<div style="text-align:center;margin:-4px 0 2px 0;cursor:pointer;"
-         onclick="
-           var btns = window.parent.document.querySelectorAll('button');
-           for(var i=0;i<btns.length;i++){{
-             if(btns[i].innerText.trim()==='{toggle_key}'){{btns[i].click();break;}}
-           }}
-         ">
-      <span style="font-size:0.5rem;color:#999;border:1px solid #ddd;border-radius:4px;padding:0px 8px;display:inline-block;">
-        {"▲" if is_open else "▼"}
-      </span>
-    </div>""",
-    unsafe_allow_html=True
-)
-# 숨김 버튼 (실제 토글 처리용)
-st.markdown('<div style="position:absolute;left:-9999px;height:0;overflow:hidden;">', unsafe_allow_html=True)
-if st.button(toggle_key, key=toggle_key):
-    st.session_state.wm_expanded[toggle_key] = not is_open
-    st.rerun()
-st.markdown('</div>', unsafe_allow_html=True)
-
-    if is_open:
+    # ── expander로 상세 (화살표는 CSS로 숨김) ──
+    exp_key = f"wm_exp_{prefix}_{row_id}"
+    with st.expander("상세", expanded=False):
         st.markdown(f"""
-<div style="border:1px solid {c['line']};border-top:none;background:{c['bg']};
-            border-radius:0 0 12px 12px;padding:8px 10px 6px 10px;margin-top:-6px;">
-  <div style="display:flex;flex-wrap:wrap;gap:4px;margin-bottom:8px;">
-    <span style="background:{c['soft']};color:{c['text']};border:1px solid {c['line']};
-                 border-radius:999px;padding:2px 8px;font-size:0.70rem;font-weight:800;">{esc(cat_txt)}</span>
-    <span style="background:#F3F4F6;color:#374151;border:1px solid #D1D5DB;
-                 border-radius:999px;padding:2px 8px;font-size:0.70rem;font-weight:700;">{esc(row.get('Status',''))}</span>
-    <span style="background:#F3F4F6;color:#374151;border:1px solid #D1D5DB;
-                 border-radius:999px;padding:2px 8px;font-size:0.70rem;font-weight:700;">우선순위 {esc(row.get('Priority',''))}</span>
-    <span style="background:#F3F4F6;color:#374151;border:1px solid #D1D5DB;
-                 border-radius:999px;padding:2px 8px;font-size:0.70rem;font-weight:700;">{'👑 회장 직접 참석' if is_president_attend(row) else '대참 가능'}</span>
-    <span style="background:#EFF6FF;color:#1D4ED8;border:1px solid #BFDBFE;
-                 border-radius:999px;padding:2px 8px;font-size:0.70rem;font-weight:700;">팔로우 {esc(row.get('FollowStatus',''))}</span>
+<div style="border:1px solid {c['line']};background:{c['bg']};border-radius:10px;padding:6px 8px 4px 8px;">
+  <div style="display:flex;flex-wrap:wrap;gap:3px;margin-bottom:6px;">
+    <span style="background:{c['soft']};color:{c['text']};border:1px solid {c['line']};border-radius:999px;padding:1px 6px;font-size:0.65rem;font-weight:800;">{esc(cat_txt)}</span>
+    <span style="background:#F3F4F6;color:#374151;border:1px solid #D1D5DB;border-radius:999px;padding:1px 6px;font-size:0.65rem;font-weight:700;">{esc(row.get('Status',''))}</span>
+    <span style="background:#F3F4F6;color:#374151;border:1px solid #D1D5DB;border-radius:999px;padding:1px 6px;font-size:0.65rem;font-weight:700;">우선순위 {esc(row.get('Priority',''))}</span>
+    <span style="background:#F3F4F6;color:#374151;border:1px solid #D1D5DB;border-radius:999px;padding:1px 6px;font-size:0.65rem;font-weight:700;">{'👑 회장참석' if is_president_attend(row) else '대참가능'}</span>
+    <span style="background:#EFF6FF;color:#1D4ED8;border:1px solid #BFDBFE;border-radius:999px;padding:1px 6px;font-size:0.65rem;font-weight:700;">팔로우 {esc(row.get('FollowStatus',''))}</span>
   </div>
   <div class="wm-detail-grid">
     <div class="wm-detail-cell"><div class="wm-detail-label">일정 날짜</div><div class="wm-detail-value">{esc(row.get('Date',''))}</div></div>
     <div class="wm-detail-cell"><div class="wm-detail-label">일정 시간</div><div class="wm-detail-value">{esc(row.get('Time',''))}</div></div>
     <div class="wm-detail-cell"><div class="wm-detail-label">카테고리</div><div class="wm-detail-value" style="color:{c['text']};font-weight:700;">{esc(cat_txt)}</div></div>
-    <div class="wm-detail-cell"><div class="wm-detail-label">일정 현황</div><div class="wm-detail-value">{esc(row.get('Status',''))}</div></div>
-    <div class="wm-detail-cell"><div class="wm-detail-label">우선순위</div><div class="wm-detail-value">{esc(row.get('Priority',''))}</div></div>
-    <div class="wm-detail-cell"><div class="wm-detail-label">회장직접참석 여부</div><div class="wm-detail-value">{'👑 직접 참석' if is_president_attend(row) else '대참 가능'}</div></div>
     <div class="wm-detail-cell"><div class="wm-detail-label">회의명</div><div class="wm-detail-value" style="font-weight:700;{'text-decoration:line-through;opacity:0.65;' if is_cancel else ''}">{esc(row.get('Subject',''))}</div></div>
     <div class="wm-detail-cell"><div class="wm-detail-label">방문기관명</div><div class="wm-detail-value">{esc(row.get('OrgName','')) or '—'}</div></div>
     <div class="wm-detail-cell"><div class="wm-detail-label">회장님 외 동행인</div><div class="wm-detail-value">{esc(row.get('Companion','')) or '—'}</div></div>
@@ -959,13 +939,11 @@ st.markdown('</div>', unsafe_allow_html=True)
     <div class="wm-detail-cell"><div class="wm-detail-label">회의 목적</div><div class="wm-detail-value">{esc(row.get('Purpose','')) or '—'}</div></div>
     <div class="wm-detail-cell"><div class="wm-detail-label">후속/준비사항</div><div class="wm-detail-value">{esc(row.get('FollowTask','')) or '—'}</div></div>
     <div class="wm-detail-cell"><div class="wm-detail-label">진행 메모</div><div class="wm-detail-value">{esc(row.get('FollowProgressMemo','')) or '—'}</div></div>
-    <div class="wm-detail-cell"><div class="wm-detail-label">공유 메모</div><div class="wm-detail-value">{esc(row.get('SharedNote','')) or '—'}</div></div>
     <div class="wm-detail-cell"><div class="wm-detail-label">일반 메모</div><div class="wm-detail-value">{esc(row.get('Memo','')) or '—'}</div></div>
   </div>
 </div>
 """, unsafe_allow_html=True)
         render_action_buttons_compact(row, prefix=prefix)
-
 
 def render_form(mode="new", row_data=None):
     if row_data is None:
