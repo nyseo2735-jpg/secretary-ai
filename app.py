@@ -325,25 +325,38 @@ div[data-testid='stTabs'] { margin-bottom: 0 !important; }
     padding: 0 !important;
 }
 
-    * ── 일별 보기 하단 액션 버튼 원복 ── */
+Copy/* ── 일별 보기 하단 액션 버튼 원복 ── */
 .small-action [data-testid='stBaseButton-secondary'] {
-    all: revert !important;
+    all: unset !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
     border-radius: 12px !important;
     font-weight: 700 !important;
     font-size: 0.84rem !important;
     min-height: 34px !important;
     height: 34px !important;
-    padding-top: 0.15rem !important;
-    padding-bottom: 0.15rem !important;
+    padding: 0.15rem 0.75rem !important;
     width: 100% !important;
     cursor: pointer !important;
+    background-color: #ffffff !important;
+    color: #31333F !important;
+    border: 1px solid rgba(49,51,63,0.2) !important;
+    box-sizing: border-box !important;
+    line-height: normal !important;
+}
+.small-action [data-testid='stBaseButton-secondary']:hover {
+    border-color: #FF4B4B !important;
+    color: #FF4B4B !important;
 }
 .small-action [data-testid='stBaseButton-secondary'] div,
 .small-action [data-testid='stBaseButton-secondary'] span,
 .small-action [data-testid='stBaseButton-secondary'] p {
-    all: revert !important;
+    all: unset !important;
     font-size: 0.84rem !important;
     font-weight: 700 !important;
+    color: inherit !important;
+    line-height: normal !important;
 }
 
 </style>
