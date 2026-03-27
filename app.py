@@ -1374,13 +1374,20 @@ else:
     # ── 주간 ──
     with tabs[1]:
         st.markdown('<div class="section-title">📅 주간 일정</div>', unsafe_allow_html=True)
+        if "week_anchor_value" not in st.session_state:
+            st.session_state.week_anchor_value = st.session_state.selected_date
+
+        def _on_week_anchor_change():
+            st.session_state.week_anchor_value = st.session_state.week_anchor_date
+
         wc1, wc2, wc3 = st.columns([1.3, 1.5, 3.2])
-        week_anchor = wc1.date_input("", value=st.session_state.selected_date,
-                                     key="week_anchor_date", label_visibility="collapsed")
+        wc1.date_input("", value=st.session_state.week_anchor_value,
+                       key="week_anchor_date", label_visibility="collapsed",
+                       on_change=_on_week_anchor_change)
         with wc2:
             st.markdown('<p style="font-size:0.12rem;">&nbsp;</p>', unsafe_allow_html=True)
             if st.button("이 날짜가 포함된 주 보기", key="apply_week_anchor", use_container_width=True, type="primary"):
-                st.session_state.selected_date = st.session_state.week_anchor_date
+                st.session_state.selected_date = st.session_state.week_anchor_value
                 st.rerun()
 
         week_days = week_dates_from_any_day(st.session_state.selected_date)
