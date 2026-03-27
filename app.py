@@ -295,6 +295,36 @@ div[data-testid='stTabs'] { margin-bottom: 0 !important; }
     > div > [data-testid='stExpander']
 ) { gap: 2px !important; row-gap: 2px !important; }
 
+/* ── 목록형 전용 상세 버튼 극소형화 ── */
+.list-detail-btn-wrap [data-testid='stBaseButton-secondary'] {
+    all: unset !important;
+    display: block !important;
+    width: 100% !important;
+    text-align: center !important;
+    cursor: pointer !important;
+    font-size: 0.50rem !important;
+    line-height: 1 !important;
+    padding: 1px 0px !important;
+    margin: 0 !important;
+    color: #9CA3AF !important;
+    border: 1px solid #E5E7EB !important;
+    border-radius: 4px !important;
+    background: #FAFAFA !important;
+    box-sizing: border-box !important;
+    min-height: 0px !important;
+    height: auto !important;
+}
+.list-detail-btn-wrap [data-testid='stBaseButton-secondary'] div,
+.list-detail-btn-wrap [data-testid='stBaseButton-secondary'] span,
+.list-detail-btn-wrap [data-testid='stBaseButton-secondary'] p {
+    all: unset !important;
+    font-size: 0.50rem !important;
+    line-height: 1 !important;
+    color: #9CA3AF !important;
+    margin: 0 !important;
+    padding: 0 !important;
+}
+    
 </style>
 """, unsafe_allow_html=True)
 
@@ -968,14 +998,13 @@ def render_list_view_event(row, prefix=""):
 
     # ── 상세 버튼 (인라인 HTML로 극소형 — CSS 불필요) ──
     arrow = "▲" if is_open else "▼"
-    btn_margin_bottom = "6px"                                  # ← ⓑ 버튼 아래 간격 (다음 박스까지)
-    st.markdown(
-        f'<div style="text-align:center;margin-top:0px;margin-bottom:{btn_margin_bottom};">'
-        f'<span id="{toggle_key}_lbl" style="font-size:0.50rem;color:#9CA3AF;border:1px solid #E5E7EB;'
-        f'border-radius:4px;padding:1px 6px;background:#FAFAFA;cursor:pointer;">'
-        f'{arrow} 상세</span></div>',
-        unsafe_allow_html=True
-    )
+    btn_margin_top = "2px"                                     # ← 박스↔버튼 간격
+    btn_margin_bottom = "6px"                                  # ← 버튼↔다음 박스 간격
+    st.markdown(f'<div class="list-detail-btn-wrap" style="margin-top:{btn_margin_top};margin-bottom:{btn_margin_bottom};">', unsafe_allow_html=True)
+    if st.button(f"{arrow} 상세", key=toggle_key, use_container_width=True):
+        st.session_state.wm_expanded[toggle_key] = not is_open
+        st.rerun()
+    st.markdown('</div>', unsafe_allow_html=True)
     if st.button(f"{arrow} 상세", key=toggle_key, use_container_width=True):
         st.session_state.wm_expanded[toggle_key] = not is_open
         st.rerun()
