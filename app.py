@@ -1325,7 +1325,7 @@ else:
         st.session_state.selected_date = st.session_state._date_input_main
 
     with fc6:
-        st.markdown('<p style="font-size:0.1rem;">&nbsp;</p>', unsafe_allow_html=True)
+        st.markdown('<p style="font-size:0.12rem;">&nbsp;</p>', unsafe_allow_html=True)
         if st.button("오늘", use_container_width=True, type="primary"):
             st.session_state.search_text           = ""
             st.session_state.selected_cat          = "카테고리"
