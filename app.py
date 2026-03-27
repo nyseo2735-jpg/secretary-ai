@@ -223,8 +223,8 @@ div[data-testid='stTabs'] { margin-bottom: 0 !important; }
 .wm-no-schedule {
     font-size: 0.82rem;
     color: #9CA3AF;
-    padding-top: 0px;
-    margin-top: 0px;
+    padding-top: 4px;
+    margin-top: 4px;
 }
 
 @media (max-width: 1000px) {
