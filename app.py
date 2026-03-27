@@ -899,12 +899,11 @@ def render_week_month_event(row, prefix=""):
     btn.style.setProperty('min-height', '0', 'important');
     btn.style.setProperty('line-height', '1.4', 'important');
     btn.style.setProperty('margin-top', '0', 'important');
-    btn.style.setProperty('margin-bottom', '2px', 'important');
+    btn.style.setProperty('margin-bottom', '0', 'important');
     if('{label_style}'){{
       btn.style.setProperty('text-decoration', 'line-through', 'important');
       btn.style.setProperty('opacity', '0.65', 'important');
     }}
-    // 버튼의 부모 stButton wrapper 간격도 제거
     var wrap = btn.closest('[data-testid="stButton"]');
     if(wrap){{
       wrap.style.setProperty('margin-top', '0', 'important');
@@ -964,6 +963,7 @@ def render_week_month_event(row, prefix=""):
 """, unsafe_allow_html=True)
         render_action_buttons_compact(row, prefix=prefix)
 
+    st.markdown('<div style="margin-top:-16px;"></div>', unsafe_allow_html=True)
 
 
 def render_form(mode="new", row_data=None):
