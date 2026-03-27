@@ -236,61 +236,42 @@ div[data-testid='stTabs'] { margin-bottom: 0 !important; }
     .info-box { min-height: auto; }
 }
 
-/* ══════════════════════════════════════════
-   주간/월별 컬럼 내부 간격·expander 스타일
-   ─ 컬러 박스 HTML 없이 expander만 사용
-   ─ expander 헤더 = 일정 요약 (색상은 Python에서 적용)
-   ─ > 화살표 숨김
-   ─ 박스 간 간격 최소화
-══════════════════════════════════════════ */
+/* ── 주간/월별 컬럼 내 간격 최소화 ── */
 [data-testid='column'] [data-testid='stVerticalBlock'] {
-    gap: 2px !important;
-    row-gap: 2px !important;
+    gap: 0px !important;
+    row-gap: 0px !important;
 }
 [data-testid='column'] [data-testid='stMarkdown'] {
     margin-top: 0px !important;
     margin-bottom: 0px !important;
 }
-/* expander 외부 여백 제거 */
+/* ── 주간/월별 expander 극소형화 ── */
 [data-testid='column'] [data-testid='stExpander'] {
-    margin-top: 0px !important;
-    margin-bottom: 0px !important;
+    margin-top: -2px !important;
+    margin-bottom: 2px !important;
 }
-/* expander 컨테이너: 기본 테두리/배경 제거 (Python에서 인라인으로 덮어씀) */
 [data-testid='column'] [data-testid='stExpander'] details {
-    border: none !important;
-    background: transparent !important;
+    border: 1px solid #E5E7EB !important;
+    background: #FAFAFA !important;
+    border-radius: 6px !important;
     box-shadow: none !important;
-    border-radius: 10px !important;
     overflow: hidden !important;
 }
-/* summary(헤더) 최소화 */
 [data-testid='column'] [data-testid='stExpander'] summary {
-    padding: 4px 8px !important;
+    padding: 1px 6px !important;
     min-height: 0px !important;
     height: auto !important;
     gap: 0px !important;
-    border-radius: 10px !important;
 }
-/* summary 텍스트 */
 [data-testid='column'] [data-testid='stExpander'] summary span {
-    font-size: 0.72rem !important;
-    font-weight: 700 !important;
-    line-height: 1.3 !important;
-    word-break: keep-all !important;
+    font-size: 0.55rem !important;
+    font-weight: 600 !important;
+    color: #9CA3AF !important;
+    line-height: 1.1 !important;
 }
-/* > 화살표 SVG 숨김 */
 [data-testid='column'] [data-testid='stExpander'] summary svg {
-    display: none !important;
-    width: 0px !important;
-    height: 0px !important;
-}
-[data-testid='column'] [data-testid='stExpander'] summary::marker {
-    display: none !important;
-    content: "" !important;
-}
-[data-testid='column'] [data-testid='stExpander'] summary::-webkit-details-marker {
-    display: none !important;
+    width: 10px !important;
+    height: 10px !important;
 }
 
 /* ── GAP OVERRIDE ── */
@@ -892,38 +873,19 @@ def render_week_month_event(row, prefix=""):
     row_id    = safe_str(row.get("ID", ""))
     attend_icon = "👑 " if is_president_attend(row) else ""
     subj = safe_str(row.get("Subject", ""))
-    cancel_mark = " (취소)" if is_cancel else ""
 
-    # expander 헤더 라벨
+    # ── 컬러 박스 (HTML) ──
+    cancel_style = "text-decoration:line-through;opacity:0.65;" if is_cancel else ""
     if time_txt:
-        exp_label = f"{time_txt} [{cat_txt}] {attend_icon}{subj}{cancel_mark}"
+        time_html = f'<div style="font-size:0.70rem;font-weight:800;color:{c["text"]};margin-bottom:1px;">{esc(time_txt)} [{esc(cat_txt)}]</div>'
     else:
-        exp_label = f"[{cat_txt}] {attend_icon}{subj}{cancel_mark}"
+        time_html = f'<div style="font-size:0.70rem;font-weight:800;color:{c["text"]};margin-bottom:1px;">[{esc(cat_txt)}]</div>'
+    subject_html = f'<div style="font-size:0.80rem;font-weight:700;color:{c["text"]};line-height:1.3;word-break:keep-all;{cancel_style}">{html.escape(attend_icon)}{esc(subj)}</div>'
 
-    # ── 인라인 스타일을 expander details에 주입하는 CSS ──
-    # 각 이벤트마다 고유 class를 부여하여 색상 적용
-    uid = f"wm_{prefix}_{row_id}".replace("-","_").replace(" ","_")
+    st.markdown(f'<div style="background:{c["bg"]};border:1.5px solid {c["line"]};border-radius:10px;padding:4px 7px;margin-bottom:0px;">{time_html}{subject_html}</div>', unsafe_allow_html=True)
 
-    # CSS inject: 바로 다음 expander에만 적용되도록 nth-of-type 대신
-    # st.markdown → st.expander 순서를 이용
-    # Streamlit은 같은 컨테이너 안에서 순서대로 렌더링하므로
-    # 직전 markdown의 형제(sibling) expander를 타겟팅
-    st.markdown(f"""<style>
-    [data-testid='column'] .wm-color-{uid} + div [data-testid='stExpander'] details,
-    [data-testid='stMain'] .wm-color-{uid} + div [data-testid='stExpander'] details {{
-        background: {c['bg']} !important;
-        border: 1.5px solid {c['line']} !important;
-        border-radius: 10px !important;
-    }}
-    [data-testid='column'] .wm-color-{uid} + div [data-testid='stExpander'] summary span,
-    [data-testid='stMain'] .wm-color-{uid} + div [data-testid='stExpander'] summary span {{
-        color: {c['text']} !important;
-        font-weight: 700 !important;
-        {"text-decoration: line-through !important; opacity: 0.65 !important;" if is_cancel else ""}
-    }}
-    </style><div class="wm-color-{uid}" style="display:none;"></div>""", unsafe_allow_html=True)
-
-    with st.expander(exp_label, expanded=False):
+    # ── 상세 expander (높이 극소화) ──
+    with st.expander("상세", expanded=False):
         st.markdown(f"""
 <div style="border:1px solid {c['line']};background:{c['bg']};border-radius:10px;padding:6px 8px 4px 8px;">
   <div style="display:flex;flex-wrap:wrap;gap:3px;margin-bottom:6px;">
