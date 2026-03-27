@@ -257,6 +257,27 @@ div[data-testid='stTabs'] { margin-bottom: 0 !important; }
     .info-box { min-height: auto; }
 }
 
+/* ── 주간/월별 컬럼 내 버튼·마크다운 간격 최소화 ── */
+[data-testid='column'] [data-testid='stVerticalBlock'] {
+    gap: 0px !important;
+    row-gap: 0px !important;
+}
+[data-testid='column'] [data-testid='stButton'] {
+    margin-top: -4px !important;
+    margin-bottom: -4px !important;
+}
+[data-testid='column'] [data-testid='stButton'] > button {
+    min-height: 28px !important;
+    height: 28px !important;
+    padding-top: 0px !important;
+    padding-bottom: 0px !important;
+    font-size: 0.72rem !important;
+}
+[data-testid='column'] [data-testid='stMarkdown'] {
+    margin-top: 0px !important;
+    margin-bottom: 0px !important;
+}
+
 /* ── GAP OVERRIDE ── */
 [data-testid='stSidebar'] [data-testid='stVerticalBlock']:has(
     > div > [data-testid='stButton'],
@@ -876,12 +897,10 @@ def render_week_month_event(row, prefix=""):
 </div>
 """, unsafe_allow_html=True)
 
-    # ── 토글 버튼 (최소 높이) ──
-    st.markdown('<div style="margin-top:-10px;margin-bottom:-6px;"></div>', unsafe_allow_html=True)
+    # ── 토글 버튼 (작은 텍스트 버튼) ──
     if st.button("▼ 상세" if not is_open else "▲ 접기", key=toggle_key, use_container_width=True):
         st.session_state.wm_expanded[toggle_key] = not is_open
         st.rerun()
-    st.markdown('<div style="margin-top:-10px;"></div>', unsafe_allow_html=True)
 
     if is_open:
         st.markdown(f"""
