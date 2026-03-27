@@ -1001,7 +1001,7 @@ def render_list_view_event(row, prefix=""):
     btn_margin_top = "2px"                                     # ← 박스↔버튼 간격
     btn_margin_bottom = "6px"                                  # ← 버튼↔다음 박스 간격
     st.markdown(f'<div class="list-detail-btn-wrap" style="margin-top:{btn_margin_top};margin-bottom:{btn_margin_bottom};">', unsafe_allow_html=True)
-    if st.button(f"{arrow} 상세", key=toggle_key, use_container_width=True):
+    if st.button(f"{arrow} 상세", key=f"{toggle_key}_btn", use_container_width=True):
         st.session_state.wm_expanded[toggle_key] = not is_open
         st.rerun()
     st.markdown('</div>', unsafe_allow_html=True)
