@@ -86,7 +86,7 @@ h1, h2, h3 { line-height: 1.2 !important; }
     font-size: 1.7rem; font-weight: 800; color: #2F3142; margin: 8px 0 16px 0; line-height: 1.2;
 }
 .legend-pill {
-    display: inline-block; padding: 6px 12px; border-radius: 999px;
+    display: inline-block; padding: 4px 12px 8px 12px;; border-radius: 999px;
     font-size: 0.80rem; font-weight: 700; margin: 0 6px 6px 0; border: 1px solid;
     line-height: 1.2; vertical-align: middle;
 }
