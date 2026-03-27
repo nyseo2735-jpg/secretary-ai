@@ -88,7 +88,7 @@ h1, h2, h3 { line-height: 1.2 !important; }
 .legend-pill {
     display: inline-block; padding: 6px 12px; border-radius: 999px;
     font-size: 0.80rem; font-weight: 700; margin: 0 6px 6px 0; border: 1px solid;
-    line-height: 1.4; vertical-align: middle;
+    line-height: 1.2; vertical-align: middle;
 }
 .metric-chip {
     display: inline-block; padding: 6px 12px; border-radius: 999px;
