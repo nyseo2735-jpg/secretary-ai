@@ -852,58 +852,80 @@ def render_week_month_event(row, prefix=""):
     cat_txt   = safe_str(row.get("Category", "기타"))
     subject   = compact_subject_text(row)
     is_cancel = safe_str(row.get("Status")) == "취소"
-    row_id    = safe_str(row.get("ID", ""))
+
+    row_id     = safe_str(row.get("ID", ""))
     toggle_key = f"wm_toggle_{prefix}_{row_id}"
     is_open    = st.session_state.wm_expanded.get(toggle_key, False)
 
-    # ── 컬러 카드 라벨 (st.button 텍스트) ──
-    attend_icon = "👑 " if is_president_attend(row) else ""
     if time_txt:
-        label = f"{time_txt} [{cat_txt}] {attend_icon}{safe_str(row.get('Subject',''))}"
+        label = f"{time_txt} [{cat_txt}] {subject}"
     else:
-        label = f"[{cat_txt}] {attend_icon}{safe_str(row.get('Subject',''))}"
-    if is_cancel:
-        label = f"{label} (취소)"
+        label = f"[{cat_txt}] {subject}"
 
-    # ── 일정 박스 자체가 토글 버튼 ──
+    label_style = "text-decoration:line-through;opacity:0.65;" if is_cancel else ""
+
+    btn_js_id = "wmbtn_" + "".join(ch if ch.isalnum() else "_" for ch in toggle_key)
+
+    st.markdown(f"""
+<div data-btnid="{btn_js_id}" style="display:none;height:0;margin:0;padding:0;overflow:hidden;"></div>
+<script>
+(function(){{
+  function applyStyle(){{
+    var marker = document.querySelector('div[data-btnid="{btn_js_id}"]');
+    if(!marker) return;
+    var parent = marker.closest('[data-testid="stMarkdown"]') || marker.parentElement;
+    var sib = parent;
+    var btn = null;
+    var limit = 8;
+    while(sib && limit > 0){{
+      sib = sib.nextElementSibling;
+      limit--;
+      if(!sib) break;
+      var b = sib.querySelector('button');
+      if(b){{ btn = b; break; }}
+    }}
+    if(!btn) return;
+    btn.style.setProperty('background', '{c["bg"]}', 'important');
+    btn.style.setProperty('border', '1.5px solid {c["line"]}', 'important');
+    btn.style.setProperty('color', '{c["text"]}', 'important');
+    btn.style.setProperty('border-radius', '14px', 'important');
+    btn.style.setProperty('font-weight', '700', 'important');
+    btn.style.setProperty('font-size', '0.82rem', 'important');
+    btn.style.setProperty('text-align', 'center', 'important');
+    btn.style.setProperty('padding', '10px 12px', 'important');
+    btn.style.setProperty('white-space', 'normal', 'important');
+    btn.style.setProperty('word-break', 'keep-all', 'important');
+    btn.style.setProperty('height', 'auto', 'important');
+    btn.style.setProperty('min-height', '0', 'important');
+    btn.style.setProperty('line-height', '1.4', 'important');
+    btn.style.setProperty('margin-top', '0', 'important');
+    btn.style.setProperty('margin-bottom', '2px', 'important');
+    if('{label_style}'){{
+      btn.style.setProperty('text-decoration', 'line-through', 'important');
+      btn.style.setProperty('opacity', '0.65', 'important');
+    }}
+    // 버튼의 부모 stButton wrapper 간격도 제거
+    var wrap = btn.closest('[data-testid="stButton"]');
+    if(wrap){{
+      wrap.style.setProperty('margin-top', '0', 'important');
+      wrap.style.setProperty('margin-bottom', '0', 'important');
+    }}
+  }}
+  if(document.readyState === 'loading'){{
+    document.addEventListener('DOMContentLoaded', applyStyle);
+  }} else {{
+    setTimeout(applyStyle, 0);
+    setTimeout(applyStyle, 100);
+    setTimeout(applyStyle, 300);
+  }}
+}})();
+</script>
+""", unsafe_allow_html=True)
+
     if st.button(label, key=toggle_key, use_container_width=True):
         st.session_state.wm_expanded[toggle_key] = not is_open
         st.rerun()
 
-    # ── 버튼에 카테고리 컬러 적용 ──
-    label_escaped = html.escape(label[:30]).replace("'", "\\'").replace('"', '\\"')
-    cancel_js = "btn.style.setProperty('text-decoration','line-through','important');btn.style.setProperty('opacity','0.65','important');" if is_cancel else ""
-    st.markdown(f"""<script>
-(function(){{
-  function fix(){{
-    var btns=document.querySelectorAll('button[kind="secondary"]');
-    for(var i=0;i<btns.length;i++){{
-      var p=btns[i].querySelector('p');
-      if(!p)continue;
-      var t=p.textContent||'';
-      if(t.indexOf('{label_escaped}')===0){{
-        btns[i].style.setProperty('background','{c["bg"]}','important');
-        btns[i].style.setProperty('border','1.5px solid {c["line"]}','important');
-        btns[i].style.setProperty('color','{c["text"]}','important');
-        btns[i].style.setProperty('border-radius','14px','important');
-        btns[i].style.setProperty('font-weight','700','important');
-        btns[i].style.setProperty('font-size','0.82rem','important');
-        btns[i].style.setProperty('text-align','center','important');
-        btns[i].style.setProperty('padding','10px 12px','important');
-        btns[i].style.setProperty('white-space','normal','important');
-        btns[i].style.setProperty('word-break','keep-all','important');
-        btns[i].style.setProperty('height','auto','important');
-        btns[i].style.setProperty('min-height','0','important');
-        btns[i].style.setProperty('line-height','1.4','important');
-        {cancel_js}
-      }}
-    }}
-  }}
-  setTimeout(fix,0);setTimeout(fix,80);setTimeout(fix,250);
-}})();
-</script>""", unsafe_allow_html=True)
-
-    # ── 펼침 상세 ──
     if is_open:
         st.markdown(f"""
 <div style="border:1px solid {c['line']};border-top:none;background:{c['bg']};
@@ -942,8 +964,6 @@ def render_week_month_event(row, prefix=""):
 """, unsafe_allow_html=True)
         render_action_buttons_compact(row, prefix=prefix)
 
-    st.markdown('<div style="margin-top:-14px;"></div>', unsafe_allow_html=True)
-    st.markdown('<div style="margin-top:-12px;"></div>', unsafe_allow_html=True)
 
 
 def render_form(mode="new", row_data=None):
