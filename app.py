@@ -856,55 +856,30 @@ def render_week_month_event(row, prefix=""):
     toggle_key = f"wm_toggle_{prefix}_{row_id}"
     is_open    = st.session_state.wm_expanded.get(toggle_key, False)
 
-    label = f"{time_txt} [{cat_txt}] {subject}" if time_txt else f"[{cat_txt}] {subject}"
-    btn_js_id = "wmbtn_" + "".join(ch if ch.isalnum() else "_" for ch in toggle_key)
+    # ── 컬러 버튼을 순수 HTML로 렌더링 (시간 + 카테고리 + 제목 분리) ──
+    cancel_style = "text-decoration:line-through;opacity:0.65;" if is_cancel else ""
+    attend_icon  = "👑 " if is_president_attend(row) else ""
+    time_html    = f'<div style="font-size:0.73rem;font-weight:800;color:{c["text"]};margin-bottom:3px;">{esc(time_txt)} [{esc(cat_txt)}]</div>' if time_txt else f'<div style="font-size:0.73rem;font-weight:800;color:{c["text"]};margin-bottom:3px;">[{esc(cat_txt)}]</div>'
+    subject_html = f'<div style="font-size:0.84rem;font-weight:700;color:{c["text"]};line-height:1.4;word-break:keep-all;{cancel_style}">{html.escape(attend_icon)}{esc(safe_str(row.get("Subject","")))}</div>'
 
-    # ── 마커 div (빈 요소) ──
-    st.markdown(
-        f'<div data-btnid="{btn_js_id}" style="display:none;height:0;margin:0;padding:0;"></div>',
-        unsafe_allow_html=True
-    )
+    st.markdown(f"""
+<div style="
+    background:{c['bg']};
+    border:1.5px solid {c['line']};
+    border-radius:14px;
+    padding:10px 12px;
+    margin-bottom:4px;
+    margin-top:0px;
+">
+    {time_html}
+    {subject_html}
+</div>
+""", unsafe_allow_html=True)
 
-    # ── 컬러 버튼 겸 토글 (별도 상세 버튼 없음) ──
-    if st.button(label, key=toggle_key, use_container_width=True):
+    # ── 토글 버튼 (작은 텍스트 버튼) ──
+    if st.button("▼ 상세" if not is_open else "▲ 접기", key=toggle_key, use_container_width=True):
         st.session_state.wm_expanded[toggle_key] = not is_open
         st.rerun()
-
-    # ── JS 스타일 주입 (별도 markdown 호출) ──
-    cancel_js = "b.style.setProperty('text-decoration','line-through','important');b.style.setProperty('opacity','0.65','important');" if is_cancel else ""
-
-    js_code = (
-        '<script>\n'
-        '(function(){\n'
-        '  function s(){\n'
-        '    var m=document.querySelector(\'div[data-btnid="' + btn_js_id + '"]\');\n'
-        '    if(!m)return;\n'
-        '    var p=m.closest(\'[data-testid="stMarkdown"]\')||m.parentElement;\n'
-        '    var sib=p,b=null,n=8;\n'
-        '    while(sib&&n>0){sib=sib.nextElementSibling;n--;if(!sib)break;var x=sib.querySelector("button");if(x){b=x;break;}}\n'
-        '    if(!b)return;\n'
-        '    b.style.setProperty("background","' + c["bg"] + '","important");\n'
-        '    b.style.setProperty("border","1.5px solid ' + c["line"] + '","important");\n'
-        '    b.style.setProperty("color","' + c["text"] + '","important");\n'
-        '    b.style.setProperty("border-radius","10px","important");\n'
-        '    b.style.setProperty("font-weight","700","important");\n'
-        '    b.style.setProperty("font-size","0.80rem","important");\n'
-        '    b.style.setProperty("text-align","left","important");\n'
-        '    b.style.setProperty("padding","5px 8px","important");\n'
-        '    b.style.setProperty("white-space","normal","important");\n'
-        '    b.style.setProperty("word-break","keep-all","important");\n'
-        '    b.style.setProperty("height","auto","important");\n'
-        '    b.style.setProperty("line-height","1.4","important");\n'
-        '    b.style.setProperty("min-height","0","important");\n'
-        '    ' + cancel_js + '\n'
-        '    var w=b.closest(\'[data-testid="stButton"]\');\n'
-        '    if(w){w.style.setProperty("margin-bottom","2px","important");w.style.setProperty("margin-top","0","important");}\n'
-        '  }\n'
-        '  setTimeout(s,0);setTimeout(s,120);setTimeout(s,350);\n'
-        '})();\n'
-        '</script>'
-    )
-    st.markdown(js_code, unsafe_allow_html=True)
 
     if is_open:
         st.markdown(f"""
