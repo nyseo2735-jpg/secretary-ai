@@ -907,10 +907,26 @@ def render_week_month_event(row, prefix=""):
 </div>
 """, unsafe_allow_html=True)
 
-    # ── 토글 버튼 (작은 텍스트 버튼) ──
-    if st.button("▼ 상세" if not is_open else "▲ 접기", key=toggle_key, use_container_width=True):
-        st.session_state.wm_expanded[toggle_key] = not is_open
-        st.rerun()
+st.markdown(
+    f"""<div style="text-align:center;margin:-4px 0 2px 0;cursor:pointer;"
+         onclick="
+           var btns = window.parent.document.querySelectorAll('button');
+           for(var i=0;i<btns.length;i++){{
+             if(btns[i].innerText.trim()==='{toggle_key}'){{btns[i].click();break;}}
+           }}
+         ">
+      <span style="font-size:0.5rem;color:#999;border:1px solid #ddd;border-radius:4px;padding:0px 8px;display:inline-block;">
+        {"▲" if is_open else "▼"}
+      </span>
+    </div>""",
+    unsafe_allow_html=True
+)
+# 숨김 버튼 (실제 토글 처리용)
+st.markdown('<div style="position:absolute;left:-9999px;height:0;overflow:hidden;">', unsafe_allow_html=True)
+if st.button(toggle_key, key=toggle_key):
+    st.session_state.wm_expanded[toggle_key] = not is_open
+    st.rerun()
+st.markdown('</div>', unsafe_allow_html=True)
 
     if is_open:
         st.markdown(f"""
