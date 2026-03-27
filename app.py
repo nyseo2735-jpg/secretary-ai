@@ -1000,11 +1000,12 @@ def render_list_view_event(row, prefix=""):
     arrow = "▲" if is_open else "▼"
     btn_margin_top = "2px"                                     # ← 박스↔버튼 간격
     btn_margin_bottom = "6px"                                  # ← 버튼↔다음 박스 간격
-    st.markdown(f'<div class="list-detail-btn-wrap" style="margin-top:{btn_margin_top};margin-bottom:{btn_margin_bottom};">', unsafe_allow_html=True)
-    if st.button(f"{arrow} 상세", key=f"{toggle_key}_btn", use_container_width=True):
-        st.session_state.wm_expanded[toggle_key] = not is_open
-        st.rerun()
-    st.markdown('</div>', unsafe_allow_html=True)
+    arrow = "▲" if is_open else "▼"
+    _col_btn, = st.columns([1])
+    with _col_btn:
+      if st.button(f"{arrow} 상세", key=f"{toggle_key}_btn", use_container_width=True):
+         st.session_state.wm_expanded[toggle_key] = not is_open
+         st.rerun()
     if is_open:
         st.markdown(f"""
 <div style="border:1px solid {c['line']};background:{c['bg']};border-radius:8px;padding:4px 6px 3px 6px;margin-top:0px;">
