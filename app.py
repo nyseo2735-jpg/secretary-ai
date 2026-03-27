@@ -181,7 +181,7 @@ div[data-testid='stExpander'] summary:hover { background: #FAFAFA !important; }
 div[data-testid='stExpander'] summary { padding-top: 0.18rem !important; padding-bottom: 0.18rem !important; }
 div[data-testid='stTabs'] { margin-bottom: 0 !important; }
 
-.day-head { font-size: 1rem; font-weight: 800; color: #2F3142; margin-bottom: 10px; }
+.day-head { font-size: 1rem; font-weight: 800; color: #2F3142; margin-bottom: 15px; }
 .day-head.sun { color: #C1121F; }
 .day-head.sat { color: #1D4ED8; }
 .day-head.dim.sun { color: #F1A0A7; }
