@@ -336,6 +336,7 @@ div[data-testid='stTabs'] { margin-bottom: 0 !important; }
     min-height: 28px !important;
     height: 28px !important;
     font-size: 0.76rem !important;
+    color: #31333F !important;
 }
 [data-testid='stBaseButton-primary'] div,
 [data-testid='stBaseButton-primary'] span,
