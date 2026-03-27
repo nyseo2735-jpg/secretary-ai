@@ -1378,7 +1378,7 @@ else:
         week_anchor = wc1.date_input("", value=st.session_state.selected_date,
                                      key="week_anchor_date", label_visibility="collapsed")
         if wc2.button("이 날짜가 포함된 주 보기", key="apply_week_anchor", use_container_width=True, type="primary"):
-    st.session_state.selected_date = st.session_state.week_anchor_date; st.rerun()
+           st.session_state.selected_date = st.session_state.week_anchor_date; st.rerun()
 
         week_days = week_dates_from_any_day(st.session_state.selected_date)
         week_df   = filtered_df[filtered_df["DateParsed"].isin(week_days)].copy()
