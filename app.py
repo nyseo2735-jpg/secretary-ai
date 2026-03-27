@@ -182,7 +182,7 @@ div[data-testid='stExpander'] summary:hover { background: #FAFAFA !important; }
 div[data-testid='stExpander'] summary { padding-top: 0.18rem !important; padding-bottom: 0.18rem !important; }
 div[data-testid='stTabs'] { margin-bottom: 0 !important; }
 
-.day-head { font-size: 1rem; font-weight: 800; color: #2F3142; margin-bottom: 6px; }
+.day-head { font-size: 1rem; font-weight: 800; color: #2F3142; margin-bottom: 4px; }
 .day-head.sun { color: #C1121F; }
 .day-head.sat { color: #1D4ED8; }
 .day-head.dim.sun { color: #F1A0A7; }
@@ -221,8 +221,26 @@ div[data-testid='stTabs'] { margin-bottom: 0 !important; }
 .wm-detail-value { font-size: 0.78rem; font-weight: 600; color: #1F2937; line-height: 1.35; word-break: break-word; white-space: pre-wrap; }
 
 /* ──────────────────────────────────────────
-   주간/월별 일정없음 상단정렬
+   주간/월별 컬러 일정 버튼 (HTML 기반)
 ────────────────────────────────────────── */
+.wm-event-btn {
+    border-radius: 14px;
+    padding: 10px 12px;
+    cursor: pointer;
+    font-size: 0.82rem;
+    font-weight: 700;
+    line-height: 1.4;
+    text-align: center;
+    word-break: keep-all;
+    transition: filter 0.12s;
+    margin: 0;
+    width: 100%;
+    box-sizing: border-box;
+}
+.wm-event-btn:hover { filter: brightness(0.96); }
+.wm-event-btn.canceled { text-decoration: line-through; opacity: 0.65; }
+
+/* 주간/월별 일정없음 텍스트 상단 정렬 */
 .wm-no-schedule {
     font-size: 0.82rem;
     color: #9CA3AF;
@@ -822,9 +840,10 @@ def render_compact_event(row, prefix=""):
 
 
 # =========================================================
-# render_week_month_event (변경됨)
-# - 기존 JavaScript DOM 탐색 + marker div 방식 제거
-# - st.button 유지 + 렌더 후 CSS injection으로 컬러 적용
+# render_week_month_event  (완전 재작성)
+# - st.button + JavaScript 스타일 주입 방식 제거
+# - 순수 HTML 컬러 버튼 + st.session_state 토글
+# - 펼침/접힘이 rerun 없이 즉시 반영 (초기 상태 기반)
 # - 다른 뷰에 영향 없음
 # =========================================================
 def render_week_month_event(row, prefix=""):
@@ -837,59 +856,35 @@ def render_week_month_event(row, prefix=""):
     toggle_key = f"wm_toggle_{prefix}_{row_id}"
     is_open    = st.session_state.wm_expanded.get(toggle_key, False)
 
-    # 버튼 라벨
-    if time_txt:
-        label = f"{time_txt} [{cat_txt}] {subject}"
-    else:
-        label = f"[{cat_txt}] {subject}"
+    # ── 컬러 버튼을 순수 HTML로 렌더링 (시간 + 카테고리 + 제목 분리) ──
+    cancel_style = "text-decoration:line-through;opacity:0.65;" if is_cancel else ""
+    attend_icon  = "👑 " if is_president_attend(row) else ""
+    time_html    = f'<div style="font-size:0.73rem;font-weight:800;color:{c["text"]};margin-bottom:3px;">{esc(time_txt)} [{esc(cat_txt)}]</div>' if time_txt else f'<div style="font-size:0.73rem;font-weight:800;color:{c["text"]};margin-bottom:3px;">[{esc(cat_txt)}]</div>'
+    subject_html = f'<div style="font-size:0.84rem;font-weight:700;color:{c["text"]};line-height:1.4;word-break:keep-all;{cancel_style}">{html.escape(attend_icon)}{esc(safe_str(row.get("Subject","")))}</div>'
 
-    # 토글 버튼
-    if st.button(label, key=toggle_key, use_container_width=True):
+    st.markdown(f"""
+<div style="
+    background:{c['bg']};
+    border:1.5px solid {c['line']};
+    border-radius:14px;
+    padding:10px 12px;
+    margin-bottom:4px;
+    margin-top:0px;
+">
+    {time_html}
+    {subject_html}
+</div>
+""", unsafe_allow_html=True)
+
+    # ── 토글 버튼 (작은 텍스트 버튼) ──
+    if st.button("▼ 상세" if not is_open else "▲ 접기", key=toggle_key, use_container_width=True):
         st.session_state.wm_expanded[toggle_key] = not is_open
         st.rerun()
 
-    # 버튼에 카테고리 컬러 적용 (JavaScript로 텍스트 매칭)
-    # label의 처음 30자를 매칭 키로 사용 (특수문자 이스케이프)
-    label_escaped = html.escape(label[:30]).replace("'", "\\'").replace('"', '\\"')
-    cancel_js = ""
-    if is_cancel:
-        cancel_js = "btn.style.setProperty('text-decoration','line-through','important');btn.style.setProperty('opacity','0.65','important');"
-
-    st.markdown(f"""<script>
-(function(){{
-  function fix(){{
-    var btns=document.querySelectorAll('button[kind="secondary"]');
-    for(var i=0;i<btns.length;i++){{
-      var p=btns[i].querySelector('p');
-      if(!p)continue;
-      var t=p.textContent||'';
-      if(t.indexOf('{label_escaped}')===0){{
-        btns[i].style.setProperty('background','{c["bg"]}','important');
-        btns[i].style.setProperty('border','1.5px solid {c["line"]}','important');
-        btns[i].style.setProperty('color','{c["text"]}','important');
-        btns[i].style.setProperty('border-radius','14px','important');
-        btns[i].style.setProperty('font-weight','700','important');
-        btns[i].style.setProperty('font-size','0.82rem','important');
-        btns[i].style.setProperty('text-align','center','important');
-        btns[i].style.setProperty('padding','10px 12px','important');
-        btns[i].style.setProperty('white-space','normal','important');
-        btns[i].style.setProperty('word-break','keep-all','important');
-        btns[i].style.setProperty('height','auto','important');
-        btns[i].style.setProperty('min-height','0','important');
-        btns[i].style.setProperty('line-height','1.4','important');
-        {cancel_js}
-      }}
-    }}
-  }}
-  setTimeout(fix,0);setTimeout(fix,80);setTimeout(fix,250);
-}})();
-</script>""", unsafe_allow_html=True)
-
-    # 펼침 상세
     if is_open:
         st.markdown(f"""
 <div style="border:1px solid {c['line']};border-top:none;background:{c['bg']};
-            border-radius:0 0 12px 12px;padding:8px 10px 6px 10px;margin-top:0px;margin-bottom:6px;">
+            border-radius:0 0 12px 12px;padding:8px 10px 6px 10px;margin-top:-6px;">
   <div style="display:flex;flex-wrap:wrap;gap:4px;margin-bottom:8px;">
     <span style="background:{c['soft']};color:{c['text']};border:1px solid {c['line']};
                  border-radius:999px;padding:2px 8px;font-size:0.70rem;font-weight:800;">{esc(cat_txt)}</span>
@@ -923,9 +918,6 @@ def render_week_month_event(row, prefix=""):
 </div>
 """, unsafe_allow_html=True)
         render_action_buttons_compact(row, prefix=prefix)
-
-    st.markdown('<div style="margin-top:-14px;"></div>', unsafe_allow_html=True)
-    st.markdown('<div style="margin-top:-12px;"></div>', unsafe_allow_html=True)
 
 
 def render_form(mode="new", row_data=None):
