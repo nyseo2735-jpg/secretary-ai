@@ -857,49 +857,54 @@ def render_week_month_event(row, prefix=""):
     is_open    = st.session_state.wm_expanded.get(toggle_key, False)
 
     label = f"{time_txt} [{cat_txt}] {subject}" if time_txt else f"[{cat_txt}] {subject}"
-
-    # ── JS 마커: 바로 다음 st.button을 찾아 컬러 스타일 적용 ──
-    cancel_js = ""
-    if is_cancel:
-        cancel_js = "btn.style.setProperty('text-decoration','line-through','important');btn.style.setProperty('opacity','0.65','important');"
-
     btn_js_id = "wmbtn_" + "".join(ch if ch.isalnum() else "_" for ch in toggle_key)
 
-    st.markdown(f"""<div data-btnid="{btn_js_id}" style="display:none;height:0;margin:0;padding:0;overflow:hidden;"></div>
-<script>
-(function(){{
-  function s(){{
-    var m=document.querySelector('div[data-btnid="{btn_js_id}"]');
-    if(!m)return;
-    var p=m.closest('[data-testid="stMarkdown"]')||m.parentElement;
-    var sib=p,btn=null,n=8;
-    while(sib&&n>0){{sib=sib.nextElementSibling;n--;if(!sib)break;var b=sib.querySelector('button');if(b){{btn=b;break;}}}}
-    if(!btn)return;
-    btn.style.setProperty('background','{c["bg"]}','important');
-    btn.style.setProperty('border','1.5px solid {c["line"]}','important');
-    btn.style.setProperty('color','{c["text"]}','important');
-    btn.style.setProperty('border-radius','10px','important');
-    btn.style.setProperty('font-weight','700','important');
-    btn.style.setProperty('font-size','0.80rem','important');
-    btn.style.setProperty('text-align','left','important');
-    btn.style.setProperty('padding','5px 8px','important');
-    btn.style.setProperty('white-space','normal','important');
-    btn.style.setProperty('word-break','keep-all','important');
-    btn.style.setProperty('height','auto','important');
-    btn.style.setProperty('line-height','1.4','important');
-    btn.style.setProperty('min-height','0','important');
-    {cancel_js}
-    var w=btn.closest('[data-testid="stButton"]');
-    if(w){{w.style.setProperty('margin-bottom','2px','important');w.style.setProperty('margin-top','0','important');}}
-  }}
-  setTimeout(s,0);setTimeout(s,120);setTimeout(s,350);
-}})();
-</script>""", unsafe_allow_html=True)
+    # ── 마커 div (빈 요소) ──
+    st.markdown(
+        f'<div data-btnid="{btn_js_id}" style="display:none;height:0;margin:0;padding:0;"></div>',
+        unsafe_allow_html=True
+    )
 
-    # ── 컬러 버튼 겸 토글 (이것 하나만 존재, 별도 상세 버튼 없음) ──
+    # ── 컬러 버튼 겸 토글 (별도 상세 버튼 없음) ──
     if st.button(label, key=toggle_key, use_container_width=True):
         st.session_state.wm_expanded[toggle_key] = not is_open
         st.rerun()
+
+    # ── JS 스타일 주입 (별도 markdown 호출) ──
+    cancel_js = "b.style.setProperty('text-decoration','line-through','important');b.style.setProperty('opacity','0.65','important');" if is_cancel else ""
+
+    js_code = (
+        '<script>\n'
+        '(function(){\n'
+        '  function s(){\n'
+        '    var m=document.querySelector(\'div[data-btnid="' + btn_js_id + '"]\');\n'
+        '    if(!m)return;\n'
+        '    var p=m.closest(\'[data-testid="stMarkdown"]\')||m.parentElement;\n'
+        '    var sib=p,b=null,n=8;\n'
+        '    while(sib&&n>0){sib=sib.nextElementSibling;n--;if(!sib)break;var x=sib.querySelector("button");if(x){b=x;break;}}\n'
+        '    if(!b)return;\n'
+        '    b.style.setProperty("background","' + c["bg"] + '","important");\n'
+        '    b.style.setProperty("border","1.5px solid ' + c["line"] + '","important");\n'
+        '    b.style.setProperty("color","' + c["text"] + '","important");\n'
+        '    b.style.setProperty("border-radius","10px","important");\n'
+        '    b.style.setProperty("font-weight","700","important");\n'
+        '    b.style.setProperty("font-size","0.80rem","important");\n'
+        '    b.style.setProperty("text-align","left","important");\n'
+        '    b.style.setProperty("padding","5px 8px","important");\n'
+        '    b.style.setProperty("white-space","normal","important");\n'
+        '    b.style.setProperty("word-break","keep-all","important");\n'
+        '    b.style.setProperty("height","auto","important");\n'
+        '    b.style.setProperty("line-height","1.4","important");\n'
+        '    b.style.setProperty("min-height","0","important");\n'
+        '    ' + cancel_js + '\n'
+        '    var w=b.closest(\'[data-testid="stButton"]\');\n'
+        '    if(w){w.style.setProperty("margin-bottom","2px","important");w.style.setProperty("margin-top","0","important");}\n'
+        '  }\n'
+        '  setTimeout(s,0);setTimeout(s,120);setTimeout(s,350);\n'
+        '})();\n'
+        '</script>'
+    )
+    st.markdown(js_code, unsafe_allow_html=True)
 
     if is_open:
         st.markdown(f"""
