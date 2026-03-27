@@ -936,6 +936,83 @@ def render_week_month_event(row, prefix=""):
 """, unsafe_allow_html=True)
         render_action_buttons_compact(row, prefix=prefix)
 
+def render_list_view_event(row, prefix=""):
+    """목록형 전용 이벤트 렌더 — 간격을 독립 조정 가능"""
+    c         = get_color(safe_str(row.get("Category", "기타")))
+    time_txt  = safe_str(row.get("Time", ""))
+    cat_txt   = safe_str(row.get("Category", "기타"))
+    is_cancel = safe_str(row.get("Status")) == "취소"
+    row_id    = safe_str(row.get("ID", ""))
+    attend_icon = "👑 " if is_president_attend(row) else ""
+    subj = safe_str(row.get("Subject", ""))
+    toggle_key = f"wm_tog_{prefix}_{row_id}"
+
+    if toggle_key not in st.session_state.wm_expanded:
+        st.session_state.wm_expanded[toggle_key] = False
+    is_open = st.session_state.wm_expanded[toggle_key]
+
+    cancel_style = "text-decoration:line-through;opacity:0.65;" if is_cancel else ""
+    if time_txt:
+        time_html = f'<div style="font-size:0.70rem;font-weight:800;color:{c["text"]};margin-bottom:1px;">{esc(time_txt)} [{esc(cat_txt)}]</div>'
+    else:
+        time_html = f'<div style="font-size:0.70rem;font-weight:800;color:{c["text"]};margin-bottom:1px;">[{esc(cat_txt)}]</div>'
+    subject_html = f'<div style="font-size:0.80rem;font-weight:700;color:{c["text"]};line-height:1.3;word-break:keep-all;{cancel_style}">{html.escape(attend_icon)}{esc(subj)}</div>'
+
+    # ── 이벤트 박스 (margin-bottom 으로 박스↔버튼 간격 조정) ──
+    st.markdown(
+        f'<div style="background:{c["bg"]};border:1.5px solid {c["line"]};border-radius:10px;'
+        f'padding:4px 7px;margin-bottom:2px;">'               # ← ⓐ 박스 아래 간격
+        f'{time_html}{subject_html}</div>',
+        unsafe_allow_html=True
+    )
+
+    # ── 상세 버튼 (인라인 HTML로 극소형 — CSS 불필요) ──
+    arrow = "▲" if is_open else "▼"
+    btn_margin_bottom = "6px"                                  # ← ⓑ 버튼 아래 간격 (다음 박스까지)
+    st.markdown(
+        f'<div style="text-align:center;margin-top:0px;margin-bottom:{btn_margin_bottom};">'
+        f'<span id="{toggle_key}_lbl" style="font-size:0.50rem;color:#9CA3AF;border:1px solid #E5E7EB;'
+        f'border-radius:4px;padding:1px 6px;background:#FAFAFA;cursor:pointer;">'
+        f'{arrow} 상세</span></div>',
+        unsafe_allow_html=True
+    )
+    if st.button(f"{arrow} 상세", key=toggle_key, use_container_width=True):
+        st.session_state.wm_expanded[toggle_key] = not is_open
+        st.rerun()
+    # 실제 Streamlit 버튼은 숨기고 위 HTML이 시각적 역할
+    st.markdown(
+        '<style>#' + toggle_key + '_lbl{pointer-events:none;}</style>',
+        unsafe_allow_html=True
+    )
+
+    if is_open:
+        st.markdown(f"""
+<div style="border:1px solid {c['line']};background:{c['bg']};border-radius:8px;padding:4px 6px 3px 6px;margin-top:0px;">
+  <div style="display:flex;flex-wrap:wrap;gap:3px;margin-bottom:4px;">
+    <span style="background:{c['soft']};color:{c['text']};border:1px solid {c['line']};border-radius:999px;padding:1px 6px;font-size:0.62rem;font-weight:800;">{esc(cat_txt)}</span>
+    <span style="background:#F3F4F6;color:#374151;border:1px solid #D1D5DB;border-radius:999px;padding:1px 6px;font-size:0.62rem;font-weight:700;">{esc(row.get('Status',''))}</span>
+    <span style="background:#F3F4F6;color:#374151;border:1px solid #D1D5DB;border-radius:999px;padding:1px 6px;font-size:0.62rem;font-weight:700;">우선순위 {esc(row.get('Priority',''))}</span>
+    <span style="background:#F3F4F6;color:#374151;border:1px solid #D1D5DB;border-radius:999px;padding:1px 6px;font-size:0.62rem;font-weight:700;">{'👑 회장참석' if is_president_attend(row) else '대참가능'}</span>
+    <span style="background:#EFF6FF;color:#1D4ED8;border:1px solid #BFDBFE;border-radius:999px;padding:1px 6px;font-size:0.62rem;font-weight:700;">팔로우 {esc(row.get('FollowStatus',''))}</span>
+  </div>
+  <div class="wm-detail-grid">
+    <div class="wm-detail-cell"><div class="wm-detail-label">일정 날짜</div><div class="wm-detail-value">{esc(row.get('Date',''))}</div></div>
+    <div class="wm-detail-cell"><div class="wm-detail-label">일정 시간</div><div class="wm-detail-value">{esc(row.get('Time',''))}</div></div>
+    <div class="wm-detail-cell"><div class="wm-detail-label">카테고리</div><div class="wm-detail-value" style="color:{c['text']};font-weight:700;">{esc(cat_txt)}</div></div>
+    <div class="wm-detail-cell"><div class="wm-detail-label">회의명</div><div class="wm-detail-value" style="font-weight:700;{'text-decoration:line-through;opacity:0.65;' if is_cancel else ''}">{esc(row.get('Subject',''))}</div></div>
+    <div class="wm-detail-cell"><div class="wm-detail-label">방문기관명</div><div class="wm-detail-value">{esc(row.get('OrgName','')) or '—'}</div></div>
+    <div class="wm-detail-cell"><div class="wm-detail-label">회장님 외 동행인</div><div class="wm-detail-value">{esc(row.get('Companion','')) or '—'}</div></div>
+    <div class="wm-detail-cell"><div class="wm-detail-label">주 담당자</div><div class="wm-detail-value">{esc(row.get('FollowOwner','')) or '—'}</div></div>
+    <div class="wm-detail-cell"><div class="wm-detail-label">팔로우업 상태</div><div class="wm-detail-value">{esc(row.get('FollowStatus',''))}</div></div>
+    <div class="wm-detail-cell"><div class="wm-detail-label">회의 목적</div><div class="wm-detail-value">{esc(row.get('Purpose','')) or '—'}</div></div>
+    <div class="wm-detail-cell"><div class="wm-detail-label">후속/준비사항</div><div class="wm-detail-value">{esc(row.get('FollowTask','')) or '—'}</div></div>
+    <div class="wm-detail-cell"><div class="wm-detail-label">진행 메모</div><div class="wm-detail-value">{esc(row.get('FollowProgressMemo','')) or '—'}</div></div>
+    <div class="wm-detail-cell"><div class="wm-detail-label">일반 메모</div><div class="wm-detail-value">{esc(row.get('Memo','')) or '—'}</div></div>
+  </div>
+</div>
+""", unsafe_allow_html=True)
+        render_action_buttons_compact(row, prefix=prefix)
+        
 def render_form(mode="new", row_data=None):
     if row_data is None:
         row_data = {
@@ -1327,13 +1404,17 @@ else:
             for d in flat_days:
                 if d not in seen: seen.add(d); ordered_days.append(d)
             for d in ordered_days:
-                st.markdown(day_header_html(d, f"{d.month}월 {d.day}일", dim=False), unsafe_allow_html=True)
+                st.markdown(
+                   f"<div style='font-size:1rem;font-weight:800;color:#2F3142;margin-bottom:4px;'>"
+                   f"{d.month}월 {d.day}일</div>",
+                   unsafe_allow_html=True
+                )
                 daily = month_list[month_list["DateParsed"] == d].copy()
                 if daily.empty:
                     st.markdown('<div class="wm-no-schedule">일정 없음</div>', unsafe_allow_html=True)
                 else:
                     for r_idx, (_, row) in enumerate(daily.iterrows()):
-                        render_week_month_event(row, prefix=f"month_list_{d}_{r_idx}")
+                        render_list_view_event(row, prefix=f"month_list_{d}_{r_idx}")
 
     # ── 전체 일정표 ──
     with tabs[3]:
