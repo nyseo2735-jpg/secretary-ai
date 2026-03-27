@@ -999,13 +999,14 @@ def render_list_view_event(row, prefix=""):
     # ── 상세 버튼 (인라인 HTML로 극소형 — CSS 불필요) ──
     arrow = "▲" if is_open else "▼"
     btn_margin_top = "2px"                                     # ← 박스↔버튼 간격
-    btn_margin_bottom = "0px"                                  # ← 버튼↔다음 박스 간격
+    btn_margin_bottom = "6px"                                  # ← 버튼↔다음 박스 간격
     arrow = "▲" if is_open else "▼"
     _col_btn, = st.columns([1])
     with _col_btn:
       if st.button(f"{arrow} 상세", key=f"{toggle_key}_btn", use_container_width=True):
          st.session_state.wm_expanded[toggle_key] = not is_open
          st.rerun()
+    st.markdown('<div style="margin-bottom:0px;"></div>', unsafe_allow_html=True)
     if is_open:
         st.markdown(f"""
 <div style="border:1px solid {c['line']};background:{c['bg']};border-radius:8px;padding:4px 6px 3px 6px;margin-top:0px;">
