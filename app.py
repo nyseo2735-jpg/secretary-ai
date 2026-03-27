@@ -851,15 +851,22 @@ def render_week_month_event(row, prefix=""):
     time_txt  = safe_str(row.get("Time", ""))
     cat_txt   = safe_str(row.get("Category", "기타"))
     subject   = compact_subject_text(row)
-    label     = f"{time_txt} [{cat_txt}] {subject}" if time_txt else f"[{cat_txt}] {subject}"
     is_cancel = safe_str(row.get("Status")) == "취소"
-
-    row_id     = safe_str(row.get("ID", ""))
+    row_id    = safe_str(row.get("ID", ""))
     toggle_key = f"wm_toggle_{prefix}_{row_id}"
     is_open    = st.session_state.wm_expanded.get(toggle_key, False)
 
-    btn_js_id = "wmbtn_" + "".join(ch if ch.isalnum() else "_" for ch in toggle_key)
+    # ── 버튼 라벨 (두 번째 코드의 time_html/subject_html 내용을 텍스트로) ──
+    attend_icon = "👑 " if is_president_attend(row) else ""
+    if time_txt:
+        label = f"{time_txt} [{cat_txt}]  {attend_icon}{safe_str(row.get('Subject',''))}"
+    else:
+        label = f"[{cat_txt}]  {attend_icon}{safe_str(row.get('Subject',''))}"
+    if is_cancel:
+        label = f"{label} (취소)"
 
+    # ── JS로 버튼에 컬러 스타일 적용 (첫 번째 코드 방식 그대로) ──
+    btn_js_id = "wmbtn_" + "".join(ch if ch.isalnum() else "_" for ch in toggle_key)
     label_style = "text-decoration:line-through;opacity:0.65;" if is_cancel else ""
 
     st.markdown(f"""
@@ -882,21 +889,24 @@ def render_week_month_event(row, prefix=""):
     }}
     if(!btn) return;
     btn.style.setProperty('background', '{c["bg"]}', 'important');
-    btn.style.setProperty('border', '1px solid {c["line"]}', 'important');
+    btn.style.setProperty('border', '1.5px solid {c["line"]}', 'important');
     btn.style.setProperty('color', '{c["text"]}', 'important');
-    btn.style.setProperty('border-radius', '12px', 'important');
+    btn.style.setProperty('border-radius', '14px', 'important');
     btn.style.setProperty('font-weight', '700', 'important');
-    btn.style.setProperty('font-size', '0.80rem', 'important');
+    btn.style.setProperty('font-size', '0.82rem', 'important');
     btn.style.setProperty('text-align', 'left', 'important');
-    btn.style.setProperty('padding', '7px 10px', 'important');
+    btn.style.setProperty('padding', '10px 12px', 'important');
     btn.style.setProperty('white-space', 'normal', 'important');
     btn.style.setProperty('word-break', 'keep-all', 'important');
     btn.style.setProperty('height', 'auto', 'important');
     btn.style.setProperty('line-height', '1.4', 'important');
+    btn.style.setProperty('margin-bottom', '0', 'important');
     if('{label_style}'){{
       btn.style.setProperty('text-decoration', 'line-through', 'important');
       btn.style.setProperty('opacity', '0.65', 'important');
     }}
+    var wrap = btn.closest('[data-testid="stButton"]');
+    if(wrap){{ wrap.style.setProperty('margin-bottom', '4px', 'important'); }}
   }}
   if(document.readyState === 'loading'){{
     document.addEventListener('DOMContentLoaded', applyStyle);
@@ -909,10 +919,12 @@ def render_week_month_event(row, prefix=""):
 </script>
 """, unsafe_allow_html=True)
 
+    # ── 컬러 박스 = 토글 버튼 (상세 버튼 없음) ──
     if st.button(label, key=toggle_key, use_container_width=True):
         st.session_state.wm_expanded[toggle_key] = not is_open
         st.rerun()
 
+    # ── 상세 펼침 (두 번째 코드 그대로, 한 글자도 안 바꿈) ──
     if is_open:
         st.markdown(f"""
 <div style="border:1px solid {c['line']};border-top:none;background:{c['bg']};
@@ -950,9 +962,6 @@ def render_week_month_event(row, prefix=""):
 </div>
 """, unsafe_allow_html=True)
         render_action_buttons_compact(row, prefix=prefix)
-
-    st.markdown('<div style="margin-top:-14px;"></div>', unsafe_allow_html=True)
-    st.markdown('<div style="margin-top:-12px;"></div>', unsafe_allow_html=True)
 
 
 def render_form(mode="new", row_data=None):
