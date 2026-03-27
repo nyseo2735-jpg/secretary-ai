@@ -251,7 +251,7 @@ div[data-testid='stTabs'] { margin-bottom: 0 !important; }
     margin-bottom: 8px !important;
 }
 [data-testid='stTabs'] .stElementContainer:has([data-testid='stBaseButton-secondary']) {
-    margin-top: 6px !important;
+    margin-top: 3px !important;
     margin-bottom: 4px !important;
 }
 /* ── 주간/월별 컬럼 내 버튼 극소형화 ── */
