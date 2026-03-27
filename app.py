@@ -262,22 +262,14 @@ div[data-testid='stTabs'] { margin-bottom: 0 !important; }
     gap: 0px !important;
     row-gap: 0px !important;
 }
-/* ── 주간/월별 컬럼 내 버튼·마크다운 간격 최소화 ── */
-[data-testid='column'] [data-testid='stVerticalBlock'] {
-    gap: 0px !important;
-    row-gap: 0px !important;
-}
 [data-testid='column'] [data-testid='stButton'] {
     margin-top: -6px !important;
     margin-bottom: -6px !important;
 }
-[data-testid='column'] [data-testid='stButton'] button,
-[data-testid='column'] [data-testid='stButton'] > button,
-[data-testid='column'] [data-testid='stButton'] button[kind="secondary"],
-[data-testid='column'] [data-testid='stButton'] button[data-testid="stBaseButton-secondary"] {
+[data-testid='column'] button {
     min-height: 0px !important;
-    max-height: 20px !important;
-    height: 20px !important;
+    max-height: 22px !important;
+    height: 22px !important;
     padding: 0px 6px !important;
     font-size: 0.55rem !important;
     line-height: 1 !important;
@@ -285,9 +277,7 @@ div[data-testid='stTabs'] { margin-bottom: 0 !important; }
     margin: 0 !important;
     box-sizing: border-box !important;
 }
-[data-testid='column'] [data-testid='stButton'] button p,
-[data-testid='column'] [data-testid='stButton'] button span,
-[data-testid='column'] [data-testid='stButton'] button div {
+[data-testid='column'] button * {
     margin: 0px !important;
     padding: 0px !important;
     font-size: 0.55rem !important;
